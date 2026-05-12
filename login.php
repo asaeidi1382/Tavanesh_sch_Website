@@ -230,7 +230,7 @@ input::placeholder { color:#a8d5da; }
 
   <div class="divider"></div>
   <div class="card-footer">
-    حساب کاربری ندارید؟ <a href="register.php">ثبت‌نام کنید</a>
+    <a href="index.html">← بازگشت به صفحه اصلی</a>
   </div>
 </div>
 

@@ -430,6 +430,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <div class="tabs">
     <a href="?tab=import"    class="tab <?= $tab==='import'    ?'active':'' ?>">📤 وارد کردن داده</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?>)</a>
+    <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
   </div>
 
   <?php if ($tab === 'import'): ?>
@@ -725,6 +726,77 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </form>
   </div>
   <?php endif; ?>
+
+  <?php elseif ($tab === 'debtors'):
+    $ref_date = $_POST['ref_date'] ?? get_jalali_today();
+    $db = getDB();
+
+    // واکشی همه کاربران و محاسبات بدهی
+    $all_users = $db->query("SELECT username, full_name FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $debtors = [];
+
+    foreach ($all_users as $u) {
+        $stmt = $db->prepare("SELECT SUM(amount) as total_due, SUM(paid_amount) as total_paid FROM tuition WHERE national_id = ? AND due_date <= ?");
+        $stmt->execute([$u['username'], $ref_date]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $total_due  = (int)$res['total_due'];
+        $total_paid = (int)$res['total_paid'];
+        $debt = $total_due - $total_paid;
+
+        if ($debt > 0) {
+            $debtors[] = [
+                'full_name' => $u['full_name'],
+                'username'  => $u['username'],
+                'total_due' => $total_due,
+                'total_paid'=> $total_paid,
+                'debt'      => $debt
+            ];
+        }
+    }
+  ?>
+  <div class="card">
+    <h3>📉 گزارش بدهکاران</h3>
+    <form method="POST" style="display:flex; gap:10px; align-items:flex-end; margin-bottom:20px;">
+      <div class="field" style="flex:1; margin-bottom:0;">
+        <label>تاریخ مرجع (بدهی تا این تاریخ)</label>
+        <input type="text" name="ref_date" value="<?= htmlspecialchars($ref_date) ?>" placeholder="1405/01/01">
+      </div>
+      <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">بروزرسانی گزارش</button>
+    </form>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>نام دانش‌آموز</th>
+            <th>کد ملی</th>
+            <th>مبلغ سررسید شده</th>
+            <th>مبلغ پرداخت شده</th>
+            <th>بدهی</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($debtors)): ?>
+            <tr><td colspan="6" style="text-align:center; padding:30px; color:var(--gray);">هیچ بدهکاری تا این تاریخ یافت نشد.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($debtors as $d): ?>
+          <tr>
+            <td><?= htmlspecialchars($d['full_name']) ?></td>
+            <td><?= htmlspecialchars($d['username']) ?></td>
+            <td><?= number_format($d['total_due']) ?> تومان</td>
+            <td><?= number_format($d['total_paid']) ?> تومان</td>
+            <td style="color:var(--red); font-weight:bold;"><?= number_format($d['debt']) ?> تومان</td>
+            <td>
+              <a href="?tab=manage_student&username=<?= urlencode($d['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">مدیریت</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <?php endif; ?>
 
 </main>

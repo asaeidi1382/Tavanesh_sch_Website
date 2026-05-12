@@ -63,8 +63,12 @@ $statusClass = ['paid'=>'paid','partial'=>'partial','unpaid'=>'unpaid'];
   --text:             #0f3d42;
   --gray:             #4e8a90;
   --green:            #1a9960;
+  --green-light:      #f0fdf4;
+  --green-border:     #86efac;
   --orange:           #d97706;
   --red:              #c94040;
+  --red-light:        #fff1f1;
+  --red-border:       #fca5a5;
   --shadow-sm:        0 4px 15px rgba(0,0,0,.08);
   --shadow-md:        0 12px 30px rgba(0,0,0,.12);
   --shadow-lg:        0 20px 50px rgba(0,0,0,.18);
@@ -103,9 +107,9 @@ main { max-width:1100px; margin:0 auto; padding:36px 20px 60px; animation:fadeIn
 .summary-card.total    .value { color:var(--text); }
 .summary-card.paid-sum .value { color:var(--green); }
 .summary-card.remaining .value { color:var(--red); }
-.summary-card.balance-overdue { border-color: #fca5a5; background: #fff1f1; }
+.summary-card.balance-overdue { border-color: var(--red-border); background: var(--red-light); }
 .summary-card.balance-overdue .value { color: var(--red); }
-.summary-card.balance-credit { border-color: #86efac; background: #f0fdf4; }
+.summary-card.balance-credit { border-color: var(--green-border); background: var(--green-light); }
 .summary-card.balance-credit .value { color: var(--green); }
 
 /* جدول */
