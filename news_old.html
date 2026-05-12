@@ -2,7 +2,7 @@
 
 
 <!DOCTYPE html>
-<!-- saved from url=(0033)https://tavanesh-sch.ir/news.html -->
+<!-- saved from url=(0033)https://tavanesh-sch.ir/news.php -->
 <html lang="fa" dir="rtl">
 
 <head>
@@ -1387,7 +1387,7 @@
   <div class="lightbox" id="lightbox">
     <div class="lightbox-img-container">
       <button class="lightbox-prev">←</button>
-      <img id="lightbox-img" src="https://tavanesh-sch.ir/news.html" alt="تصویر بزرگ">
+      <img id="lightbox-img" src="https://tavanesh-sch.ir/news.php" alt="تصویر بزرگ">
       <button class="lightbox-next">→</button>
     </div>
     <div class="lightbox-close">×</div>
@@ -1624,6 +1624,7 @@
           dotsContainer.style.display = 'none';
           return;
         }
+        dotsContainer.innerHTML = '';
         for (
           let i = 0; i < total; i++
 
@@ -1656,7 +1657,7 @@
         function updateActive(
 
         ) {
-          const scrollLeft = container.scrollLeft;
+          const scrollLeft = Math.abs(container.scrollLeft);
           const width = container.clientWidth;
           const index = Math.round(
             scrollLeft / width
@@ -1678,7 +1679,7 @@
 
         ) => {
           container.scrollBy({
-            left: container.clientWidth,
+            left: -container.clientWidth,
             behavior: 'smooth'
 
           }
@@ -1692,7 +1693,7 @@
 
         ) => {
           container.scrollBy({
-            left: -container.clientWidth,
+            left: container.clientWidth,
             behavior: 'smooth'
 
           }

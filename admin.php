@@ -251,6 +251,54 @@ if ($isAdmin && isset($_GET['delete_tuition_id'])) {
     $msgs[] = ['type'=>'success', 'text'=>'✅ قسط حذف شد.'];
 }
 
+// ─── مدیریت اخبار ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_news'])) {
+    $db = getDB();
+    $title = trim($_POST['title']);
+    $date = trim($_POST['date']);
+    $content = trim($_POST['content']);
+    $video_embed = trim($_POST['video_embed']);
+
+    $uploaded_images = [];
+    if (!empty($_FILES['news_images']['name'][0])) {
+        foreach ($_FILES['news_images']['tmp_name'] as $key => $tmp_name) {
+            $filename = time() . '_' . $_FILES['news_images']['name'][$key];
+            $target = "uploads/news/" . $filename;
+            if (move_uploaded_file($tmp_name, $target)) {
+                $uploaded_images[] = $target;
+            }
+        }
+    }
+
+    $images_json = json_encode($uploaded_images);
+
+    $stmt = $db->prepare("INSERT INTO news (title, date, content, images, video_embed) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$title, $date, $content, $images_json, $video_embed]);
+    $msgs[] = ['type'=>'success', 'text'=>'✅ خبر با موفقیت ثبت شد.'];
+}
+
+if ($isAdmin && isset($_GET['delete_news'])) {
+    $db = getDB();
+    $id = (int)$_GET['delete_news'];
+
+    // ابتدا تصاویر را حذف می‌کنیم (اختیاری اما بهتر است)
+    $stmt = $db->prepare("SELECT images FROM news WHERE id=?");
+    $stmt->execute([$id]);
+    $news_item = $stmt->fetch();
+    if ($news_item) {
+        $images = json_decode($news_item['images'], true);
+        if (is_array($images)) {
+            foreach ($images as $img) {
+                if (file_exists($img)) unlink($img);
+            }
+        }
+    }
+
+    $db->prepare("DELETE FROM news WHERE id=?")->execute([$id]);
+    header('Location: admin.php?tab=news');
+    exit;
+}
+
 // ─── ثبت پرداختی خودکار (توزیع بین اقساط) ───
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_payment_auto'])) {
     $db = getDB();
@@ -431,6 +479,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <a href="?tab=import"    class="tab <?= $tab==='import'    ?'active':'' ?>">📤 وارد کردن داده</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
+    <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
 
   <?php if ($tab === 'import'): ?>
@@ -684,30 +733,35 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           </tr>
         </thead>
         <tbody>
-          <?php foreach ($student_tuition as $row): ?>
-          <form method="POST">
-            <input type="hidden" name="tuition_id" value="<?= $row['id'] ?>">
-            <tr>
-              <td><input type="text" name="installment_no" value="<?= $row['installment_no'] ?>" style="width:40px; padding:5px;"></td>
-              <td><input type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width:100px; padding:5px;"></td>
-              <td><input type="text" name="amount" value="<?= number_format($row['amount']) ?>" style="width:100px; padding:5px;"></td>
-              <td><input type="text" name="paid_amount" value="<?= number_format($row['paid_amount']) ?>" style="width:100px; padding:5px;"></td>
-              <td><input type="text" name="due_date" value="<?= htmlspecialchars($row['due_date']) ?>" style="width:90px; padding:5px;"></td>
-              <td><input type="text" name="paid_date" value="<?= htmlspecialchars($row['paid_date']) ?>" style="width:90px; padding:5px;"></td>
-              <td>
-                <select name="status" style="padding:5px; border-radius:8px; font-family:Vazirmatn; font-size:0.8rem;">
-                  <option value="unpaid" <?= $row['status']=='unpaid'?'selected':'' ?>>پرداخت نشده</option>
-                  <option value="partial" <?= $row['status']=='partial'?'selected':'' ?>>ناقص</option>
-                  <option value="paid" <?= $row['status']=='paid'?'selected':'' ?>>پرداخت شده</option>
-                </select>
-              </td>
-              <td style="white-space: nowrap;">
-                <button type="submit" name="edit_tuition_row" class="btn-sm" style="background:var(--green)">ذخیره</button>
-                <a href="?tab=manage_student&username=<?= urlencode($target_user) ?>&delete_tuition_id=<?= $row['id'] ?>"
-                   class="btn-del" onclick="return confirm('حذف این قسط؟')">حذف</a>
-              </td>
-            </tr>
-          </form>
+          <?php foreach ($student_tuition as $row):
+            $formId = "form_edit_" . $row['id'];
+          ?>
+          <tr>
+            <td>
+              <form id="<?= $formId ?>" method="POST">
+                <input type="hidden" name="tuition_id" value="<?= $row['id'] ?>">
+                <input type="hidden" name="edit_tuition_row" value="1">
+              </form>
+              <input form="<?= $formId ?>" type="text" name="installment_no" value="<?= $row['installment_no'] ?>" style="width:40px; padding:5px;">
+            </td>
+            <td><input form="<?= $formId ?>" type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width:100px; padding:5px;"></td>
+            <td><input form="<?= $formId ?>" type="text" name="amount" value="<?= number_format($row['amount']) ?>" style="width:100px; padding:5px;"></td>
+            <td><input form="<?= $formId ?>" type="text" name="paid_amount" value="<?= number_format($row['paid_amount']) ?>" style="width:100px; padding:5px;"></td>
+            <td><input form="<?= $formId ?>" type="text" name="due_date" value="<?= htmlspecialchars($row['due_date']) ?>" style="width:90px; padding:5px;"></td>
+            <td><input form="<?= $formId ?>" type="text" name="paid_date" value="<?= htmlspecialchars($row['paid_date']) ?>" style="width:90px; padding:5px;"></td>
+            <td>
+              <select form="<?= $formId ?>" name="status" style="padding:5px; border-radius:8px; font-family:Vazirmatn; font-size:0.8rem;">
+                <option value="unpaid" <?= $row['status']=='unpaid'?'selected':'' ?>>پرداخت نشده</option>
+                <option value="partial" <?= $row['status']=='partial'?'selected':'' ?>>ناقص</option>
+                <option value="paid" <?= $row['status']=='paid'?'selected':'' ?>>پرداخت شده</option>
+              </select>
+            </td>
+            <td style="white-space: nowrap;">
+              <button form="<?= $formId ?>" type="submit" class="btn-sm" style="background:var(--green)">ذخیره</button>
+              <a href="?tab=manage_student&username=<?= urlencode($target_user) ?>&delete_tuition_id=<?= $row['id'] ?>"
+                 class="btn-del" onclick="return confirm('حذف این قسط؟')">حذف</a>
+            </td>
+          </tr>
           <?php endforeach; ?>
         </tbody>
       </table>
@@ -793,6 +847,69 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             </td>
           </tr>
           <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <?php elseif ($tab === 'news'):
+    $db = getDB();
+    $all_news = $db->query("SELECT * FROM news ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📰 افزودن خبر جدید</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>عنوان خبر</label>
+        <input type="text" name="title" required>
+      </div>
+      <div class="field">
+        <label>تاریخ (مثلاً ۱۶ اردیبهشت ۱۴۰۵)</label>
+        <input type="text" name="date" value="<?= get_jalali_today() ?>" required>
+      </div>
+      <div class="field">
+        <label>متن خبر</label>
+        <textarea name="content" rows="6" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:11px 14px; font-family:Vazirmatn;"></textarea>
+      </div>
+      <div class="field">
+        <label>تصاویر گالری (چند انتخابی)</label>
+        <input type="file" name="news_images[]" multiple accept="image/*">
+      </div>
+      <div class="field">
+        <label>کد امبد ویدیو (آپارات)</label>
+        <input type="text" name="video_embed" placeholder='<script type="text/JavaScript" src="..."></script>'>
+      </div>
+      <button type="submit" name="add_news" class="btn-primary">انتشار خبر</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>📋 لیست اخبار منتشر شده</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>عنوان</th>
+            <th>تاریخ</th>
+            <th>تصاویر</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($all_news as $n):
+            $imgs = json_decode($n['images'], true) ?: [];
+          ?>
+          <tr>
+            <td><?= htmlspecialchars($n['title']) ?></td>
+            <td><?= htmlspecialchars($n['date']) ?></td>
+            <td><?= count($imgs) ?> تصویر</td>
+            <td>
+              <a href="?tab=news&delete_news=<?= $n['id'] ?>" class="btn-del" onclick="return confirm('آیا از حذف این خبر اطمینان دارید؟')">حذف</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+          <?php if (empty($all_news)): ?>
+            <tr><td colspan="4" style="text-align:center; padding:20px;">هیچ خبری ثبت نشده است.</td></tr>
+          <?php endif; ?>
         </tbody>
       </table>
     </div>
