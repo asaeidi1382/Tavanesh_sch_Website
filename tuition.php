@@ -12,13 +12,20 @@ $stmt->execute([$national_id]);
 $installments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // محاسبه جمع کل، پرداخت شده، باقیمانده
-$totalAmount = 0;
-$totalPaid   = 0;
+$totalAmount    = 0;
+$totalPaid      = 0;
+$totalDueByToday = 0;
+$todayJalali    = get_jalali_today();
+
 foreach ($installments as $row) {
     $totalAmount += $row['amount'];
     $totalPaid   += $row['paid_amount'];
+    if (!empty($row['due_date']) && $row['due_date'] <= $todayJalali) {
+        $totalDueByToday += $row['amount'];
+    }
 }
 $totalRemaining = $totalAmount - $totalPaid;
+$financialBalance = $totalPaid - $totalDueByToday;
 
 // تبدیل عدد به فارسی
 function toFa($num) {
@@ -96,6 +103,10 @@ main { max-width:1100px; margin:0 auto; padding:36px 20px 60px; animation:fadeIn
 .summary-card.total    .value { color:var(--text); }
 .summary-card.paid-sum .value { color:var(--green); }
 .summary-card.remaining .value { color:var(--red); }
+.summary-card.balance-overdue { border-color: #fca5a5; background: #fff1f1; }
+.summary-card.balance-overdue .value { color: var(--red); }
+.summary-card.balance-credit { border-color: #86efac; background: #f0fdf4; }
+.summary-card.balance-credit .value { color: var(--green); }
 
 /* جدول */
 .table-wrap { background:#fff; border-radius:20px; box-shadow:var(--shadow-sm); border:1.5px solid var(--turquoise-light); overflow:hidden; }
@@ -175,9 +186,20 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
       <div class="value"><?= formatMoney($totalPaid) ?> تومان</div>
     </div>
     <div class="summary-card remaining">
-      <div class="label">مانده</div>
+      <div class="label">مانده کل</div>
       <div class="value"><?= formatMoney($totalRemaining) ?> تومان</div>
     </div>
+    <?php if ($financialBalance < 0): ?>
+      <div class="summary-card balance-overdue">
+        <div class="label">معوقه تا امروز</div>
+        <div class="value"><?= formatMoney(abs($financialBalance)) ?> تومان</div>
+      </div>
+    <?php elseif ($financialBalance > 0): ?>
+      <div class="summary-card balance-credit">
+        <div class="label">بستانکار (اضافه پرداختی)</div>
+        <div class="value"><?= formatMoney($financialBalance) ?> تومان</div>
+      </div>
+    <?php endif; ?>
   </div>
 
   <!-- جدول اقساط -->
