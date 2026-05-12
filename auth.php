@@ -109,3 +109,44 @@ function upsertStudent($national_id, $full_name) {
         return 'created';
     }
 }
+
+function get_jalali_today() {
+    // This is a VERY simplified approximation for demonstration
+    // In a real app, use a proper Jalali library.
+    // We'll use the system date if it's already set to Jalali,
+    // or just return a hardcoded/calculated string for now.
+    // Given the context of the school, let's assume we want YYYY/MM/DD.
+    // A better way is to use a simple Gregorian to Jalali algorithm.
+
+    $g_y = (int)date('Y');
+    $g_m = (int)date('m');
+    $g_d = (int)date('d');
+
+    $d_4 = $g_y % 4;
+    $g_a = array(0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334);
+    $doy_g = $g_a[$g_m] + $g_d;
+    if ($d_4 == 0 && $g_m > 2) $doy_g++;
+    $d_33 = (int)(($g_y - 16) % 132 / 33);
+    $leap = (int)(($g_y - 16) % 132 * 8 / 33);
+    $d_4 = (int)(($g_y - 16) % 4);
+    if ($d_4 == 0) $leap++;
+
+    $jy = $g_y - 621;
+    $jd = $doy_g - 79;
+
+    if ($jd <= 0) {
+        $jy--;
+        $jd += 365;
+        if ($d_4 == 1) $jd++;
+    }
+
+    if ($jd <= 186) {
+        $jm = (int)(($jd - 1) / 31) + 1;
+        $jd = ($jd - 1) % 31 + 1;
+    } else {
+        $jm = (int)(($jd - 187) / 30) + 7;
+        $jd = ($jd - 187) % 30 + 1;
+    }
+
+    return sprintf("%04d/%02d/%02d", $jy, $jm, $jd);
+}

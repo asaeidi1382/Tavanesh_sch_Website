@@ -204,6 +204,85 @@ if ($isAdmin && isset($_GET['delete_user'])) {
     exit;
 }
 
+// ─── ویرایش پروفایل دانش‌آموز ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_student_profile'])) {
+    $db = getDB();
+    $old_username = $_POST['old_username'];
+    $new_username = trim($_POST['new_username']);
+    $full_name    = trim($_POST['full_name']);
+
+    try {
+        $db->beginTransaction();
+        $stmt = $db->prepare("UPDATE users SET username=?, full_name=? WHERE username=?");
+        $stmt->execute([$new_username, $full_name, $old_username]);
+        if ($new_username !== $old_username) {
+            $db->prepare("UPDATE tuition SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
+        }
+        $db->commit();
+        $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل دانش‌آموز بروزرسانی شد.'];
+        $_GET['username'] = $new_username; // برای ماندن در همان صفحه مدیریت
+    } catch (Exception $e) {
+        $db->rollBack();
+        $msgs[] = ['type'=>'error', 'text'=>'❌ خطا: ' . $e->getMessage()];
+    }
+}
+
+// ─── ویرایش قسط ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuition_row'])) {
+    $db = getDB();
+    $id = (int)$_POST['tuition_id'];
+    $installment_no = (int)$_POST['installment_no'];
+    $description = trim($_POST['description']);
+    $amount = (int)str_replace(',', '', $_POST['amount']);
+    $due_date = trim($_POST['due_date']);
+    $paid_amount = (int)str_replace(',', '', $_POST['paid_amount']);
+    $paid_date = trim($_POST['paid_date']);
+    $status = $_POST['status'];
+
+    $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
+    $stmt->execute([$installment_no, $description, $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
+    $msgs[] = ['type'=>'success', 'text'=>'✅ قسط ویرایش شد.'];
+}
+
+// ─── حذف قسط ───
+if ($isAdmin && isset($_GET['delete_tuition_id'])) {
+    $db = getDB();
+    $db->prepare("DELETE FROM tuition WHERE id=?")->execute([(int)$_GET['delete_tuition_id']]);
+    $msgs[] = ['type'=>'success', 'text'=>'✅ قسط حذف شد.'];
+}
+
+// ─── ثبت پرداختی خودکار (توزیع بین اقساط) ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_payment_auto'])) {
+    $db = getDB();
+    $national_id = $_POST['national_id'];
+    $pay_amount = (int)str_replace(',', '', $_POST['pay_amount']);
+    $pay_date = trim($_POST['pay_date']);
+
+    if ($pay_amount > 0) {
+        $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND status != 'paid' ORDER BY installment_no ASC");
+        $stmt->execute([$national_id]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $remaining = $pay_amount;
+        foreach ($rows as $row) {
+            if ($remaining <= 0) break;
+            $needed = $row['amount'] - $row['paid_amount'];
+            if ($needed <= 0) continue;
+            if ($remaining >= $needed) {
+                $new_paid = $row['amount'];
+                $new_status = 'paid';
+                $remaining -= $needed;
+            } else {
+                $new_paid = $row['paid_amount'] + $remaining;
+                $new_status = 'partial';
+                $remaining = 0;
+            }
+            $db->prepare("UPDATE tuition SET paid_amount=?, status=?, paid_date=? WHERE id=?")
+               ->execute([$new_paid, $new_status, $pay_date ?: null, $row['id']]);
+        }
+        $msgs[] = ['type'=>'success', 'text'=>'✅ مبلغ پرداختی بین اقساط توزیع شد.'];
+    }
+}
+
 // ─── لیست دانش‌آموزان ───
 $students = [];
 if ($isAdmin) {
@@ -528,6 +607,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             <td><?= htmlspecialchars($s['username']) ?></td>
             <td><?= htmlspecialchars(substr($s['created_at'], 0, 10)) ?></td>
             <td>
+              <a href="?tab=manage_student&username=<?= urlencode($s['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">مدیریت</a>
               <a href="?tab=students&delete_user=<?= $s['id'] ?>"
                  class="btn-del"
                  onclick="return confirm('حذف این دانش‌آموز؟')">حذف</a>
@@ -539,6 +619,112 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </div>
   </div>
 
+  <?php elseif ($tab === 'manage_student' && isset($_GET['username'])):
+    $db = getDB();
+    $target_user = $_GET['username'];
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$target_user]);
+    $student_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$student_info):
+      echo "<div class='alert error'>❌ دانش‌آموز یافت نشد.</div>";
+    else:
+      $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? ORDER BY installment_no ASC");
+      $t_stmt->execute([$target_user]);
+      $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?></h3>
+    <form method="POST">
+      <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+      <div class="field">
+        <label>نام و نام خانوادگی</label>
+        <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+      </div>
+      <div class="field">
+        <label>کد ملی (نام کاربری)</label>
+        <input type="text" name="new_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+      </div>
+      <button type="submit" name="update_student_profile" class="btn-primary">بروزرسانی پروفایل</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>💰 ثبت پرداختی خودکار</h3>
+    <p style="font-size: 0.8rem; margin-bottom: 10px; color: var(--gray);">مبلغ وارد شده به ترتیب از اولین قسط پرداخت نشده کسر می‌شود.</p>
+    <form method="POST" style="display: flex; gap: 10px; align-items: flex-end;">
+      <input type="hidden" name="national_id" value="<?= htmlspecialchars($student_info['username']) ?>">
+      <div class="field" style="flex: 1; margin-bottom: 0;">
+        <label>مبلغ پرداختی (تومان)</label>
+        <input type="text" name="pay_amount" placeholder="مثلا 5,000,000">
+      </div>
+      <div class="field" style="flex: 1; margin-bottom: 0;">
+        <label>تاریخ پرداخت</label>
+        <input type="text" name="pay_date" value="<?= get_jalali_today() ?>">
+      </div>
+      <button type="submit" name="register_payment_auto" class="btn-primary" style="width: auto; padding: 11px 24px;">ثبت و توزیع</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>📋 لیست اقساط</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>شرح</th>
+            <th>مبلغ</th>
+            <th>پرداختی</th>
+            <th>سررسید</th>
+            <th>تاریخ پرداخت</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php foreach ($student_tuition as $row): ?>
+          <form method="POST">
+            <input type="hidden" name="tuition_id" value="<?= $row['id'] ?>">
+            <tr>
+              <td><input type="text" name="installment_no" value="<?= $row['installment_no'] ?>" style="width:40px; padding:5px;"></td>
+              <td><input type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width:100px; padding:5px;"></td>
+              <td><input type="text" name="amount" value="<?= number_format($row['amount']) ?>" style="width:100px; padding:5px;"></td>
+              <td><input type="text" name="paid_amount" value="<?= number_format($row['paid_amount']) ?>" style="width:100px; padding:5px;"></td>
+              <td><input type="text" name="due_date" value="<?= htmlspecialchars($row['due_date']) ?>" style="width:90px; padding:5px;"></td>
+              <td><input type="text" name="paid_date" value="<?= htmlspecialchars($row['paid_date']) ?>" style="width:90px; padding:5px;"></td>
+              <td>
+                <select name="status" style="padding:5px; border-radius:8px; font-family:Vazirmatn; font-size:0.8rem;">
+                  <option value="unpaid" <?= $row['status']=='unpaid'?'selected':'' ?>>پرداخت نشده</option>
+                  <option value="partial" <?= $row['status']=='partial'?'selected':'' ?>>ناقص</option>
+                  <option value="paid" <?= $row['status']=='paid'?'selected':'' ?>>پرداخت شده</option>
+                </select>
+              </td>
+              <td style="white-space: nowrap;">
+                <button type="submit" name="edit_tuition_row" class="btn-sm" style="background:var(--green)">ذخیره</button>
+                <a href="?tab=manage_student&username=<?= urlencode($target_user) ?>&delete_tuition_id=<?= $row['id'] ?>"
+                   class="btn-del" onclick="return confirm('حذف این قسط؟')">حذف</a>
+              </td>
+            </tr>
+          </form>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>➕ افزودن قسط جدید برای این دانش‌آموز</h3>
+    <form method="POST">
+      <input type="hidden" name="national_id" value="<?= htmlspecialchars($student_info['username']) ?>">
+      <div class="field"><label>شماره قسط</label><input type="text" name="installment_no"></div>
+      <div class="field"><label>شرح</label><input type="text" name="description"></div>
+      <div class="field"><label>مبلغ</label><input type="text" name="amount"></div>
+      <div class="field"><label>تاریخ سررسید</label><input type="text" name="due_date"></div>
+      <button type="submit" name="add_tuition_manual" class="btn-primary">افزودن قسط</button>
+    </form>
+  </div>
+  <?php endif; ?>
   <?php endif; ?>
 
 </main>
