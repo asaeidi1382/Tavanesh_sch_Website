@@ -414,8 +414,13 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <form method="POST">
 
     <div class="field">
-      <label>کد ملی دانش‌آموز</label>
-      <input type="text" name="national_id">
+      <label>کد ملی دانش‌آموز (یا جستجوی نام)</label>
+      <input type="text" name="national_id" list="students_list" autocomplete="off">
+      <datalist id="students_list">
+        <?php foreach ($students as $s): ?>
+          <option value="<?= htmlspecialchars($s['username']) ?>"><?= htmlspecialchars($s['full_name']) ?> (<?= htmlspecialchars($s['username']) ?>)</option>
+        <?php endforeach; ?>
+      </datalist>
     </div>
 
     <div class="field">
