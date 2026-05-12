@@ -277,6 +277,49 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_news'
     $msgs[] = ['type'=>'success', 'text'=>'✅ خبر با موفقیت ثبت شد.'];
 }
 
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_news'])) {
+    $db = getDB();
+    $id = (int)$_POST['news_id'];
+    $title = trim($_POST['title']);
+    $date = trim($_POST['date']);
+    $content = trim($_POST['content']);
+    $video_embed = trim($_POST['video_embed']);
+
+    // واکشی تصاویر قبلی
+    $stmt = $db->prepare("SELECT images FROM news WHERE id=?");
+    $stmt->execute([$id]);
+    $old_news = $stmt->fetch();
+    $images = json_decode($old_news['images'], true) ?: [];
+
+    // افزودن تصاویر جدید
+    if (!empty($_FILES['news_images']['name'][0])) {
+        foreach ($_FILES['news_images']['tmp_name'] as $key => $tmp_name) {
+            if (!$tmp_name) continue;
+            $filename = time() . '_' . $_FILES['news_images']['name'][$key];
+            $target = "uploads/news/" . $filename;
+            if (move_uploaded_file($tmp_name, $target)) {
+                $images[] = $target;
+            }
+        }
+    }
+
+    // حذف تصاویر انتخاب شده
+    if (isset($_POST['remove_images']) && is_array($_POST['remove_images'])) {
+        foreach ($_POST['remove_images'] as $img_to_remove) {
+            if (($key = array_search($img_to_remove, $images)) !== false) {
+                unset($images[$key]);
+                if (file_exists($img_to_remove)) unlink($img_to_remove);
+            }
+        }
+        $images = array_values($images);
+    }
+
+    $images_json = json_encode($images);
+    $stmt = $db->prepare("UPDATE news SET title=?, date=?, content=?, images=?, video_embed=? WHERE id=?");
+    $stmt->execute([$title, $date, $content, $images_json, $video_embed, $id]);
+    $msgs[] = ['type'=>'success', 'text'=>'✅ خبر بروزرسانی شد.'];
+}
+
 if ($isAdmin && isset($_GET['delete_news'])) {
     $db = getDB();
     $id = (int)$_GET['delete_news'];
@@ -855,6 +898,57 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     $db = getDB();
     $all_news = $db->query("SELECT * FROM news ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
   ?>
+  <?php if (isset($_GET['edit_news'])):
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM news WHERE id=?");
+    $stmt->execute([(int)$_GET['edit_news']]);
+    $edit_item = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($edit_item):
+      $imgs = json_decode($edit_item['images'], true) ?: [];
+  ?>
+  <div class="card">
+    <h3>✏️ ویرایش خبر</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="news_id" value="<?= $edit_item['id'] ?>">
+      <div class="field">
+        <label>عنوان خبر</label>
+        <input type="text" name="title" value="<?= htmlspecialchars($edit_item['title']) ?>" required>
+      </div>
+      <div class="field">
+        <label>تاریخ</label>
+        <input type="text" name="date" value="<?= htmlspecialchars($edit_item['date']) ?>" required>
+      </div>
+      <div class="field">
+        <label>متن خبر</label>
+        <textarea name="content" rows="10" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:11px 14px; font-family:Vazirmatn;"><?= htmlspecialchars($edit_item['content']) ?></textarea>
+      </div>
+      <div class="field">
+        <label>تصاویر فعلی (جهت حذف انتخاب کنید)</label>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          <?php foreach ($imgs as $img): ?>
+            <div style="position:relative; width:100px; height:100px;">
+              <img src="<?= htmlspecialchars($img) ?>" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">
+              <input type="checkbox" name="remove_images[]" value="<?= htmlspecialchars($img) ?>" style="position:absolute; top:5px; right:5px;">
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+      <div class="field">
+        <label>افزودن تصاویر جدید</label>
+        <input type="file" name="news_images[]" multiple accept="image/*">
+      </div>
+      <div class="field">
+        <label>کد امبد ویدیو</label>
+        <input type="text" name="video_embed" value="<?= htmlspecialchars($edit_item['video_embed']) ?>">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button type="submit" name="update_news" class="btn-primary">بروزرسانی خبر</button>
+        <a href="?tab=news" class="btn-sm" style="background:var(--gray); text-decoration:none; padding:12px 20px; border-radius:12px;">انصراف</a>
+      </div>
+    </form>
+  </div>
+  <?php endif; endif; ?>
+
   <div class="card">
     <h3>📰 افزودن خبر جدید</h3>
     <form method="POST" enctype="multipart/form-data">
@@ -903,6 +997,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             <td><?= htmlspecialchars($n['date']) ?></td>
             <td><?= count($imgs) ?> تصویر</td>
             <td>
+              <a href="?tab=news&edit_news=<?= $n['id'] ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">ویرایش</a>
               <a href="?tab=news&delete_news=<?= $n['id'] ?>" class="btn-del" onclick="return confirm('آیا از حذف این خبر اطمینان دارید؟')">حذف</a>
             </td>
           </tr>
