@@ -217,8 +217,31 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
         $stmt->execute([$new_username, $full_name, $old_username]);
         if ($new_username !== $old_username) {
             $db->prepare("UPDATE tuition SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
+        $db->prepare("UPDATE student_profiles SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
         }
         $db->commit();
+
+    // بروزرسانی اطلاعات تکمیلی
+    $stmt_profile = $db->prepare("INSERT OR REPLACE INTO student_profiles
+        (national_id, first_name, last_name, grade, major, father_name, mother_name, mother_phone, father_phone, home_phone, left_handed, seat_no, address, student_phone)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt_profile->execute([
+        $new_username,
+        $_POST['first_name'],
+        $_POST['last_name'],
+        $_POST['grade'],
+        $_POST['major'],
+        $_POST['father_name'],
+        $_POST['mother_name'],
+        $_POST['mother_phone'],
+        $_POST['father_phone'],
+        $_POST['home_phone'],
+        isset($_POST['left_handed']) ? 1 : 0,
+        $_POST['seat_no'],
+        $_POST['address'],
+        $_POST['student_phone']
+    ]);
+
         $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل دانش‌آموز بروزرسانی شد.'];
         $_GET['username'] = $new_username; // برای ماندن در همان صفحه مدیریت
     } catch (Exception $e) {
@@ -242,6 +265,17 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
     $stmt->execute([$installment_no, $description, $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
     $msgs[] = ['type'=>'success', 'text'=>'✅ قسط ویرایش شد.'];
+}
+
+// ─── تغییر رمز عبور دانش‌آموز ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_student_password'])) {
+    $db = getDB();
+    $username = $_POST['username'];
+    $new_password = $_POST['new_password'];
+    $hash = password_hash($new_password, PASSWORD_BCRYPT);
+    $stmt = $db->prepare("UPDATE users SET password=? WHERE username=?");
+    $stmt->execute([$hash, $username]);
+    $msgs[] = ['type'=>'success', 'text'=>'✅ رمز عبور دانش‌آموز تغییر یافت.'];
 }
 
 // ─── حذف قسط ───
@@ -715,7 +749,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <?php elseif ($tab === 'manage_student' && isset($_GET['username'])):
     $db = getDB();
     $target_user = $_GET['username'];
-    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt = $db->prepare("SELECT u.*, p.first_name, p.last_name, p.grade, p.major, p.father_name, p.mother_name, p.mother_phone, p.father_phone, p.home_phone, p.left_handed, p.seat_no, p.address, p.student_phone
+                          FROM users u LEFT JOIN student_profiles p ON u.username = p.national_id
+                          WHERE u.username = ?");
     $stmt->execute([$target_user]);
     $student_info = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -730,16 +766,95 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?></h3>
     <form method="POST">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
-      <div class="field">
-        <label>نام و نام خانوادگی</label>
-        <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
-      </div>
-      <div class="field">
-        <label>کد ملی (نام کاربری)</label>
-        <input type="text" name="new_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="field">
+          <label>نام و نام خانوادگی (نمایشی)</label>
+          <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+        </div>
+        <div class="field">
+          <label>کد ملی (نام کاربری)</label>
+          <input type="text" name="new_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+        </div>
+        <div class="field">
+          <label>نام</label>
+          <input type="text" name="first_name" value="<?= htmlspecialchars($student_info['first_name'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>نام خانوادگی</label>
+          <input type="text" name="last_name" value="<?= htmlspecialchars($student_info['last_name'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>پایه تحصیلی</label>
+          <select name="grade" style="width:100%; padding:11px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">انتخاب کنید</option>
+            <option value="دهم" <?= ($student_info['grade']??'')=='دهم'?'selected':'' ?>>دهم</option>
+            <option value="یازدهم" <?= ($student_info['grade']??'')=='یازدهم'?'selected':'' ?>>یازدهم</option>
+            <option value="دوازدهم" <?= ($student_info['grade']??'')=='دوازدهم'?'selected':'' ?>>دوازدهم</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>رشته</label>
+          <select name="major" style="width:100%; padding:11px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">انتخاب کنید</option>
+            <option value="ریاضی" <?= ($student_info['major']??'')=='ریاضی'?'selected':'' ?>>ریاضی</option>
+            <option value="تجربی" <?= ($student_info['major']??'')=='تجربی'?'selected':'' ?>>تجربی</option>
+            <option value="انسانی" <?= ($student_info['major']??'')=='انسانی'?'selected':'' ?>>انسانی</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>نام پدر</label>
+          <input type="text" name="father_name" value="<?= htmlspecialchars($student_info['father_name'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>نام و نام خانوادگی مادر</label>
+          <input type="text" name="mother_name" value="<?= htmlspecialchars($student_info['mother_name'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>تلفن پدر</label>
+          <input type="text" name="father_phone" value="<?= htmlspecialchars($student_info['father_phone'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>تلفن مادر</label>
+          <input type="text" name="mother_phone" value="<?= htmlspecialchars($student_info['mother_phone'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>تلفن دانش‌آموز</label>
+          <input type="text" name="student_phone" value="<?= htmlspecialchars($student_info['student_phone'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>تلفن منزل</label>
+          <input type="text" name="home_phone" value="<?= htmlspecialchars($student_info['home_phone'] ?? '') ?>">
+        </div>
+        <div class="field">
+          <label>شماره صندلی</label>
+          <input type="text" name="seat_no" value="<?= htmlspecialchars($student_info['seat_no'] ?? '') ?>">
+        </div>
+        <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:25px;">
+          <input type="checkbox" name="left_handed" id="left_handed" <?= ($student_info['left_handed']??0)?'checked':'' ?>>
+          <label for="left_handed" style="margin-bottom:0;">چپ دست</label>
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label>آدرس</label>
+          <input type="text" name="address" value="<?= htmlspecialchars($student_info['address'] ?? '') ?>">
+        </div>
       </div>
       <button type="submit" name="update_student_profile" class="btn-primary">بروزرسانی پروفایل</button>
     </form>
+  </div>
+
+  <div class="card">
+    <h3>🔑 تغییر رمز عبور دانش‌آموز</h3>
+    <form method="POST" style="display:flex; gap:10px; align-items:flex-end;">
+      <input type="hidden" name="username" value="<?= htmlspecialchars($student_info['username']) ?>">
+      <div class="field" style="flex:1; margin-bottom:0;">
+        <label>رمز عبور جدید</label>
+        <input type="text" name="new_password" placeholder="رمز جدید را وارد کنید">
+      </div>
+      <button type="submit" name="change_student_password" class="btn-primary" style="width:auto; padding:11px 24px;">تغییر رمز</button>
+    </form>
+    <div class="guide" style="margin-top:15px;">
+      ⚡ رمز عبور فعلی در دیتابیس به صورت رمزنگاری شده ذخیره شده و قابل مشاهده مستقیم نیست، اما می‌توانید آن را ریست کنید.
+    </div>
   </div>
 
   <div class="card">

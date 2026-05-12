@@ -119,6 +119,12 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       <p>مشاهده وضعیت پرداخت اقساط شهریه</p>
     </a>
 
+    <a href="profile.php" class="card">
+      <div class="card-icon">👤</div>
+      <h3>پروفایل من</h3>
+      <p>مشاهده اطلاعات شناسایی و تحصیلی</p>
+    </a>
+
     <div class="card">
       <div class="card-icon">📚</div>
       <h3>دروس و محتوا</h3>
