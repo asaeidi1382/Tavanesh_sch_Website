@@ -235,7 +235,6 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
       <thead>
         <tr>
           <th>شماره قسط</th>
-          <th>شرح</th>
           <th>مبلغ (تومان)</th>
           <th>پرداخت شده (تومان)</th>
           <th>تاریخ سررسید</th>
@@ -253,7 +252,6 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
         ?>
         <tr>
           <td data-label="شماره قسط"><?= toFa($row['installment_no']) ?></td>
-          <td data-label="شرح"><?= htmlspecialchars($row['description'] ?? '—') ?></td>
           <td data-label="مبلغ"><?= formatMoney($row['amount']) ?></td>
           <td data-label="پرداخت شده"><?= formatMoney($row['paid_amount']) ?></td>
           <td data-label="سررسید"><?= htmlspecialchars($row['due_date'] ?? '—') ?></td>

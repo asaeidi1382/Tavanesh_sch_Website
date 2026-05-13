@@ -83,16 +83,16 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
         while (($row = fgetcsv($file)) !== false) {
             $rowNum++;
             if ($rowNum === 1 && (trim($row[0]) === 'national_id' || trim($row[0]) === 'کد_ملی')) continue;
-            if (count($row) < 4) { $skipped++; continue; }
+            if (count($row) < 3) { $skipped++; continue; }
 
             $national_id    = trim($row[0]);
             $installment_no = (int)trim($row[1]);
-            $description    = trim($row[2] ?? '');
-            $amount         = (int)str_replace([',', '،'], '', trim($row[3]));
-            $due_date       = trim($row[4] ?? '');
-            $paid_amount    = (int)str_replace([',', '،'], '', trim($row[5] ?? 0));
-            $paid_date      = trim($row[6] ?? '');
-            $status         = trim($row[7] ?? 'unpaid');
+            $amount         = (int)str_replace([',', '،'], '', trim($row[2]));
+            $due_date       = trim($row[3] ?? '');
+            $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
+            $paid_date      = trim($row[5] ?? '');
+            $status         = trim($row[6] ?? 'unpaid');
+            $description    = '';
             if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
 
             if (!$national_id || !$installment_no) { $skipped++; continue; }
@@ -234,17 +234,52 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
     $old_username = $_POST['old_username'];
     $new_username = trim($_POST['new_username']);
     $full_name    = trim($_POST['full_name']);
+    $new_password = trim($_POST['new_password'] ?? '');
+
+    // Metadata
+    $grade         = $_POST['grade'] ?? '';
+    $major         = $_POST['major'] ?? '';
+    $father_name   = $_POST['father_name'] ?? '';
+    $mother_name   = $_POST['mother_name'] ?? '';
+    $mother_phone  = $_POST['mother_phone'] ?? '';
+    $father_phone  = $_POST['father_phone'] ?? '';
+    $home_phone    = $_POST['home_phone'] ?? '';
+    $student_phone = $_POST['student_phone'] ?? '';
+    $address       = $_POST['address'] ?? '';
+    $left_handed   = isset($_POST['left_handed']) ? 1 : 0;
 
     try {
         $db->beginTransaction();
-        $stmt = $db->prepare("UPDATE users SET username=?, full_name=? WHERE username=?");
-        $stmt->execute([$new_username, $full_name, $old_username]);
+
+        // Update users table
+        if ($new_password) {
+            $hash = password_hash($new_password, PASSWORD_BCRYPT);
+            $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, password=? WHERE username=?");
+            $stmt->execute([$new_username, $full_name, $hash, $old_username]);
+        } else {
+            $stmt = $db->prepare("UPDATE users SET username=?, full_name=? WHERE username=?");
+            $stmt->execute([$new_username, $full_name, $old_username]);
+        }
+
         if ($new_username !== $old_username) {
             $db->prepare("UPDATE tuition SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
+            $db->prepare("UPDATE student_profiles SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
         }
+
+        // Update student_profiles table for active year
+        $stmt = $db->prepare("UPDATE student_profiles SET
+            grade=?, major=?, father_name=?, mother_name=?, mother_phone=?, father_phone=?,
+            home_phone=?, student_phone=?, address=?, left_handed=?
+            WHERE national_id=? AND academic_year=?");
+        $stmt->execute([
+            $grade, $major, $father_name, $mother_name, $mother_phone, $father_phone,
+            $home_phone, $student_phone, $address, $left_handed,
+            $new_username, $active_year
+        ]);
+
         $db->commit();
-        $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل دانش‌آموز بروزرسانی شد.'];
-        $_GET['username'] = $new_username; // برای ماندن در همان صفحه مدیریت
+        $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل و اطلاعات تکمیلی دانش‌آموز بروزرسانی شد.'];
+        $_GET['username'] = $new_username;
     } catch (Exception $e) {
         $db->rollBack();
         $msgs[] = ['type'=>'error', 'text'=>'❌ خطا: ' . $e->getMessage()];
@@ -256,7 +291,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $db = getDB();
     $id = (int)$_POST['tuition_id'];
     $installment_no = (int)$_POST['installment_no'];
-    $description = trim($_POST['description']);
+    $description = ''; // Removed from UI
     $amount = (int)str_replace(',', '', $_POST['amount']);
 
     // تاریخ سررسید
@@ -391,7 +426,11 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
     $db = getDB();
     $national_id = $_POST['national_id'];
     $pay_amount = (int)str_replace(',', '', $_POST['pay_amount']);
-    $pay_date = trim($_POST['pay_date']);
+
+    $py = $_POST['pay_y'] ?? '';
+    $pm = $_POST['pay_m'] ?? '';
+    $pd = $_POST['pay_d'] ?? '';
+    $pay_date = ($py && $pm && $pd) ? sprintf("%04d/%02d/%02d", $py, $pm, $pd) : '';
 
     if ($pay_amount > 0) {
         $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
@@ -663,27 +702,22 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </div>
 
     <div class="field">
-      <label>شرح</label>
-      <input type="text" name="description">
-    </div>
-
-    <div class="field">
       <label>مبلغ</label>
       <input type="text" name="amount">
     </div>
 
     <div class="field">
       <label>تاریخ سررسید</label>
-      <div style="display:flex; gap:5px;">
-        <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+      <div style="display:flex; gap:5px; direction:rtl;">
+        <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">روز</option>
             <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
         </select>
-        <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+        <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">ماه</option>
             <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
         </select>
-        <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+        <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
             <option value="1403">1403</option>
             <option value="1404">1404</option>
@@ -700,16 +734,16 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
     <div class="field">
       <label>تاریخ پرداخت</label>
-      <div style="display:flex; gap:5px;">
-        <select name="paid_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+      <div style="display:flex; gap:5px; direction:rtl;">
+        <select name="paid_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">روز</option>
             <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
         </select>
-        <select name="paid_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+        <select name="paid_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">ماه</option>
             <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
         </select>
-        <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+        <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
             <option value="1403">1403</option>
             <option value="1404">1404</option>
@@ -753,10 +787,10 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <button type="submit" name="import_tuition" class="btn-primary">آپلود و وارد کردن</button>
     </form>
     <div class="guide">
-      <strong>فرمت فایل CSV اقساط (۸ ستون):</strong><br>
-      <code>کد_ملی , شماره_قسط , شرح , مبلغ , تاریخ_سررسید , پرداخت_شده , تاریخ_پرداخت , وضعیت</code><br><br>
+      <strong>فرمت فایل CSV اقساط (۷ ستون):</strong><br>
+      <code>کد_ملی , شماره_قسط , مبلغ , تاریخ_سررسید , پرداخت_شده , تاریخ_پرداخت , وضعیت</code><br><br>
       <strong>مثال:</strong><br>
-      <code>1234567890,1,قسط اول,5000000,1403/07/01,5000000,1403/06/28,paid</code><br>
+      <code>1234567890,1,5000000,1403/07/01,5000000,1403/06/28,paid</code><br>
       <code>1234567890,2,قسط دوم,5000000,1403/09/01,2500000,,partial</code><br>
       <code>1234567890,3,قسط سوم,5000000,1403/11/01,0,,unpaid</code><br><br>
       <strong>مقادیر وضعیت:</strong>
@@ -821,23 +855,82 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     if (!$student_info):
       echo "<div class='alert error'>❌ دانش‌آموز یافت نشد.</div>";
     else:
+      $stmt = $db->prepare("SELECT * FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+      $stmt->execute([$target_user, $active_year]);
+      $prof = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
       $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? AND academic_year = ? ORDER BY installment_no ASC");
       $t_stmt->execute([$target_user, $active_year]);
       $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
   <div class="card">
-    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?></h3>
+    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?> (سال <?= $active_year ?>)</h3>
     <form method="POST">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
-      <div class="field">
-        <label>نام و نام خانوادگی</label>
-        <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div class="field">
+            <label>نام و نام خانوادگی</label>
+            <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+          </div>
+          <div class="field">
+            <label>کد ملی (نام کاربری)</label>
+            <input type="text" name="new_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+          </div>
+          <div class="field">
+            <label>رمز عبور جدید (خالی بماند = بدون تغییر)</label>
+            <input type="password" name="new_password" placeholder="********">
+          </div>
+          <div class="field">
+            <label>پایه تحصیلی</label>
+            <select name="grade" style="width:100%; padding:11px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                <option value="">انتخاب کنید</option>
+                <?php foreach(['دهم','یازدهم','دوازدهم'] as $g) echo "<option value='$g' ".((($prof['grade']??'')==$g)?'selected':'').">$g</option>"; ?>
+            </select>
+          </div>
+          <div class="field">
+            <label>رشته تحصیلی</label>
+            <select name="major" style="width:100%; padding:11px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                <option value="">انتخاب کنید</option>
+                <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".((($prof['major']??'')==$m)?'selected':'').">$m</option>"; ?>
+            </select>
+          </div>
+          <div class="field">
+            <label>نام پدر</label>
+            <input type="text" name="father_name" value="<?= htmlspecialchars($prof['father_name']??'') ?>">
+          </div>
+          <div class="field">
+            <label>تلفن پدر</label>
+            <input type="text" name="father_phone" value="<?= htmlspecialchars($prof['father_phone']??'') ?>">
+          </div>
+          <div class="field">
+            <label>نام مادر</label>
+            <input type="text" name="mother_name" value="<?= htmlspecialchars($prof['mother_name']??'') ?>">
+          </div>
+          <div class="field">
+            <label>تلفن مادر</label>
+            <input type="text" name="mother_phone" value="<?= htmlspecialchars($prof['mother_phone']??'') ?>">
+          </div>
+          <div class="field">
+            <label>تلفن ثابت منزل</label>
+            <input type="text" name="home_phone" value="<?= htmlspecialchars($prof['home_phone']??'') ?>">
+          </div>
+          <div class="field">
+            <label>تلفن همراه دانش‌آموز</label>
+            <input type="text" name="student_phone" value="<?= htmlspecialchars($prof['student_phone']??'') ?>">
+          </div>
+          <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:25px;">
+            <input type="checkbox" name="left_handed" id="lh" <?= ($prof['left_handed']??0)?'checked':'' ?>>
+            <label for="lh" style="margin-bottom:0;">دانش‌آموز چپ‌دست است</label>
+          </div>
       </div>
+
       <div class="field">
-        <label>کد ملی (نام کاربری)</label>
-        <input type="text" name="new_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+        <label>آدرس منزل</label>
+        <textarea name="address" rows="3" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:11px; font-family:Vazirmatn;"><?= htmlspecialchars($prof['address']??'') ?></textarea>
       </div>
-      <button type="submit" name="update_student_profile" class="btn-primary">بروزرسانی پروفایل</button>
+
+      <button type="submit" name="update_student_profile" class="btn-primary">بروزرسانی پروفایل و اطلاعات تکمیلی</button>
     </form>
   </div>
 
@@ -852,11 +945,36 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       </div>
       <div class="field" style="flex: 1; margin-bottom: 0;">
         <label>تاریخ پرداخت</label>
-        <input type="text" name="pay_date" value="<?= get_jalali_today() ?>">
+        <?php
+            $today = get_jalali_today();
+            list($ty, $tm, $td) = explode('/', $today);
+        ?>
+        <div style="display:flex; gap:5px; direction:rtl;">
+            <select name="pay_d" id="pay_d" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$td==$i?'selected':'').">$i</option>"; ?>
+            </select>
+            <select name="pay_m" id="pay_m" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$tm==$i?'selected':'').">$i</option>"; ?>
+            </select>
+            <select name="pay_y" id="pay_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
+            </select>
+        </div>
       </div>
       <button type="submit" name="register_payment_auto" class="btn-primary" style="width: auto; padding: 11px 24px;">ثبت و توزیع</button>
     </form>
+    <button onclick="setToday()" class="btn-sm" style="margin-top:10px; background:var(--gray);">تاریخ امروز</button>
   </div>
+
+  <script>
+  function setToday() {
+      const today = '<?= get_jalali_today() ?>';
+      const parts = today.split('/');
+      document.getElementById('pay_y').value = parts[0];
+      document.getElementById('pay_m').value = parts[1];
+      document.getElementById('pay_d').value = parts[2];
+  }
+  </script>
 
   <div class="card">
     <h3>📋 لیست اقساط</h3>
@@ -865,7 +983,6 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         <thead>
           <tr>
             <th>#</th>
-            <th>شرح</th>
             <th>مبلغ</th>
             <th>پرداختی</th>
             <th>سررسید</th>
@@ -886,7 +1003,6 @@ tbody td { padding:11px 14px; font-size:.88rem; }
               </form>
               <input form="<?= $formId ?>" type="text" name="installment_no" value="<?= $row['installment_no'] ?>" style="width:40px; padding:5px;">
             </td>
-            <td><input form="<?= $formId ?>" type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width:100px; padding:5px;"></td>
             <td><input form="<?= $formId ?>" type="text" name="amount" value="<?= number_format($row['amount']) ?>" style="width:100px; padding:5px;"></td>
             <td><input form="<?= $formId ?>" type="text" name="paid_amount" value="<?= number_format($row['paid_amount']) ?>" style="width:100px; padding:5px;"></td>
             <td>
@@ -896,18 +1012,18 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                         list($d_y, $d_m, $d_d) = explode('/', $row['due_date']);
                     }
                 ?>
-                <div style="display:flex; gap:2px;">
-                    <select form="<?= $formId ?>" name="due_y" style="font-size:0.7rem; padding:2px;">
-                        <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                <div style="display:flex; gap:2px; direction:rtl;">
+                    <select form="<?= $formId ?>" name="due_d" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
+                        <option value="">روز</option>
+                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?>
                     </select>
-                    <select form="<?= $formId ?>" name="due_m" style="font-size:0.7rem; padding:2px;">
+                    <select form="<?= $formId ?>" name="due_m" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">ماه</option>
                         <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?>
                     </select>
-                    <select form="<?= $formId ?>" name="due_d" style="font-size:0.7rem; padding:2px;">
-                        <option value="">روز</option>
-                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?>
+                    <select form="<?= $formId ?>" name="due_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
+                        <option value="">سال</option>
+                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -918,18 +1034,18 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                         list($p_y, $p_m, $p_d) = explode('/', $row['paid_date']);
                     }
                 ?>
-                <div style="display:flex; gap:2px;">
-                    <select form="<?= $formId ?>" name="paid_y" style="font-size:0.7rem; padding:2px;">
-                        <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
+                <div style="display:flex; gap:2px; direction:rtl;">
+                    <select form="<?= $formId ?>" name="paid_d" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
+                        <option value="">روز</option>
+                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$p_d==$i?'selected':'').">$i</option>"; ?>
                     </select>
-                    <select form="<?= $formId ?>" name="paid_m" style="font-size:0.7rem; padding:2px;">
+                    <select form="<?= $formId ?>" name="paid_m" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">ماه</option>
                         <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$p_m==$i?'selected':'').">$i</option>"; ?>
                     </select>
-                    <select form="<?= $formId ?>" name="paid_d" style="font-size:0.7rem; padding:2px;">
-                        <option value="">روز</option>
-                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$p_d==$i?'selected':'').">$i</option>"; ?>
+                    <select form="<?= $formId ?>" name="paid_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
+                        <option value="">سال</option>
+                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -957,20 +1073,19 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <form method="POST">
       <input type="hidden" name="national_id" value="<?= htmlspecialchars($student_info['username']) ?>">
       <div class="field"><label>شماره قسط</label><input type="text" name="installment_no"></div>
-      <div class="field"><label>شرح</label><input type="text" name="description"></div>
       <div class="field"><label>مبلغ</label><input type="text" name="amount"></div>
       <div class="field">
         <label>تاریخ سررسید</label>
-        <div style="display:flex; gap:5px;">
-            <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+        <div style="display:flex; gap:5px; direction:rtl;">
+            <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">روز</option>
                 <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
             </select>
-            <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">ماه</option>
                 <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
             </select>
-            <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">سال</option>
                 <option value="1403">1403</option>
                 <option value="1404">1404</option>

@@ -101,17 +101,42 @@ $display_name = $user_data['full_name'] ?: ($student['first_name'] . ' ' . $stud
 
 <div class="item">
 <span class="label">نام پدر:</span>
-<?= htmlspecialchars($student['father_name']) ?>
+<?= htmlspecialchars($student['father_name'] ?? '—') ?>
 </div>
 
 <div class="item">
-<span class="label">شماره پدر:</span>
-<?= htmlspecialchars($student['father_phone']) ?>
+<span class="label">تلفن پدر:</span>
+<?= htmlspecialchars($student['father_phone'] ?? '—') ?>
+</div>
+
+<div class="item">
+<span class="label">نام مادر:</span>
+<?= htmlspecialchars($student['mother_name'] ?? '—') ?>
+</div>
+
+<div class="item">
+<span class="label">تلفن مادر:</span>
+<?= htmlspecialchars($student['mother_phone'] ?? '—') ?>
+</div>
+
+<div class="item">
+<span class="label">تلفن ثابت:</span>
+<?= htmlspecialchars($student['home_phone'] ?? '—') ?>
+</div>
+
+<div class="item">
+<span class="label">تلفن همراه دانش‌آموز:</span>
+<?= htmlspecialchars($student['student_phone'] ?? '—') ?>
+</div>
+
+<div class="item">
+<span class="label">وضعیت:</span>
+<?= ($student['left_handed'] ?? 0) ? 'چپ‌دست' : 'راست‌دست' ?>
 </div>
 
 <div class="item">
 <span class="label">آدرس:</span>
-<?= nl2br(htmlspecialchars($student['address'])) ?>
+<?= nl2br(htmlspecialchars($student['address'] ?? '—')) ?>
 </div>
 
 </div>
