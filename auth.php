@@ -86,28 +86,38 @@ function registerUser($username, $email, $password, $full_name = '') {
 }
 
 // ایجاد یا به‌روزرسانی حساب دانش‌آموز (برای ایمپورت)
-function upsertStudent($national_id, $full_name) {
+function upsertStudent($national_id, $full_name, $academic_year = '1404-1405') {
     $db = getDB();
     $hash = password_hash($national_id, PASSWORD_BCRYPT);
     // اگر وجود داشت فقط نام را آپدیت کن، وگرنه بساز
     $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
     $stmt->execute([$national_id]);
-    $existing = $stmt->fetch();
+    $user_exists = $stmt->fetch();
 
-    if ($existing) {
-        $db->prepare("UPDATE users SET full_name = ? WHERE username = ?")
-           ->execute([$full_name, $national_id]);
-        return 'updated';
-    } else {
-            -$db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)")
+    if (!$user_exists) {
+        $db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)")
             ->execute([
                 $national_id,
                 $national_id . '@tavanesh.local',
                 $hash,
                 $full_name
             ]);
-        return 'created';
+        $status = 'created';
+    } else {
+        $db->prepare("UPDATE users SET full_name = ? WHERE username = ?")
+           ->execute([$full_name, $national_id]);
+        $status = 'updated';
     }
+
+    // اطمینان از وجود پروفایل برای این سال تحصیلی
+    $stmt = $db->prepare("SELECT national_id FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+    $stmt->execute([$national_id, $academic_year]);
+    if (!$stmt->fetch()) {
+        $db->prepare("INSERT INTO student_profiles (national_id, academic_year) VALUES (?, ?)")
+           ->execute([$national_id, $academic_year]);
+    }
+
+    return $status;
 }
 
 function get_jalali_today() {

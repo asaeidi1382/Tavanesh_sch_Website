@@ -6,9 +6,19 @@ $db = getDB();
 $national_id = $_SESSION['username']; // نام کاربری همان کد ملی است
 $fullName    = $_SESSION['full_name'] ?? $_SESSION['username'];
 
+// مدیریت سال تحصیلی
+$academic_years = ['1404-1405', '1405-1406'];
+if (isset($_GET['year']) && in_array($_GET['year'], $academic_years)) {
+    $_SESSION['student_active_year'] = $_GET['year'];
+}
+if (!isset($_SESSION['student_active_year'])) {
+    $_SESSION['student_active_year'] = '1404-1405';
+}
+$active_year = $_SESSION['student_active_year'];
+
 // واکشی اقساط این دانش‌آموز
-$stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? ORDER BY installment_no ASC");
-$stmt->execute([$national_id]);
+$stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? AND academic_year = ? ORDER BY installment_no ASC");
+$stmt->execute([$national_id, $active_year]);
 $installments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // محاسبه جمع کل، پرداخت شده، باقیمانده
@@ -166,8 +176,20 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
 
 <main>
   <div class="page-header">
-    <h1>اقساط شهریه — <span><?= htmlspecialchars($fullName) ?></span></h1>
-    <p>کد ملی: <?= toFa(htmlspecialchars($national_id)) ?></p>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+            <h1>اقساط شهریه — <span><?= htmlspecialchars($fullName) ?></span></h1>
+            <p>کد ملی: <?= toFa(htmlspecialchars($national_id)) ?></p>
+        </div>
+        <div style="background:#fff; padding:10px 15px; border-radius:12px; border:1.5px solid var(--turquoise-light); box-shadow:var(--shadow-sm);">
+            <label style="font-size:0.8rem; color:var(--gray); display:block; margin-bottom:5px;">سال تحصیلی:</label>
+            <select onchange="window.location.href='?year='+this.value" style="border:none; background:transparent; font-family:Vazirmatn; font-weight:700; color:var(--turquoise-dark); outline:none; cursor:pointer;">
+                <?php foreach ($academic_years as $y): ?>
+                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?>><?= toFa($y) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
   </div>
 
   <?php if (empty($installments)): ?>
