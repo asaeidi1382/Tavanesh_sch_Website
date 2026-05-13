@@ -457,6 +457,75 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
     }
 }
 
+// ─── مدیریت دیتابیس (Backup/Restore/Excel) ───
+if ($isAdmin && isset($_GET['download_db'])) {
+    if (file_exists(DB_PATH)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="backup_'.date('Y-m-d_H-i').'.sqlite"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize(DB_PATH));
+        readfile(DB_PATH);
+        exit;
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['restore_db'])) {
+    if (!empty($_FILES['db_file']['tmp_name'])) {
+        if (move_uploaded_file($_FILES['db_file']['tmp_name'], DB_PATH)) {
+            $msgs[] = ['type'=>'success', 'text'=>'✅ دیتابیس با موفقیت بازگردانی شد.'];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در جایگزینی فایل دیتابیس.'];
+        }
+    }
+}
+
+if ($isAdmin && isset($_GET['export_excel'])) {
+    $db = getDB();
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="tavanesh_export_'.date('Y-m-d').'.xls"');
+
+    echo '<?xml version="1.0"?>';
+    echo '<?mso-application progid="Excel.Sheet"?>';
+    echo '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">';
+
+    $tables = [
+        'users' => 'کاربران',
+        'tuition' => 'اقساط',
+        'student_profiles' => 'پروفایل دانش‌آموزان',
+        'news' => 'اخبار'
+    ];
+
+    foreach ($tables as $tbl => $label) {
+        echo '<Worksheet ss:Name="'.$label.'"><Table>';
+        $stmt = $db->query("SELECT * FROM $tbl");
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($rows)) {
+            // Header
+            echo '<Row>';
+            foreach (array_keys($rows[0]) as $col) {
+                echo '<Cell><Data ss:Type="String">'.htmlspecialchars($col).'</Data></Cell>';
+            }
+            echo '</Row>';
+            // Data
+            foreach ($rows as $row) {
+                echo '<Row>';
+                foreach ($row as $val) {
+                    $type = is_numeric($val) ? 'Number' : 'String';
+                    echo '<Cell><Data ss:Type="'.$type.'">'.htmlspecialchars($val).'</Data></Cell>';
+                }
+                echo '</Row>';
+            }
+        }
+        echo '</Table></Worksheet>';
+    }
+    echo '</Workbook>';
+    exit;
+}
+
 // ─── لیست دانش‌آموزان ───
 $students = [];
 if ($isAdmin) {
@@ -471,7 +540,7 @@ if ($isAdmin) {
     }
 }
 
-$tab = $_GET['tab'] ?? 'import';
+$tab = $_GET['tab'] ?? 'db_mgmt';
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -577,7 +646,11 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       </div>
     </div>
     <?php if ($isAdmin): ?>
-    <div style="display:flex; align-items:center; gap:15px;">
+    <div style="display:flex; align-items:center; gap:20px;">
+        <div id="live-clock" style="text-align: right; color: #fff; font-size: 0.85rem; background: rgba(0,0,0,0.1); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
+            <div>امروز: <?= get_jalali_today() ?></div>
+            <div id="clock-time" style="font-weight: bold; letter-spacing: 1px;">00:00:00</div>
+        </div>
         <form method="POST" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px;">
             <label style="color:#fff; margin-bottom:0; font-size:0.75rem;">سال تحصیلی:</label>
             <select name="active_year" onchange="this.form.submit()" style="background:transparent; border:none; color:#fff; font-family:Vazirmatn; font-size:0.85rem; outline:none; cursor:pointer;">
@@ -620,13 +693,35 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <?php endforeach; ?>
 
   <div class="tabs">
-    <a href="?tab=import"    class="tab <?= $tab==='import'    ?'active':'' ?>">📤 وارد کردن داده</a>
+    <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
     <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
 
-  <?php if ($tab === 'import'): ?>
+  <?php if ($tab === 'db_mgmt'): ?>
+
+<!-- خروجی و پشتیبان‌گیری -->
+<div class="card">
+  <h3>💾 خروجی و پشتیبان‌گیری</h3>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="?download_db=1" class="btn-primary" style="width:auto; text-decoration:none; display:inline-block; padding:12px 20px;">📥 دانلود فایل دیتابیس (بکاپ)</a>
+    <a href="?export_excel=1" class="btn-primary" style="width:auto; text-decoration:none; display:inline-block; padding:12px 20px; background:linear-gradient(135deg, #1a9960, #0d6e43); box-shadow:0 6px 20px rgba(26,153,96,0.3);">📊 خروجی اکسل حرفه‌ای</a>
+  </div>
+</div>
+
+<!-- بازگردانی دیتابیس -->
+<div class="card">
+  <h3>🔄 بازگردانی فایل دیتابیس (Restore)</h3>
+  <form method="POST" enctype="multipart/form-data">
+    <div class="field">
+      <label>فایل دیتابیس (.sqlite)</label>
+      <input type="file" name="db_file" accept=".sqlite">
+    </div>
+    <button type="submit" name="restore_db" class="btn-primary" style="background:var(--red); box-shadow:0 6px 20px rgba(201,64,64,0.3);" onclick="return confirm('⚠️ با این کار تمام اطلاعات فعلی حذف و فایل جدید جایگزین می‌شود. آیا مطمئن هستید؟')">⚠️ جایگزینی و بازگردانی</button>
+  </form>
+</div>
+
 <!-- افزودن دستی دانش‌آموز -->
 <div class="card">
   <h3>➕ افزودن دستی دانش‌آموز</h3>
@@ -1100,7 +1195,11 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <?php endif; ?>
 
   <?php elseif ($tab === 'debtors'):
-    $ref_date = $_POST['ref_date'] ?? get_jalali_today();
+    if (isset($_POST['ref_y'], $_POST['ref_m'], $_POST['ref_d'])) {
+        $ref_date = sprintf("%04d/%02d/%02d", $_POST['ref_y'], $_POST['ref_m'], $_POST['ref_d']);
+    } else {
+        $ref_date = get_jalali_today();
+    }
     $db = getDB();
 
     // واکشی همه کاربران و محاسبات بدهی
@@ -1132,9 +1231,23 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <form method="POST" style="display:flex; gap:10px; align-items:flex-end; margin-bottom:20px;">
       <div class="field" style="flex:1; margin-bottom:0;">
         <label>تاریخ مرجع (بدهی تا این تاریخ)</label>
-        <input type="text" name="ref_date" value="<?= htmlspecialchars($ref_date) ?>" placeholder="1405/01/01">
+        <?php
+            list($ry, $rm, $rd) = explode('/', $ref_date);
+        ?>
+        <div style="display:flex; gap:5px; direction:rtl;">
+            <select name="ref_d" id="ref_d" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$rd==$i?'selected':'').">$i</option>"; ?>
+            </select>
+            <select name="ref_m" id="ref_m" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$rm==$i?'selected':'').">$i</option>"; ?>
+            </select>
+            <select name="ref_y" id="ref_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
+                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
+            </select>
+        </div>
       </div>
       <button type="submit" class="btn-primary" style="width:auto; padding:11px 24px;">بروزرسانی گزارش</button>
+      <button type="button" onclick="setRefToday()" class="btn-sm" style="background:var(--gray); height: 45px; border-radius: 12px;">تاریخ امروز</button>
     </form>
 
     <div class="table-wrap">
@@ -1290,6 +1403,26 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 <?php endif; ?>
 
 <script>
+function setRefToday() {
+    const today = '<?= get_jalali_today() ?>';
+    const parts = today.split('/');
+    if (document.getElementById('ref_y')) {
+        document.getElementById('ref_y').value = parts[0];
+        document.getElementById('ref_m').value = parts[1];
+        document.getElementById('ref_d').value = parts[2];
+    }
+}
+
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('clock-time').textContent = `${h}:${m}:${s}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
 function filterStudents() {
     var input, filter, table, tr, td, i, txtValue;
     input = document.getElementById("studentSearch");
