@@ -26,6 +26,16 @@ if (isset($_GET['logout_admin'])) {
 
 $isAdmin = !empty($_SESSION['is_admin']);
 
+// ─── مدیریت سال تحصیلی ───
+$academic_years = ['1404-1405', '1405-1406'];
+if (!isset($_SESSION['active_year'])) {
+    $_SESSION['active_year'] = '1404-1405';
+}
+if (isset($_POST['set_active_year'])) {
+    $_SESSION['active_year'] = $_POST['active_year'];
+}
+$active_year = $_SESSION['active_year'];
+
 // ─── پیام‌ها ───
 $msgs = [];
 
@@ -49,7 +59,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_st
             $national_id = trim($row[1]);
             if (!$full_name || !$national_id) { $skipped++; continue; }
 
-            $result = upsertStudent($national_id, $full_name);
+            $result = upsertStudent($national_id, $full_name, $active_year);
             if ($result === 'created') $created++;
             else $updated++;
         }
@@ -88,17 +98,17 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             if (!$national_id || !$installment_no) { $skipped++; continue; }
 
             // بررسی وجود رکورد
-            $check = $db->prepare("SELECT id FROM tuition WHERE national_id=? AND installment_no=?");
-            $check->execute([$national_id, $installment_no]);
+            $check = $db->prepare("SELECT id FROM tuition WHERE national_id=? AND installment_no=? AND academic_year=?");
+            $check->execute([$national_id, $installment_no, $active_year]);
             $existing = $check->fetch();
 
             if ($existing) {
-                $db->prepare("UPDATE tuition SET description=?,amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=?")
-                   ->execute([$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no]);
+                $db->prepare("UPDATE tuition SET description=?,amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                   ->execute([$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
                 $updated++;
             } else {
-                $db->prepare("INSERT INTO tuition (national_id,installment_no,description,amount,due_date,paid_amount,paid_date,status) VALUES (?,?,?,?,?,?,?,?)")
-                   ->execute([$national_id,$installment_no,$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status]);
+                $db->prepare("INSERT INTO tuition (national_id,installment_no,description,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?,?)")
+                   ->execute([$national_id,$installment_no,$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
                 $inserted++;
             }
         }
@@ -123,7 +133,7 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_stude
 
     } else {
 
-        $result = upsertStudent($national_id, $full_name);
+        $result = upsertStudent($national_id, $full_name, $active_year);
 
         if ($result === 'created') {
 
@@ -150,9 +160,21 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
     $installment_no = (int)($_POST['installment_no'] ?? 0);
     $description    = trim($_POST['description'] ?? '');
     $amount         = (int)str_replace(',', '', $_POST['amount'] ?? 0);
-    $due_date       = trim($_POST['due_date'] ?? '');
+
+    // تاریخ سررسید
+    $due_y = $_POST['due_y'] ?? '';
+    $due_m = $_POST['due_m'] ?? '';
+    $due_d = $_POST['due_d'] ?? '';
+    $due_date = ($due_y && $due_m && $due_d) ? sprintf("%04d/%02d/%02d", $due_y, $due_m, $due_d) : '';
+
     $paid_amount    = (int)str_replace(',', '', $_POST['paid_amount'] ?? 0);
-    $paid_date      = trim($_POST['paid_date'] ?? '');
+
+    // تاریخ پرداخت
+    $paid_y = $_POST['paid_y'] ?? '';
+    $paid_m = $_POST['paid_m'] ?? '';
+    $paid_d = $_POST['paid_d'] ?? '';
+    $paid_date = ($paid_y && $paid_m && $paid_d) ? sprintf("%04d/%02d/%02d", $paid_y, $paid_m, $paid_d) : '';
+
     $status         = trim($_POST['status'] ?? 'unpaid');
 
     if (!$national_id || !$installment_no || !$amount) {
@@ -174,9 +196,10 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
                 due_date,
                 paid_amount,
                 paid_date,
-                status
+                status,
+                academic_year
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
@@ -187,7 +210,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
             $due_date,
             $paid_amount,
             $paid_date ?: null,
-            $status
+            $status,
+            $active_year
         ]);
 
         $msgs[] = [
@@ -234,9 +258,21 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $installment_no = (int)$_POST['installment_no'];
     $description = trim($_POST['description']);
     $amount = (int)str_replace(',', '', $_POST['amount']);
-    $due_date = trim($_POST['due_date']);
+
+    // تاریخ سررسید
+    $due_y = $_POST['due_y'] ?? '';
+    $due_m = $_POST['due_m'] ?? '';
+    $due_d = $_POST['due_d'] ?? '';
+    $due_date = ($due_y && $due_m && $due_d) ? sprintf("%04d/%02d/%02d", $due_y, $due_m, $due_d) : '';
+
     $paid_amount = (int)str_replace(',', '', $_POST['paid_amount']);
-    $paid_date = trim($_POST['paid_date']);
+
+    // تاریخ پرداخت
+    $paid_y = $_POST['paid_y'] ?? '';
+    $paid_m = $_POST['paid_m'] ?? '';
+    $paid_d = $_POST['paid_d'] ?? '';
+    $paid_date = ($paid_y && $paid_m && $paid_d) ? sprintf("%04d/%02d/%02d", $paid_y, $paid_m, $paid_d) : '';
+
     $status = $_POST['status'];
 
     $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
@@ -259,10 +295,14 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_news'
     $content = trim($_POST['content']);
     $video_embed = trim($_POST['video_embed']);
 
+    if (!is_dir('uploads/news')) {
+        mkdir('uploads/news', 0777, true);
+    }
+
     $uploaded_images = [];
     if (!empty($_FILES['news_images']['name'][0])) {
         foreach ($_FILES['news_images']['tmp_name'] as $key => $tmp_name) {
-            $filename = time() . '_' . $_FILES['news_images']['name'][$key];
+            $filename = time() . '_' . preg_replace("/[^a-zA-Z0-9\._-]/", "_", $_FILES['news_images']['name'][$key]);
             $target = "uploads/news/" . $filename;
             if (move_uploaded_file($tmp_name, $target)) {
                 $uploaded_images[] = $target;
@@ -291,11 +331,15 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_ne
     $old_news = $stmt->fetch();
     $images = json_decode($old_news['images'], true) ?: [];
 
+    if (!is_dir('uploads/news')) {
+        mkdir('uploads/news', 0777, true);
+    }
+
     // افزودن تصاویر جدید
     if (!empty($_FILES['news_images']['name'][0])) {
         foreach ($_FILES['news_images']['tmp_name'] as $key => $tmp_name) {
             if (!$tmp_name) continue;
-            $filename = time() . '_' . $_FILES['news_images']['name'][$key];
+            $filename = time() . '_' . preg_replace("/[^a-zA-Z0-9\._-]/", "_", $_FILES['news_images']['name'][$key]);
             $target = "uploads/news/" . $filename;
             if (move_uploaded_file($tmp_name, $target)) {
                 $images[] = $target;
@@ -350,8 +394,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
     $pay_date = trim($_POST['pay_date']);
 
     if ($pay_amount > 0) {
-        $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND status != 'paid' ORDER BY installment_no ASC");
-        $stmt->execute([$national_id]);
+        $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
+        $stmt->execute([$national_id, $active_year]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $remaining = $pay_amount;
         foreach ($rows as $row) {
@@ -378,7 +422,14 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
 $students = [];
 if ($isAdmin) {
     $db = getDB();
-    $students = $db->query("SELECT id, username, full_name, created_at FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    // دانش‌آموزانی که در سال تحصیلی فعال رکورد دارند یا اگر سال پیش‌فرض است، همه
+    if ($active_year === '1404-1405') {
+        $students = $db->query("SELECT id, username, full_name, created_at FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        $stmt = $db->prepare("SELECT u.id, u.username, u.full_name, u.created_at FROM users u JOIN student_profiles sp ON u.username = sp.national_id WHERE sp.academic_year = ? ORDER BY u.full_name ASC");
+        $stmt->execute([$active_year]);
+        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 $tab = $_GET['tab'] ?? 'import';
@@ -487,7 +538,18 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       </div>
     </div>
     <?php if ($isAdmin): ?>
-    <a href="admin.php?logout_admin=1" class="btn-sm">خروج از پنل</a>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <form method="POST" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px;">
+            <label style="color:#fff; margin-bottom:0; font-size:0.75rem;">سال تحصیلی:</label>
+            <select name="active_year" onchange="this.form.submit()" style="background:transparent; border:none; color:#fff; font-family:Vazirmatn; font-size:0.85rem; outline:none; cursor:pointer;">
+                <?php foreach ($academic_years as $y): ?>
+                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?> style="color:#000;"><?= $y ?></option>
+                <?php endforeach; ?>
+            </select>
+            <input type="hidden" name="set_active_year" value="1">
+        </form>
+        <a href="admin.php?logout_admin=1" class="btn-sm">خروج از پنل</a>
+    </div>
     <?php endif; ?>
   </div>
 </header>
@@ -612,7 +674,23 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
     <div class="field">
       <label>تاریخ سررسید</label>
-      <input type="text" name="due_date" placeholder="1405/01/15">
+      <div style="display:flex; gap:5px;">
+        <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">روز</option>
+            <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
+        </select>
+        <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">ماه</option>
+            <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
+        </select>
+        <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">سال</option>
+            <option value="1403">1403</option>
+            <option value="1404">1404</option>
+            <option value="1405" selected>1405</option>
+            <option value="1406">1406</option>
+        </select>
+      </div>
     </div>
 
     <div class="field">
@@ -622,7 +700,23 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
     <div class="field">
       <label>تاریخ پرداخت</label>
-      <input type="text" name="paid_date">
+      <div style="display:flex; gap:5px;">
+        <select name="paid_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">روز</option>
+            <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
+        </select>
+        <select name="paid_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">ماه</option>
+            <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
+        </select>
+        <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">سال</option>
+            <option value="1403">1403</option>
+            <option value="1404">1404</option>
+            <option value="1405" selected>1405</option>
+            <option value="1406">1406</option>
+        </select>
+      </div>
     </div>
 
     <div class="field">
@@ -678,14 +772,19 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <!-- لیست دانش‌آموزان -->
   <div class="card">
     <h3>👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?> نفر)</h3>
+
+    <div class="field" style="margin-bottom: 20px;">
+        <input type="text" id="studentSearch" placeholder="🔍 جستجوی نام یا کد ملی..." onkeyup="filterStudents()" style="padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--turquoise-light); width: 100%; font-family: Vazirmatn;">
+    </div>
+
     <div class="table-wrap">
-      <table>
+      <table id="studentTable">
         <thead>
           <tr>
-            <th>#</th>
-            <th>نام و نام خانوادگی</th>
-            <th>کد ملی (نام کاربری)</th>
-            <th>تاریخ ثبت</th>
+            <th onclick="sortTable(0)" style="cursor:pointer;"># ↕</th>
+            <th onclick="sortTable(1)" style="cursor:pointer;">نام و نام خانوادگی ↕</th>
+            <th onclick="sortTable(2)" style="cursor:pointer;">کد ملی (نام کاربری) ↕</th>
+            <th onclick="sortTable(3)" style="cursor:pointer;">تاریخ ثبت ↕</th>
             <th>عملیات</th>
           </tr>
         </thead>
@@ -722,8 +821,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     if (!$student_info):
       echo "<div class='alert error'>❌ دانش‌آموز یافت نشد.</div>";
     else:
-      $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? ORDER BY installment_no ASC");
-      $t_stmt->execute([$target_user]);
+      $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? AND academic_year = ? ORDER BY installment_no ASC");
+      $t_stmt->execute([$target_user, $active_year]);
       $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
   <div class="card">
@@ -790,8 +889,50 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             <td><input form="<?= $formId ?>" type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="width:100px; padding:5px;"></td>
             <td><input form="<?= $formId ?>" type="text" name="amount" value="<?= number_format($row['amount']) ?>" style="width:100px; padding:5px;"></td>
             <td><input form="<?= $formId ?>" type="text" name="paid_amount" value="<?= number_format($row['paid_amount']) ?>" style="width:100px; padding:5px;"></td>
-            <td><input form="<?= $formId ?>" type="text" name="due_date" value="<?= htmlspecialchars($row['due_date']) ?>" style="width:90px; padding:5px;"></td>
-            <td><input form="<?= $formId ?>" type="text" name="paid_date" value="<?= htmlspecialchars($row['paid_date']) ?>" style="width:90px; padding:5px;"></td>
+            <td>
+                <?php
+                    $d_y = $d_m = $d_d = "";
+                    if (!empty($row['due_date'])) {
+                        list($d_y, $d_m, $d_d) = explode('/', $row['due_date']);
+                    }
+                ?>
+                <div style="display:flex; gap:2px;">
+                    <select form="<?= $formId ?>" name="due_y" style="font-size:0.7rem; padding:2px;">
+                        <option value="">سال</option>
+                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                    </select>
+                    <select form="<?= $formId ?>" name="due_m" style="font-size:0.7rem; padding:2px;">
+                        <option value="">ماه</option>
+                        <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?>
+                    </select>
+                    <select form="<?= $formId ?>" name="due_d" style="font-size:0.7rem; padding:2px;">
+                        <option value="">روز</option>
+                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?>
+                    </select>
+                </div>
+            </td>
+            <td>
+                <?php
+                    $p_y = $p_m = $p_d = "";
+                    if (!empty($row['paid_date'])) {
+                        list($p_y, $p_m, $p_d) = explode('/', $row['paid_date']);
+                    }
+                ?>
+                <div style="display:flex; gap:2px;">
+                    <select form="<?= $formId ?>" name="paid_y" style="font-size:0.7rem; padding:2px;">
+                        <option value="">سال</option>
+                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
+                    </select>
+                    <select form="<?= $formId ?>" name="paid_m" style="font-size:0.7rem; padding:2px;">
+                        <option value="">ماه</option>
+                        <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$p_m==$i?'selected':'').">$i</option>"; ?>
+                    </select>
+                    <select form="<?= $formId ?>" name="paid_d" style="font-size:0.7rem; padding:2px;">
+                        <option value="">روز</option>
+                        <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$p_d==$i?'selected':'').">$i</option>"; ?>
+                    </select>
+                </div>
+            </td>
             <td>
               <select form="<?= $formId ?>" name="status" style="padding:5px; border-radius:8px; font-family:Vazirmatn; font-size:0.8rem;">
                 <option value="unpaid" <?= $row['status']=='unpaid'?'selected':'' ?>>پرداخت نشده</option>
@@ -818,7 +959,26 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <div class="field"><label>شماره قسط</label><input type="text" name="installment_no"></div>
       <div class="field"><label>شرح</label><input type="text" name="description"></div>
       <div class="field"><label>مبلغ</label><input type="text" name="amount"></div>
-      <div class="field"><label>تاریخ سررسید</label><input type="text" name="due_date"></div>
+      <div class="field">
+        <label>تاریخ سررسید</label>
+        <div style="display:flex; gap:5px;">
+            <select name="due_d" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                <option value="">روز</option>
+                <?php for($i=1; $i<=31; $i++) echo "<option value='$i'>$i</option>"; ?>
+            </select>
+            <select name="due_m" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                <option value="">ماه</option>
+                <?php for($i=1; $i<=12; $i++) echo "<option value='$i'>$i</option>"; ?>
+            </select>
+            <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                <option value="">سال</option>
+                <option value="1403">1403</option>
+                <option value="1404">1404</option>
+                <option value="1405" selected>1405</option>
+                <option value="1406">1406</option>
+            </select>
+        </div>
+      </div>
       <button type="submit" name="add_tuition_manual" class="btn-primary">افزودن قسط</button>
     </form>
   </div>
@@ -833,8 +993,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     $debtors = [];
 
     foreach ($all_users as $u) {
-        $stmt = $db->prepare("SELECT SUM(amount) as total_due, SUM(paid_amount) as total_paid FROM tuition WHERE national_id = ? AND due_date <= ?");
-        $stmt->execute([$u['username'], $ref_date]);
+        $stmt = $db->prepare("SELECT SUM(amount) as total_due, SUM(paid_amount) as total_paid FROM tuition WHERE national_id = ? AND academic_year = ? AND due_date <= ?");
+        $stmt->execute([$u['username'], $active_year, $ref_date]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $total_due  = (int)$res['total_due'];
@@ -1013,6 +1173,66 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
 </main>
 <?php endif; ?>
+
+<script>
+function filterStudents() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("studentSearch");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("studentTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 1; i < tr.length; i++) {
+        tr[i].style.display = "none";
+        tds = tr[i].getElementsByTagName("td");
+        for (var j = 1; j < tds.length - 1; j++) {
+            if (tds[j]) {
+                txtValue = tds[j].textContent || tds[j].innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                    break;
+                }
+            }
+        }
+    }
+}
+
+function sortTable(n) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    table = document.getElementById("studentTable");
+    switching = true;
+    dir = "asc";
+    while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName("TD")[n];
+            y = rows[i + 1].getElementsByTagName("TD")[n];
+            if (dir == "asc") {
+                if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else if (dir == "desc") {
+                if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+            switchcount++;
+        } else {
+            if (switchcount == 0 && dir == "asc") {
+                dir = "desc";
+                switching = true;
+            }
+        }
+    }
+}
+</script>
 
 </body>
 </html>
