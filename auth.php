@@ -1,4 +1,5 @@
 <?php
+date_default_timezone_set('Asia/Tehran');
 session_start();
 
 define('DB_PATH', __DIR__ . '/database.sqlite');

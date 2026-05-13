@@ -647,9 +647,16 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </div>
     <?php if ($isAdmin): ?>
     <div style="display:flex; align-items:center; gap:20px;">
-        <div id="live-clock" style="text-align: right; color: #fff; font-size: 0.85rem; background: rgba(0,0,0,0.1); padding: 4px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);">
-            <div>امروز: <?= get_jalali_today() ?></div>
-            <div id="clock-time" style="font-weight: bold; letter-spacing: 1px;">00:00:00</div>
+        <div id="live-clock" style="display:flex; align-items:center; gap:20px; color: #fff; font-size: 1.05rem; background: rgba(0,0,0,0.15); padding: 8px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="opacity: 0.8; font-size: 0.85rem;">📅</span>
+                <span>امروز: <strong><?= get_jalali_today() ?></strong></span>
+            </div>
+            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2);"></div>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="opacity: 0.8; font-size: 0.85rem;">🕒</span>
+                <span id="clock-time" style="font-weight: 800; letter-spacing: 1.5px; font-variant-numeric: tabular-nums;">00:00:00</span>
+            </div>
         </div>
         <form method="POST" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px;">
             <label style="color:#fff; margin-bottom:0; font-size:0.75rem;">سال تحصیلی:</label>
