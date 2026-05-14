@@ -120,27 +120,55 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       $stmt->execute([$_SESSION['username']]);
       $prof = $stmt->fetch(PDO::FETCH_ASSOC);
   ?>
+    <style>
+      .profile-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
+      .info-item { margin-bottom:15px; }
+      .info-label { display:block; font-size:.8rem; color:var(--gray); font-weight:700; margin-bottom:4px; }
+      .info-value { display:block; font-size:1rem; font-weight:500; background:var(--turquoise-lighter); padding:10px 14px; border-radius:10px; border:1px solid #e0f2f4; }
+      .card h2 { font-size:1.4rem; font-weight:800; margin-bottom:24px; color:var(--turquoise-dark); border-bottom:2px solid var(--turquoise-light); padding-bottom:12px; display:flex; align-items:center; gap:10px; }
+    </style>
     <div class="welcome">
         <h1>اطلاعات پرسنلی</h1>
         <p>مشخصات ثبت شده شما در سیستم</p>
     </div>
-    <div class="card" style="line-height: 2;">
+    <div class="card">
         <?php if ($prof): ?>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div><strong>نام:</strong> <?= htmlspecialchars($prof['first_name']) ?></div>
-                <div><strong>نام خانوادگی:</strong> <?= htmlspecialchars($prof['last_name']) ?></div>
-                <div><strong>کد ملی:</strong> <?= to_persian_num($prof['national_id']) ?></div>
-                <div><strong>سمت:</strong> <?= htmlspecialchars($prof['position']) ?></div>
-                <div><strong>تحصیلات:</strong> <?= htmlspecialchars($prof['education']) ?></div>
-                <div><strong>تلفن همراه:</strong> <?= to_persian_num($prof['mobile_phone']) ?></div>
-                <div><strong>تاریخ قرارداد:</strong> <?= to_persian_num($prof['contract_date']) ?></div>
-                <div><strong>شماره شبا:</strong> <?= to_persian_num($prof['sheba']) ?></div>
+            <h2>👤 مشخصات فردی و شغلی</h2>
+            <div class="profile-grid">
+                <div class="info-item"><span class="info-label">نام</span><span class="info-value"><?= htmlspecialchars($prof['first_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">نام خانوادگی</span><span class="info-value"><?= htmlspecialchars($prof['last_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">کد ملی</span><span class="info-value"><?= to_persian_num($prof['national_id']) ?></span></div>
+                <div class="info-item"><span class="info-label">سمت</span><span class="info-value"><?= htmlspecialchars($prof['position'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تحصیلات</span><span class="info-value"><?= htmlspecialchars($prof['education'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">نام پدر</span><span class="info-value"><?= htmlspecialchars($prof['father_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تاریخ تولد</span><span class="info-value"><?= to_persian_num($prof['birth_date'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">محل صدور</span><span class="info-value"><?= htmlspecialchars($prof['birth_place'] ?: '—') ?></span></div>
             </div>
-            <div style="margin-top: 15px;"><strong>برنامه حضور:</strong> <?= nl2br(htmlspecialchars($prof['schedule'])) ?></div>
+
+            <h2 style="margin-top:30px;">📞 اطلاعات تماس و قرارداد</h2>
+            <div class="profile-grid">
+                <div class="info-item"><span class="info-label">تلفن همراه</span><span class="info-value"><?= to_persian_num($prof['mobile_phone'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تلفن ثابت</span><span class="info-value"><?= to_persian_num($prof['home_phone'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تاریخ قرارداد</span><span class="info-value"><?= to_persian_num($prof['contract_date'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">شماره نامه</span><span class="info-value"><?= to_persian_num($prof['letter_no'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">بانک</span><span class="info-value"><?= htmlspecialchars($prof['bank'] ?: '—') ?></span></div>
+                <div class="info-item" style="grid-column: span 2;"><span class="info-label">شماره شبا</span><span class="info-value" style="direction:ltr; text-align:right;"><?= to_persian_num($prof['sheba'] ?: '—') ?></span></div>
+                <div class="info-item" style="grid-column: span 2;"><span class="info-label">آدرس</span><span class="info-value"><?= nl2br(htmlspecialchars($prof['address'] ?: '—')) ?></span></div>
+            </div>
+
+            <h2 style="margin-top:30px;">📅 برنامه حضور</h2>
+            <div class="info-item">
+                <span class="info-value"><?= nl2br(htmlspecialchars($prof['schedule'] ?: 'هنوز برنامه‌ای ثبت نشده است.')) ?></span>
+            </div>
         <?php else: ?>
-            <p>اطلاعاتی یافت نشد.</p>
+            <div class="placeholder-msg">
+                <h2>اطلاعاتی یافت نشد</h2>
+                <p>هنوز پروفایلی برای شما در این سال تحصیلی ثبت نشده است.</p>
+            </div>
         <?php endif; ?>
-        <a href="dashboard.php" class="back-link">← بازگشت به داشبورد</a>
+        <div style="margin-top:30px; text-align:center;">
+            <a href="dashboard.php" class="btn-logout" style="background:var(--turquoise-dark); border:none;">← بازگشت به داشبورد</a>
+        </div>
     </div>
 
   <?php else: ?>

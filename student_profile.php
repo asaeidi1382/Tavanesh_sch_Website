@@ -27,120 +27,99 @@ $student = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$student) {
     die('دانش‌آموز پیدا نشد.');
 }
-?>
 
-<!DOCTYPE html>
-
-<html lang="fa" dir="rtl">
-
-<head>
-
-<meta charset="UTF-8">
-
-<title>پروفایل دانش‌آموز</title>
-
-<style>
-
-body{
-    font-family:Vazirmatn,sans-serif;
-    background:#f5fbfd;
-    margin:0;
-}
-
-.container{
-    max-width:900px;
-    margin:40px auto;
-    background:#fff;
-    padding:35px;
-    border-radius:24px;
-}
-
-.item{
-    margin-bottom:18px;
-}
-
-.label{
-    font-weight:700;
-    color:#0c8790;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<?php
 $display_name = trim(($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')) ?: $student['national_id'];
 ?>
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پروفایل دانش‌آموز — <?= htmlspecialchars($display_name) ?></title>
+<link rel="icon" href="/images/logo-T.png" type="image/png">
+<style>
+@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
+@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
+@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
 
-<h1>
-<?= to_persian_num(htmlspecialchars($display_name)) ?>
-</h1>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
-<div style="margin-bottom:20px; color:var(--gray); font-size:0.9rem;">
-    سال تحصیلی: <?= to_persian_num(htmlspecialchars($academic_year)) ?>
-</div>
+:root {
+  --turquoise:        #19b8c2;
+  --turquoise-dark:   #0c8790;
+  --turquoise-light:  #e6f8fa;
+  --turquoise-lighter:#f0fbfd;
+  --text:             #0f3d42;
+  --gray:             #4e8a90;
+  --shadow-sm:        0 4px 15px rgba(0,0,0,.08);
+  --shadow-md:        0 12px 30px rgba(0,0,0,.12);
+}
 
-<div class="item">
-<span class="label">کد ملی:</span>
-<?= to_persian_num(htmlspecialchars($student['national_id'])) ?>
-</div>
+body { min-height:100vh; background:linear-gradient(to bottom, #f5fbfd, #ffffff); font-family:'Vazirmatn', sans-serif; color:var(--text); line-height:1.7; }
 
-<div class="item">
-<span class="label">پایه:</span>
-<?= to_persian_num(htmlspecialchars($student['grade'])) ?>
-</div>
+.topbar { background:var(--turquoise); color:#fff; position:sticky; top:0; z-index:1000; box-shadow:var(--shadow-md); }
+.topbar-inner { max-width:1100px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; }
+.brand { display:flex; align-items:center; gap:12px; }
+.brand-logo { width:52px; height:52px; border-radius:12px; overflow:hidden; background:rgba(255,255,255,.2); }
+.brand-logo img { width:100%; height:100%; object-fit:contain; }
+.brand-title { font-size:1.2rem; font-weight:800; }
+.btn-back { padding:8px 16px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); border-radius:10px; font-family:'Vazirmatn',sans-serif; font-size:.85rem; font-weight:700; color:#fff; text-decoration:none; }
 
-<div class="item">
-<span class="label">رشته:</span>
-<?= to_persian_num(htmlspecialchars($student['major'])) ?>
-</div>
+main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
+.card { background:#fff; border:1.5px solid var(--turquoise-light); border-radius:20px; padding:32px; box-shadow:var(--shadow-sm); }
+.card h2 { font-size:1.4rem; font-weight:800; margin-bottom:24px; color:var(--turquoise-dark); border-bottom:2px solid var(--turquoise-light); padding-bottom:12px; display:flex; align-items:center; gap:10px; }
 
-<div class="item">
-<span class="label">نام پدر:</span>
-<?= to_persian_num(htmlspecialchars($student['father_name'] ?? '—')) ?>
-</div>
+.profile-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
+.info-item { margin-bottom:15px; }
+.info-label { display:block; font-size:.8rem; color:var(--gray); font-weight:700; margin-bottom:4px; }
+.info-value { display:block; font-size:1rem; font-weight:500; background:var(--turquoise-lighter); padding:10px 14px; border-radius:10px; border:1px solid #e0f2f4; }
 
-<div class="item">
-<span class="label">تلفن پدر:</span>
-<?= to_persian_num(htmlspecialchars($student['father_phone'] ?? '—')) ?>
-</div>
+@media(max-width:600px) {
+  .profile-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو"></div>
+      <div class="brand-title">پروفایل دانش‌آموز</div>
+    </div>
+    <a href="<?= isset($_SESSION['is_admin']) ? 'admin.php?tab=students' : 'dashboard.php' ?>" class="btn-back">→ بازگشت</a>
+  </div>
+</header>
 
-<div class="item">
-<span class="label">نام مادر:</span>
-<?= to_persian_num(htmlspecialchars($student['mother_name'] ?? '—')) ?>
-</div>
+<main>
+  <div class="card">
+    <div style="margin-bottom:30px; text-align:center;">
+        <h1 style="font-size:2rem; font-weight:800; color:var(--turquoise-dark); margin-bottom:5px;"><?= to_persian_num(htmlspecialchars($display_name)) ?></h1>
+        <p style="color:var(--gray);">سال تحصیلی: <?= to_persian_num(htmlspecialchars($academic_year)) ?></p>
+    </div>
 
-<div class="item">
-<span class="label">تلفن مادر:</span>
-<?= to_persian_num(htmlspecialchars($student['mother_phone'] ?? '—')) ?>
-</div>
+    <h2>👤 اطلاعات شناسایی و تحصیلی</h2>
+    <div class="profile-grid">
+      <div class="info-item"><span class="info-label">نام</span><span class="info-value"><?= htmlspecialchars($student['first_name'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">نام خانوادگی</span><span class="info-value"><?= htmlspecialchars($student['last_name'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">کد ملی (نام کاربری)</span><span class="info-value"><?= to_persian_num(htmlspecialchars($student['national_id'])) ?></span></div>
+      <div class="info-item"><span class="info-label">پایه تحصیلی</span><span class="info-value"><?= htmlspecialchars($student['grade'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">رشته تحصیلی</span><span class="info-value"><?= htmlspecialchars($student['major'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">وضعیت دست</span><span class="info-value"><?= ($student['left_handed']??0) ? 'چپ دست' : 'راست دست' ?></span></div>
+    </div>
 
-<div class="item">
-<span class="label">تلفن ثابت:</span>
-<?= to_persian_num(htmlspecialchars($student['home_phone'] ?? '—')) ?>
-</div>
-
-<div class="item">
-<span class="label">تلفن همراه دانش‌آموز:</span>
-<?= to_persian_num(htmlspecialchars($student['student_phone'] ?? '—')) ?>
-</div>
-
-<div class="item">
-<span class="label">وضعیت:</span>
-<?= ($student['left_handed'] ?? 0) ? 'چپ‌دست' : 'راست‌دست' ?>
-</div>
-
-<div class="item">
-<span class="label">آدرس:</span>
-<?= nl2br(htmlspecialchars($student['address'] ?? '—')) ?>
-</div>
-
-</div>
-
+    <h2 style="margin-top:40px;">👨‍👩‍👧‍👦 اطلاعات خانواده و تماس</h2>
+    <div class="profile-grid">
+      <div class="info-item"><span class="info-label">نام پدر</span><span class="info-value"><?= htmlspecialchars($student['father_name'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">نام مادر</span><span class="info-value"><?= htmlspecialchars($student['mother_name'] ?: '—') ?></span></div>
+      <div class="info-item"><span class="info-label">تلفن پدر</span><span class="info-value"><?= to_persian_num(htmlspecialchars($student['father_phone'] ?: '—')) ?></span></div>
+      <div class="info-item"><span class="info-label">تلفن مادر</span><span class="info-value"><?= to_persian_num(htmlspecialchars($student['mother_phone'] ?: '—')) ?></span></div>
+      <div class="info-item"><span class="info-label">تلفن همراه دانش‌آموز</span><span class="info-value"><?= to_persian_num(htmlspecialchars($student['student_phone'] ?: '—')) ?></span></div>
+      <div class="info-item"><span class="info-label">تلفن ثابت منزل</span><span class="info-value"><?= to_persian_num(htmlspecialchars($student['home_phone'] ?: '—')) ?></span></div>
+      <div class="info-item" style="grid-column: span 2;"><span class="info-label">آدرس منزل</span><span class="info-value"><?= nl2br(htmlspecialchars($student['address'] ?: '—')) ?></span></div>
+    </div>
+  </div>
+</main>
 </body>
-
 </html>
