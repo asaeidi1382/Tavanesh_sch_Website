@@ -92,7 +92,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
             $paid_date      = trim($row[5] ?? '');
             $status         = trim($row[6] ?? 'unpaid');
-            $description    = '';
             if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
 
             if (!$national_id || !$installment_no) { $skipped++; continue; }
@@ -103,12 +102,12 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $existing = $check->fetch();
 
             if ($existing) {
-                $db->prepare("UPDATE tuition SET description=?,amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
-                   ->execute([$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
+                $db->prepare("UPDATE tuition SET amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                   ->execute([$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
                 $updated++;
             } else {
-                $db->prepare("INSERT INTO tuition (national_id,installment_no,description,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?,?)")
-                   ->execute([$national_id,$installment_no,$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
+                $db->prepare("INSERT INTO tuition (national_id,installment_no,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?)")
+                   ->execute([$national_id,$installment_no,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
                 $inserted++;
             }
         }
@@ -204,7 +203,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
 
     $national_id    = trim($_POST['national_id'] ?? '');
     $installment_no = (int)($_POST['installment_no'] ?? 0);
-    $description    = trim($_POST['description'] ?? '');
     $amount         = (int)str_replace(',', '', $_POST['amount'] ?? 0);
 
     // تاریخ سررسید
@@ -237,7 +235,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
             (
                 national_id,
                 installment_no,
-                description,
                 amount,
                 due_date,
                 paid_amount,
@@ -245,13 +242,13 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
                 status,
                 academic_year
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
             $national_id,
             $installment_no,
-            $description,
+
             $amount,
             $due_date,
             $paid_amount,
@@ -338,7 +335,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $db = getDB();
     $id = (int)$_POST['tuition_id'];
     $installment_no = (int)$_POST['installment_no'];
-    $description = ''; // Removed from UI
     $amount = (int)str_replace(',', '', $_POST['amount']);
 
     // تاریخ سررسید
@@ -357,8 +353,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
 
     $status = $_POST['status'];
 
-    $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
-    $stmt->execute([$installment_no, $description, $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
+    $stmt = $db->prepare("UPDATE tuition SET installment_no=?,  amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
+    $stmt->execute([$installment_no,  $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
     $msgs[] = ['type'=>'success', 'text'=>'✅ قسط ویرایش شد.'];
 }
 
