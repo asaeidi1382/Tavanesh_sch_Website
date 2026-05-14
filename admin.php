@@ -650,19 +650,19 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         <div id="live-clock" style="display:flex; align-items:center; gap:20px; color: #fff; font-size: 1.05rem; background: rgba(0,0,0,0.15); padding: 8px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
             <div style="display:flex; align-items:center; gap:6px;">
                 <span style="opacity: 0.8; font-size: 0.85rem;">📅</span>
-                <span>امروز: <strong><?= get_jalali_today() ?></strong></span>
+                <span>امروز: <strong><?= to_persian_num(get_jalali_today()) ?></strong></span>
             </div>
             <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2);"></div>
             <div style="display:flex; align-items:center; gap:6px;">
                 <span style="opacity: 0.8; font-size: 0.85rem;">🕒</span>
-                <span id="clock-time" style="font-weight: 800; letter-spacing: 1.5px; font-variant-numeric: tabular-nums;">00:00:00</span>
+                <span id="clock-time" style="font-weight: 800; letter-spacing: 1.5px; font-variant-numeric: tabular-nums;">۰۰:۰۰:۰۰</span>
             </div>
         </div>
         <form method="POST" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px;">
             <label style="color:#fff; margin-bottom:0; font-size:0.75rem;">سال تحصیلی:</label>
             <select name="active_year" onchange="this.form.submit()" style="background:transparent; border:none; color:#fff; font-family:Vazirmatn; font-size:0.85rem; outline:none; cursor:pointer;">
                 <?php foreach ($academic_years as $y): ?>
-                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?> style="color:#000;"><?= $y ?></option>
+                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?> style="color:#000;"><?= to_persian_num($y) ?></option>
                 <?php endforeach; ?>
             </select>
             <input type="hidden" name="set_active_year" value="1">
@@ -701,7 +701,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
-    <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?>)</a>
+    <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
     <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
@@ -907,7 +907,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <!-- لیست دانش‌آموزان -->
   <div class="card">
-    <h3>👩‍🎓 لیست دانش‌آموزان (<?= count($students) ?> نفر)</h3>
+    <h3>👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?> نفر)</h3>
 
     <div class="field" style="margin-bottom: 20px;">
         <input type="text" id="studentSearch" placeholder="🔍 جستجوی نام یا کد ملی..." onkeyup="filterStudents()" style="padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--turquoise-light); width: 100%; font-family: Vazirmatn;">
@@ -930,10 +930,10 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           <?php endif; ?>
           <?php foreach ($students as $i => $s): ?>
           <tr>
-            <td><?= $i + 1 ?></td>
+            <td><?= to_persian_num($i + 1) ?></td>
             <td><?= htmlspecialchars($s['full_name'] ?: '—') ?></td>
-            <td><?= htmlspecialchars($s['username']) ?></td>
-            <td><?= htmlspecialchars(substr($s['created_at'], 0, 10)) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+            <td><?= to_persian_num(convert_to_jalali($s['created_at'])) ?></td>
             <td>
               <a href="?tab=manage_student&username=<?= urlencode($s['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">مدیریت</a>
               <a href="?tab=students&delete_user=<?= $s['id'] ?>"
@@ -966,7 +966,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
   <div class="card">
-    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?> (سال <?= $active_year ?>)</h3>
+    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
     <form method="POST">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
 
@@ -1276,10 +1276,10 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           <?php foreach ($debtors as $d): ?>
           <tr>
             <td><?= htmlspecialchars($d['full_name']) ?></td>
-            <td><?= htmlspecialchars($d['username']) ?></td>
-            <td><?= number_format($d['total_due']) ?> تومان</td>
-            <td><?= number_format($d['total_paid']) ?> تومان</td>
-            <td style="color:var(--red); font-weight:bold;"><?= number_format($d['debt']) ?> تومان</td>
+            <td><?= to_persian_num(htmlspecialchars($d['username'])) ?></td>
+            <td><?= to_persian_num(number_format($d['total_due'])) ?> تومان</td>
+            <td><?= to_persian_num(number_format($d['total_paid'])) ?> تومان</td>
+            <td style="color:var(--red); font-weight:bold;"><?= to_persian_num(number_format($d['debt'])) ?> تومان</td>
             <td>
               <a href="?tab=manage_student&username=<?= urlencode($d['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">مدیریت</a>
             </td>
@@ -1389,8 +1389,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           ?>
           <tr>
             <td><?= htmlspecialchars($n['title']) ?></td>
-            <td><?= htmlspecialchars($n['date']) ?></td>
-            <td><?= count($imgs) ?> تصویر</td>
+            <td><?= to_persian_num(htmlspecialchars($n['date'])) ?></td>
+            <td><?= to_persian_num(count($imgs)) ?> تصویر</td>
             <td>
               <a href="?tab=news&edit_news=<?= $n['id'] ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">ویرایش</a>
               <a href="?tab=news&delete_news=<?= $n['id'] ?>" class="btn-del" onclick="return confirm('آیا از حذف این خبر اطمینان دارید؟')">حذف</a>
@@ -1420,12 +1420,18 @@ function setRefToday() {
     }
 }
 
+function toPersianNum(str) {
+    const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return str.toString().replace(/\d/g, x => fa[en.indexOf(x)]);
+}
+
 function updateClock() {
     const now = new Date();
     const h = String(now.getHours()).padStart(2, '0');
     const m = String(now.getMinutes()).padStart(2, '0');
     const s = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('clock-time').textContent = `${h}:${m}:${s}`;
+    document.getElementById('clock-time').textContent = toPersianNum(`${h}:${m}:${s}`);
 }
 setInterval(updateClock, 1000);
 updateClock();

@@ -77,56 +77,56 @@ $display_name = $user_data['full_name'] ?: ($student['first_name'] . ' ' . $stud
 ?>
 
 <h1>
-<?= htmlspecialchars($display_name) ?>
+<?= to_persian_num(htmlspecialchars($display_name)) ?>
 </h1>
 
 <div style="margin-bottom:20px; color:var(--gray); font-size:0.9rem;">
-    سال تحصیلی: <?= htmlspecialchars($academic_year) ?>
+    سال تحصیلی: <?= to_persian_num(htmlspecialchars($academic_year)) ?>
 </div>
 
 <div class="item">
 <span class="label">کد ملی:</span>
-<?= htmlspecialchars($student['national_id']) ?>
+<?= to_persian_num(htmlspecialchars($student['national_id'])) ?>
 </div>
 
 <div class="item">
 <span class="label">پایه:</span>
-<?= htmlspecialchars($student['grade']) ?>
+<?= to_persian_num(htmlspecialchars($student['grade'])) ?>
 </div>
 
 <div class="item">
 <span class="label">رشته:</span>
-<?= htmlspecialchars($student['major']) ?>
+<?= to_persian_num(htmlspecialchars($student['major'])) ?>
 </div>
 
 <div class="item">
 <span class="label">نام پدر:</span>
-<?= htmlspecialchars($student['father_name'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['father_name'] ?? '—')) ?>
 </div>
 
 <div class="item">
 <span class="label">تلفن پدر:</span>
-<?= htmlspecialchars($student['father_phone'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['father_phone'] ?? '—')) ?>
 </div>
 
 <div class="item">
 <span class="label">نام مادر:</span>
-<?= htmlspecialchars($student['mother_name'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['mother_name'] ?? '—')) ?>
 </div>
 
 <div class="item">
 <span class="label">تلفن مادر:</span>
-<?= htmlspecialchars($student['mother_phone'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['mother_phone'] ?? '—')) ?>
 </div>
 
 <div class="item">
 <span class="label">تلفن ثابت:</span>
-<?= htmlspecialchars($student['home_phone'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['home_phone'] ?? '—')) ?>
 </div>
 
 <div class="item">
 <span class="label">تلفن همراه دانش‌آموز:</span>
-<?= htmlspecialchars($student['student_phone'] ?? '—') ?>
+<?= to_persian_num(htmlspecialchars($student['student_phone'] ?? '—')) ?>
 </div>
 
 <div class="item">

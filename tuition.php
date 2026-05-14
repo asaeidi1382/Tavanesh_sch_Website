@@ -37,13 +37,8 @@ foreach ($installments as $row) {
 $totalRemaining = $totalAmount - $totalPaid;
 $financialBalance = $totalPaid - $totalDueByToday;
 
-// تبدیل عدد به فارسی
-function toFa($num) {
-    $map = ['0'=>'۰','1'=>'۱','2'=>'۲','3'=>'۳','4'=>'۴','5'=>'۵','6'=>'۶','7'=>'۷','8'=>'۸','9'=>'۹'];
-    return strtr((string)$num, $map);
-}
 function formatMoney($n) {
-    return toFa(number_format($n));
+    return to_persian_num(number_format($n));
 }
 
 $statusLabel = ['paid'=>'پرداخت شده','partial'=>'ناقص','unpaid'=>'پرداخت نشده'];
@@ -178,14 +173,14 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
   <div class="page-header">
     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
-            <h1>اقساط شهریه — <span><?= htmlspecialchars($fullName) ?></span></h1>
-            <p>کد ملی: <?= toFa(htmlspecialchars($national_id)) ?></p>
+            <h1>اقساط شهریه — <span><?= to_persian_num(htmlspecialchars($fullName)) ?></span></h1>
+            <p>کد ملی: <?= to_persian_num(htmlspecialchars($national_id)) ?></p>
         </div>
         <div style="background:#fff; padding:10px 15px; border-radius:12px; border:1.5px solid var(--turquoise-light); box-shadow:var(--shadow-sm);">
             <label style="font-size:0.8rem; color:var(--gray); display:block; margin-bottom:5px;">سال تحصیلی:</label>
             <select onchange="window.location.href='?year='+this.value" style="border:none; background:transparent; font-family:Vazirmatn; font-weight:700; color:var(--turquoise-dark); outline:none; cursor:pointer;">
                 <?php foreach ($academic_years as $y): ?>
-                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?>><?= toFa($y) ?></option>
+                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?>><?= to_persian_num($y) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -251,15 +246,15 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
           $stClass = $statusClass[$st] ?? 'unpaid';
         ?>
         <tr>
-          <td data-label="شماره قسط"><?= toFa($row['installment_no']) ?></td>
+          <td data-label="شماره قسط"><?= to_persian_num($row['installment_no']) ?></td>
           <td data-label="مبلغ"><?= formatMoney($row['amount']) ?></td>
           <td data-label="پرداخت شده"><?= formatMoney($row['paid_amount']) ?></td>
-          <td data-label="سررسید"><?= htmlspecialchars($row['due_date'] ?? '—') ?></td>
-          <td data-label="تاریخ پرداخت"><?= htmlspecialchars($row['paid_date'] ?: '—') ?></td>
+          <td data-label="سررسید"><?= to_persian_num(convert_to_jalali(htmlspecialchars($row['due_date'] ?? '—'))) ?></td>
+          <td data-label="تاریخ پرداخت"><?= to_persian_num(convert_to_jalali(htmlspecialchars($row['paid_date'] ?: '—'))) ?></td>
           <td data-label="پیشرفت">
             <div class="progress-wrap">
               <div class="progress-bar"><div class="progress-fill" style="width:<?= $pct ?>%"></div></div>
-              <span class="progress-pct"><?= toFa($pct) ?>٪</span>
+              <span class="progress-pct"><?= to_persian_num($pct) ?>٪</span>
             </div>
           </td>
           <td data-label="وضعیت"><span class="badge <?= $stClass ?>"><?= $stLabel ?></span></td>
