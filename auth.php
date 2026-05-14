@@ -186,7 +186,7 @@ function gregorian_to_jalali($gy, $gm, $gd) {
 
 function convert_to_jalali($date_str) {
     if (empty($date_str)) return "";
-
+    
     // Check if it's already in YYYY/MM/DD (Jalali) format
     if (preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $date_str)) {
         return $date_str;
