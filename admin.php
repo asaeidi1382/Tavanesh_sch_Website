@@ -92,7 +92,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
             $paid_date      = trim($row[5] ?? '');
             $status         = trim($row[6] ?? 'unpaid');
-            $description    = '';
             if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
 
             if (!$national_id || !$installment_no) { $skipped++; continue; }
@@ -103,12 +102,12 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $existing = $check->fetch();
 
             if ($existing) {
-                $db->prepare("UPDATE tuition SET description=?,amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
-                   ->execute([$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
+                $db->prepare("UPDATE tuition SET amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                   ->execute([$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
                 $updated++;
             } else {
-                $db->prepare("INSERT INTO tuition (national_id,installment_no,description,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?,?)")
-                   ->execute([$national_id,$installment_no,$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
+                $db->prepare("INSERT INTO tuition (national_id,installment_no,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?)")
+                   ->execute([$national_id,$installment_no,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
                 $inserted++;
             }
         }
@@ -204,7 +203,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
 
     $national_id    = trim($_POST['national_id'] ?? '');
     $installment_no = (int)($_POST['installment_no'] ?? 0);
-    $description    = trim($_POST['description'] ?? '');
     $amount         = (int)str_replace(',', '', $_POST['amount'] ?? 0);
 
     // تاریخ سررسید
@@ -237,7 +235,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
             (
                 national_id,
                 installment_no,
-                description,
                 amount,
                 due_date,
                 paid_amount,
@@ -245,13 +242,13 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
                 status,
                 academic_year
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
             $national_id,
             $installment_no,
-            $description,
+
             $amount,
             $due_date,
             $paid_amount,
@@ -338,7 +335,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $db = getDB();
     $id = (int)$_POST['tuition_id'];
     $installment_no = (int)$_POST['installment_no'];
-    $description = ''; // Removed from UI
     $amount = (int)str_replace(',', '', $_POST['amount']);
 
     // تاریخ سررسید
@@ -357,8 +353,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
 
     $status = $_POST['status'];
 
-    $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
-    $stmt->execute([$installment_no, $description, $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
+    $stmt = $db->prepare("UPDATE tuition SET installment_no=?,  amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
+    $stmt->execute([$installment_no,  $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
     $msgs[] = ['type'=>'success', 'text'=>'✅ قسط ویرایش شد.'];
 }
 
@@ -501,6 +497,34 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
                ->execute([$new_paid, $new_status, $pay_date ?: null, $row['id']]);
         }
         $msgs[] = ['type'=>'success', 'text'=>'✅ مبلغ پرداختی بین اقساط توزیع شد.'];
+    }
+}
+
+
+// ─── آپلود فیش حقوقی ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_paystubs'])) {
+    $db = getDB();
+    $title = trim($_POST['paystub_title'] ?? '');
+    if (!$title) {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ عنوان فیش حقوقی الزامی است.'];
+    } else {
+        if (!is_dir('uploads/paystubs')) {
+            mkdir('uploads/paystubs', 0777, true);
+        }
+        $count = 0;
+        foreach ($_FILES['paystub_files']['tmp_name'] as $nid => $tmp_name) {
+            if ($tmp_name && is_uploaded_file($tmp_name)) {
+                $ext = pathinfo($_FILES['paystub_files']['name'][$nid], PATHINFO_EXTENSION);
+                $filename = "paystub_{$nid}_" . time() . ".$ext";
+                $target = "uploads/paystubs/" . $filename;
+                if (move_uploaded_file($tmp_name, $target)) {
+                    $stmt = $db->prepare("INSERT INTO paystubs (national_id, academic_year, title, file_path) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$nid, $active_year, $title, $target]);
+                    $count++;
+                }
+            }
+        }
+        $msgs[] = ['type'=>'success', 'text'=>"✅ تعداد $count فیش حقوقی با عنوان '{$title}' آپلود شد."];
     }
 }
 
@@ -760,6 +784,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
+    <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 آپلود فیش حقوقی</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
     <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
@@ -1270,6 +1295,39 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </form>
   </div>
   <?php endif; ?>
+
+
+  <?php elseif ($tab === 'upload_paystubs'): ?>
+  <div class="card">
+    <h3>💵 آپلود گروهی فیش حقوقی (سال <?= to_persian_num($active_year) ?>)</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>عنوان (مثلاً: فیش حقوقی اردیبهشت ۱۴۰۴)</label>
+        <input type="text" name="paystub_title" placeholder="عنوان فیش را وارد کنید..." required>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>نام و نام خانوادگی</th>
+              <th>کد ملی</th>
+              <th>انتخاب فایل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($staff as $s): ?>
+            <tr>
+              <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+              <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+              <td><input type="file" name="paystub_files[<?= htmlspecialchars($s['username']) ?>]" accept=".pdf,.jpg,.jpeg,.png"></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" name="upload_paystubs" class="btn-primary" style="margin-top:20px;">📤 شروع آپلود فیش‌ها</button>
+    </form>
+  </div>
 
   <?php elseif ($tab === 'staff'): ?>
 

@@ -16,13 +16,11 @@ function getDB() {
             username    TEXT UNIQUE NOT NULL,
             email       TEXT UNIQUE,
             password    TEXT NOT NULL,
-            full_name   TEXT DEFAULT '',
             role        TEXT DEFAULT 'student',
             created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
         // ستون‌های مورد نیاز
-        try { $db->exec("ALTER TABLE users ADD COLUMN full_name TEXT DEFAULT ''"); } catch(Exception $e){}
         try { $db->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'"); } catch(Exception $e){}
 
         // جدول اقساط شهریه
@@ -81,6 +79,16 @@ function getDB() {
             letter_no      TEXT,
             PRIMARY KEY (national_id, academic_year)
         )");
+
+        // جدول فیش حقوقی
+        $db->exec("CREATE TABLE IF NOT EXISTS paystubs (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            title          TEXT NOT NULL,
+            file_path      TEXT NOT NULL,
+            upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
     }
     return $db;
 }
@@ -109,7 +117,7 @@ function loginUser($usernameOrEmail, $password) {
 
         // پیدا کردن نام واقعی از پروفایل
         $fullName = getUserRealName($user['username'], $user['role']);
-        $_SESSION['full_name']  = $fullName ?: ($user['full_name'] ?: $user['username']);
+        $_SESSION['full_name']  = $fullName ?: $user['username'];
 
         return ['success' => true];
     }
@@ -134,7 +142,7 @@ function getUserRealName($national_id, $role, $academic_year = null) {
     return null;
 }
 
-function registerUser($username, $email, $password, $full_name = '') {
+function registerUser($username, $email, $password) {
     if (strlen($username) < 3)
         return ['success' => false, 'error' => 'Username must be at least 3 characters.'];
     if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL))
@@ -145,8 +153,8 @@ function registerUser($username, $email, $password, $full_name = '') {
     $db = getDB();
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$username, $email ?: null, $hash, $full_name]);
+        $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $email ?: null, $hash]);
         return ['success' => true];
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), 'UNIQUE') !== false)

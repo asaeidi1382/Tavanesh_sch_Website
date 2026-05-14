@@ -108,7 +108,65 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
 </header>
 
 <main>
-  <?php if (isset($_GET['page'])): ?>
+  <?php if (isset($_GET['page']) && $_GET['page'] === 'paystub'):
+      require_once 'auth.php';
+      $db = getDB();
+      $stmt = $db->prepare("SELECT * FROM paystubs WHERE national_id = ? ORDER BY upload_date DESC");
+      $stmt->execute([$_SESSION['username']]);
+      $stubs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+    <div class="welcome">
+        <h1>💵 مشاهده فیش حقوقی</h1>
+        <p>لیست فیش‌های حقوقی صادر شده برای شما</p>
+    </div>
+    <div class="card">
+        <?php if ($stubs): ?>
+            <div class="table-wrap">
+                <style>
+                    .table-wrap { overflow-x:auto; border-radius:14px; border:1.5px solid var(--turquoise-light); }
+                    table { width:100%; border-collapse:collapse; }
+                    thead th { background:var(--turquoise-lighter); padding:12px 14px; font-size:.85rem; font-weight:700; color:var(--turquoise-dark); text-align:right; border-bottom:1.5px solid var(--turquoise-light); }
+                    tbody tr { border-bottom:1px solid #edf6f8; transition: background .2s; }
+                    tbody tr:hover { background:var(--turquoise-lighter); }
+                    tbody td { padding:14px; font-size:.92rem; }
+                    .btn-action { padding:6px 12px; border-radius:8px; font-size:.8rem; font-weight:700; text-decoration:none; display:inline-block; margin-left:5px; }
+                    .btn-view { background:var(--turquoise-light); color:var(--turquoise-dark); }
+                    .btn-download { background:var(--turquoise); color:#fff; }
+                </style>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>عنوان فیش</th>
+                            <th>تاریخ آپلود</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($stubs as $stub): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($stub['title']) ?></td>
+                            <td><?= to_persian_num(convert_to_jalali($stub['upload_date'])) ?></td>
+                            <td>
+                                <a href="<?= htmlspecialchars($stub['file_path']) ?>" target="_blank" class="btn-action btn-view">👁️ مشاهده</a>
+                                <a href="<?= htmlspecialchars($stub['file_path']) ?>" download class="btn-action btn-download">📥 دانلود</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="placeholder-msg">
+                <h2>فیش حقوقی یافت نشد</h2>
+                <p>هنوز هیچ فیش حقوقی برای شما در سیستم ثبت نشده است.</p>
+            </div>
+        <?php endif; ?>
+        <div style="margin-top:30px; text-align:center;">
+            <a href="dashboard.php" class="btn-logout" style="background:var(--turquoise-dark); border:none;">← بازگشت به داشبورد</a>
+        </div>
+    </div>
+
+  <?php elseif (isset($_GET['page'])): ?>
     <div class="placeholder-msg">
         <h2>این بخش بعدا تکمیل خواهد شد</h2>
         <p>در حال حاضر این صفحه در دسترس نیست.</p>
