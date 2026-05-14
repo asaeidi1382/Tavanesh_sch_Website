@@ -172,9 +172,9 @@ $news_items = $db->query("SELECT * FROM news ORDER BY id DESC")->fetchAll(PDO::F
         <?php endif; ?>
       </div>
       <div class="news-content">
-        <h2><?= htmlspecialchars($item['title']) ?></h2>
-        <div class="date"><?= htmlspecialchars($item['date']) ?></div>
-        <p><?= nl2br(htmlspecialchars($item['content'])) ?></p>
+        <h2><?= to_persian_num(htmlspecialchars($item['title'])) ?></h2>
+        <div class="date"><?= to_persian_num(htmlspecialchars($item['date'])) ?></div>
+        <p><?= to_persian_num(nl2br(htmlspecialchars($item['content']))) ?></p>
       </div>
     </article>
   <?php endforeach; ?>

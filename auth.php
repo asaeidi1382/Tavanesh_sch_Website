@@ -161,3 +161,46 @@ function get_jalali_today() {
 
     return sprintf("%04d/%02d/%02d", $jy, $jm, $jd);
 }
+
+function gregorian_to_jalali($gy, $gm, $gd) {
+    $g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    $jy = ($gy <= 1600) ? 0 : 979;
+    $gy -= ($gy <= 1600) ? 621 : 1600;
+    $gy2 = ($gm > 2) ? ($gy + 1) : $gy;
+    $days = (365 * $gy) + ((int)(($gy2 + 3) / 4)) - ((int)(($gy2 + 99) / 100)) + ((int)(($gy2 + 399) / 400)) - 80 + $gd + $g_d_m[$gm - 1];
+    $jy += 33 * ((int)($days / 12053));
+    $days %= 12053;
+    $jy += 4 * ((int)($days / 1461));
+    $days %= 1461;
+    $jy += (int)(($days - 1) / 365);
+    if ($days > 365) $days = ($days - 1) % 365;
+    if ($days < 186) {
+        $jm = 1 + (int)($days / 31);
+        $jd = 1 + ($days % 31);
+    } else {
+        $jm = 7 + (int)(($days - 186) / 30);
+        $jd = 1 + (($days - 186) % 30);
+    }
+    return [$jy, $jm, $jd];
+}
+
+function convert_to_jalali($date_str) {
+    if (empty($date_str)) return "";
+
+    // Check if it's already in YYYY/MM/DD (Jalali) format
+    if (preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $date_str)) {
+        return $date_str;
+    }
+
+    $parts = explode(' ', $date_str);
+    $date_parts = explode('-', $parts[0]);
+    if (count($date_parts) !== 3) return $date_str;
+    $jalali = gregorian_to_jalali((int)$date_parts[0], (int)$date_parts[1], (int)$date_parts[2]);
+    return sprintf("%04d/%02d/%02d", $jalali[0], $jalali[1], $jalali[2]);
+}
+
+function to_persian_num($str) {
+    $en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    $fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+    return str_replace($en, $fa, (string)$str);
+}

@@ -97,7 +97,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       </div>
     </div>
     <div class="topbar-left">
-      <div class="user-badge">👤 <?= htmlspecialchars($fullName) ?></div>
+      <div class="user-badge">👤 <?= to_persian_num(htmlspecialchars($fullName)) ?></div>
       <a href="logout.php" class="btn-logout">خروج ←</a>
     </div>
   </div>
@@ -105,7 +105,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
 
 <main>
   <div class="welcome">
-    <h1>سلام، <span><?= htmlspecialchars($fullName) ?></span> خوش آمدید 👋</h1>
+    <h1>سلام، <span><?= to_persian_num(htmlspecialchars($fullName)) ?></span> خوش آمدید 👋</h1>
     <p>به پرتال دانش‌آموزی دبیرستان توانش خوش آمدید. از بخش‌های زیر استفاده کنید.</p>
   </div>
 

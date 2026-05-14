@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: dashboard.php');
             exit;
         } else {
-            $error = 'نام کاربری / ایمیل یا رمز عبور اشتباه است.';
+            $error = 'کد ملی یا رمز عبور اشتباه است.';
         }
     }
 }
@@ -209,10 +209,10 @@ input::placeholder { color:#a8d5da; }
 
   <form method="POST" novalidate>
     <div class="field">
-      <label for="username">نام کاربری یا ایمیل</label>
+      <label for="username">کد ملی</label>
       <input
         type="text" id="username" name="username"
-        placeholder="نام کاربری یا ایمیل خود را وارد کنید"
+        placeholder="کد ملی خود را وارد کنید"
         value="<?= htmlspecialchars($_POST['username'] ?? '') ?>"
         autocomplete="username" required>
     </div>
