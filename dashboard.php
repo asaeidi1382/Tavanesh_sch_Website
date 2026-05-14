@@ -9,6 +9,10 @@ $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد — دبیرستان دخترانه توانش</title>
+<style>
+.placeholder-msg { padding: 40px; text-align: center; background: #fff; border-radius: 20px; border: 1.5px dashed var(--turquoise); margin-top: 20px; }
+.placeholder-msg h2 { color: var(--turquoise-dark); margin-bottom: 10px; }
+</style>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
 @font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
@@ -93,7 +97,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو توانش"></div>
       <div>
         <div class="brand-title">دبیرستان دخترانه توانش</div>
-        <div class="brand-sub">پرتال دانش‌آموزی</div>
+        <div class="brand-sub">پرتال <?= $_SESSION['role'] === 'staff' ? 'کارکنان' : 'دانش‌آموزی' ?></div>
       </div>
     </div>
     <div class="topbar-left">
@@ -104,57 +108,157 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
 </header>
 
 <main>
-  <div class="welcome">
-    <h1>سلام، <span><?= to_persian_num(htmlspecialchars($fullName)) ?></span> خوش آمدید 👋</h1>
-    <p>به پرتال دانش‌آموزی دبیرستان توانش خوش آمدید. از بخش‌های زیر استفاده کنید.</p>
-  </div>
+  <?php if (isset($_GET['page'])): ?>
+    <div class="placeholder-msg">
+        <h2>این بخش بعدا تکمیل خواهد شد</h2>
+        <p>در حال حاضر این صفحه در دسترس نیست.</p>
+        <a href="dashboard.php" class="back-link">← بازگشت به داشبورد</a>
+    </div>
+  <?php elseif (isset($_GET['personal_info'])):
+      $db = getDB();
+      $stmt = $db->prepare("SELECT * FROM staff_profiles WHERE national_id = ? ORDER BY academic_year DESC LIMIT 1");
+      $stmt->execute([$_SESSION['username']]);
+      $prof = $stmt->fetch(PDO::FETCH_ASSOC);
+  ?>
+    <style>
+      .profile-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
+      .info-item { margin-bottom:15px; }
+      .info-label { display:block; font-size:.8rem; color:var(--gray); font-weight:700; margin-bottom:4px; }
+      .info-value { display:block; font-size:1rem; font-weight:500; background:var(--turquoise-lighter); padding:10px 14px; border-radius:10px; border:1px solid #e0f2f4; }
+      .card h2 { font-size:1.4rem; font-weight:800; margin-bottom:24px; color:var(--turquoise-dark); border-bottom:2px solid var(--turquoise-light); padding-bottom:12px; display:flex; align-items:center; gap:10px; }
+    </style>
+    <div class="welcome">
+        <h1>اطلاعات پرسنلی</h1>
+        <p>مشخصات ثبت شده شما در سیستم</p>
+    </div>
+    <div class="card">
+        <?php if ($prof): ?>
+            <h2>👤 مشخصات فردی و شغلی</h2>
+            <div class="profile-grid">
+                <div class="info-item"><span class="info-label">نام</span><span class="info-value"><?= htmlspecialchars($prof['first_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">نام خانوادگی</span><span class="info-value"><?= htmlspecialchars($prof['last_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">کد ملی</span><span class="info-value"><?= to_persian_num($prof['national_id']) ?></span></div>
+                <div class="info-item"><span class="info-label">سمت</span><span class="info-value"><?= htmlspecialchars($prof['position'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تحصیلات</span><span class="info-value"><?= htmlspecialchars($prof['education'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">نام پدر</span><span class="info-value"><?= htmlspecialchars($prof['father_name'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تاریخ تولد</span><span class="info-value"><?= to_persian_num($prof['birth_date'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">محل صدور</span><span class="info-value"><?= htmlspecialchars($prof['birth_place'] ?: '—') ?></span></div>
+            </div>
 
-  <div class="section-title">امکانات پرتال</div>
-  <div class="grid">
+            <h2 style="margin-top:30px;">📞 اطلاعات تماس و قرارداد</h2>
+            <div class="profile-grid">
+                <div class="info-item"><span class="info-label">تلفن همراه</span><span class="info-value"><?= to_persian_num($prof['mobile_phone'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تلفن ثابت</span><span class="info-value"><?= to_persian_num($prof['home_phone'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">تاریخ قرارداد</span><span class="info-value"><?= to_persian_num($prof['contract_date'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">شماره نامه</span><span class="info-value"><?= to_persian_num($prof['letter_no'] ?: '—') ?></span></div>
+                <div class="info-item"><span class="info-label">بانک</span><span class="info-value"><?= htmlspecialchars($prof['bank'] ?: '—') ?></span></div>
+                <div class="info-item" style="grid-column: span 2;"><span class="info-label">شماره شبا</span><span class="info-value" style="direction:ltr; text-align:right;"><?= to_persian_num($prof['sheba'] ?: '—') ?></span></div>
+                <div class="info-item" style="grid-column: span 2;"><span class="info-label">آدرس</span><span class="info-value"><?= nl2br(htmlspecialchars($prof['address'] ?: '—')) ?></span></div>
+            </div>
 
-    <!-- اقساط شهریه — برجسته -->
-    <a href="tuition.php" class="card featured">
-      <div class="card-icon">💳</div>
-      <h3>اقساط شهریه</h3>
-      <p>مشاهده وضعیت پرداخت اقساط شهریه</p>
-    </a>
+            <h2 style="margin-top:30px;">📅 برنامه حضور</h2>
+            <div class="info-item">
+                <span class="info-value"><?= nl2br(htmlspecialchars($prof['schedule'] ?: 'هنوز برنامه‌ای ثبت نشده است.')) ?></span>
+            </div>
+        <?php else: ?>
+            <div class="placeholder-msg">
+                <h2>اطلاعاتی یافت نشد</h2>
+                <p>هنوز پروفایلی برای شما در این سال تحصیلی ثبت نشده است.</p>
+            </div>
+        <?php endif; ?>
+        <div style="margin-top:30px; text-align:center;">
+            <a href="dashboard.php" class="btn-logout" style="background:var(--turquoise-dark); border:none;">← بازگشت به داشبورد</a>
+        </div>
+    </div>
 
-    <div class="card">
-      <div class="card-icon">📚</div>
-      <h3>دروس و محتوا</h3>
-      <p>مشاهده محتواهای آموزشی و جزوه‌های درسی</p>
+  <?php else: ?>
+    <div class="welcome">
+      <h1>سلام، <span><?= to_persian_num(htmlspecialchars($fullName)) ?></span> خوش آمدید 👋</h1>
+      <p>به پرتال <?= $_SESSION['role'] === 'staff' ? 'کارکنان' : 'دانش‌آموزی' ?> دبیرستان توانش خوش آمدید. از بخش‌های زیر استفاده کنید.</p>
     </div>
-    <div class="card">
-      <div class="card-icon">📅</div>
-      <h3>برنامه هفتگی</h3>
-      <p>مشاهده جدول کلاس‌ها و برنامه هفتگی</p>
+
+    <div class="section-title">امکانات پرتال</div>
+    <div class="grid">
+
+      <?php if ($_SESSION['role'] === 'staff'):
+          $db = getDB();
+          $stmt = $db->prepare("SELECT position FROM staff_profiles WHERE national_id = ? ORDER BY academic_year DESC LIMIT 1");
+          $stmt->execute([$_SESSION['username']]);
+          $staff_info = $stmt->fetch();
+          $isTeacher = ($staff_info && strpos($staff_info['position'], 'دبیر') !== false);
+      ?>
+        <a href="?personal_info=1" class="card featured">
+          <div class="card-icon">👤</div>
+          <h3>اطلاعات پرسنلی</h3>
+          <p>مشاهده و ویرایش مشخصات فردی</p>
+        </a>
+
+        <?php if ($isTeacher): ?>
+        <a href="?page=grades" class="card">
+          <div class="card-icon">📝</div>
+          <h3>مدیریت نمرات</h3>
+          <p>ثبت و ویرایش نمرات دانش‌آموزان</p>
+        </a>
+        <?php endif; ?>
+
+        <a href="?page=paystub" class="card">
+          <div class="card-icon">💵</div>
+          <h3>مشاهده فیش حقوقی</h3>
+          <p>اطلاعات پرداختی‌ها و حقوق</p>
+        </a>
+
+      <?php else: ?>
+        <!-- اقساط شهریه — برجسته -->
+        <a href="tuition.php" class="card featured">
+          <div class="card-icon">💳</div>
+          <h3>اقساط شهریه</h3>
+          <p>مشاهده وضعیت پرداخت اقساط شهریه</p>
+        </a>
+
+        <a href="student_profile.php" class="card">
+          <div class="card-icon">👤</div>
+          <h3>پروفایل من</h3>
+          <p>مشاهده اطلاعات ثبت شده در سیستم</p>
+        </a>
+
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h3>دروس و محتوا</h3>
+          <p>مشاهده محتواهای آموزشی و جزوه‌های درسی</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📅</div>
+          <h3>برنامه هفتگی</h3>
+          <p>مشاهده جدول کلاس‌ها و برنامه هفتگی</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h3>تکالیف</h3>
+          <p>ارسال تکالیف و پیگیری وضعیت تحویل</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏆</div>
+          <h3>نمرات</h3>
+          <p>مشاهده نمرات آزمون‌ها و کارنامه تحصیلی</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📆</div>
+          <h3>تقویم آزمون‌ها</h3>
+          <p>مشاهده تاریخ و زمان آزمون‌های پیش‌رو</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎓</div>
+          <h3>کلاس‌های فوق‌برنامه</h3>
+          <p>ثبت‌نام و مشاهده کلاس‌های تکمیلی</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💬</div>
+          <h3>پیام‌ها</h3>
+          <p>ارتباط با معلمان و ارسال پیام</p>
+        </div>
+      <?php endif; ?>
     </div>
-    <div class="card">
-      <div class="card-icon">📝</div>
-      <h3>تکالیف</h3>
-      <p>ارسال تکالیف و پیگیری وضعیت تحویل</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🏆</div>
-      <h3>نمرات</h3>
-      <p>مشاهده نمرات آزمون‌ها و کارنامه تحصیلی</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">📆</div>
-      <h3>تقویم آزمون‌ها</h3>
-      <p>مشاهده تاریخ و زمان آزمون‌های پیش‌رو</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🎓</div>
-      <h3>کلاس‌های فوق‌برنامه</h3>
-      <p>ثبت‌نام و مشاهده کلاس‌های تکمیلی</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">💬</div>
-      <h3>پیام‌ها</h3>
-      <p>ارتباط با معلمان و ارسال پیام</p>
-    </div>
-  </div>
+  <?php endif; ?>
 
   <a href="/" class="back-link">→ بازگشت به صفحه اصلی سایت</a>
 </main>
