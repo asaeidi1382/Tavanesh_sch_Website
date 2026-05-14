@@ -1,109 +1,406 @@
-[Wed May 13 21:17:02 2026] PHP 8.3.6 Development Server (http://0.0.0.0:8000) started
-[Wed May 13 21:17:53 2026] 127.0.0.1:45274 Accepted
-[Wed May 13 21:17:53 2026] 127.0.0.1:45274 [200]: GET /admin.php
-[Wed May 13 21:17:53 2026] 127.0.0.1:45274 Closing
-[Wed May 13 21:17:54 2026] 127.0.0.1:45282 Accepted
-[Wed May 13 21:17:54 2026] 127.0.0.1:45282 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 21:17:54 2026] 127.0.0.1:45282 Closing
-[Wed May 13 21:17:54 2026] 127.0.0.1:45284 Accepted
-[Wed May 13 21:17:54 2026] 127.0.0.1:45286 Accepted
-[Wed May 13 21:17:54 2026] 127.0.0.1:45290 Accepted
-[Wed May 13 21:17:54 2026] 127.0.0.1:45298 Accepted
-[Wed May 13 21:17:54 2026] 127.0.0.1:45284 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 21:17:54 2026] 127.0.0.1:45286 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 21:17:54 2026] 127.0.0.1:45284 Closing
-[Wed May 13 21:17:54 2026] 127.0.0.1:45286 Closing
-[Wed May 13 21:17:54 2026] 127.0.0.1:45290 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 21:17:54 2026] 127.0.0.1:45290 Closing
-[Wed May 13 21:17:54 2026] 127.0.0.1:45298 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 21:17:54 2026] 127.0.0.1:45298 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45310 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45310 [200]: POST /admin.php
-[Wed May 13 21:17:56 2026] 127.0.0.1:45310 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45326 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45326 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 21:17:56 2026] 127.0.0.1:45326 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45338 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45354 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45358 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45368 Accepted
-[Wed May 13 21:17:56 2026] 127.0.0.1:45338 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 21:17:56 2026] 127.0.0.1:45338 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45354 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 21:17:56 2026] 127.0.0.1:45354 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45358 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 21:17:56 2026] 127.0.0.1:45358 Closing
-[Wed May 13 21:17:56 2026] 127.0.0.1:45368 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 21:17:56 2026] 127.0.0.1:45368 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45372 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45372 [200]: GET /admin.php?tab=debtors
-[Wed May 13 21:17:57 2026] 127.0.0.1:45372 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45384 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45384 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 21:17:57 2026] 127.0.0.1:45384 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45396 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45398 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45414 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45396 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 21:17:57 2026] 127.0.0.1:45398 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 21:17:57 2026] 127.0.0.1:45424 Accepted
-[Wed May 13 21:17:57 2026] 127.0.0.1:45396 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45398 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45414 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 21:17:57 2026] 127.0.0.1:45414 Closing
-[Wed May 13 21:17:57 2026] 127.0.0.1:45424 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 21:17:57 2026] 127.0.0.1:45424 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45426 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45426 [200]: GET /admin.php?tab=db_mgmt
-[Wed May 13 21:17:59 2026] 127.0.0.1:45426 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45432 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45432 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 21:17:59 2026] 127.0.0.1:45432 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45444 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45452 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45454 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45464 Accepted
-[Wed May 13 21:17:59 2026] 127.0.0.1:45444 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 21:17:59 2026] 127.0.0.1:45452 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 21:17:59 2026] 127.0.0.1:45454 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 21:17:59 2026] 127.0.0.1:45464 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 21:17:59 2026] 127.0.0.1:45444 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45452 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45454 Closing
-[Wed May 13 21:17:59 2026] 127.0.0.1:45464 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53188 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53188 [200]: GET /admin.php
-[Wed May 13 22:07:12 2026] 127.0.0.1:53188 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53192 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53192 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 22:07:12 2026] 127.0.0.1:53192 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53194 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53194 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 22:07:12 2026] 127.0.0.1:53194 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53206 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53212 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53222 Accepted
-[Wed May 13 22:07:12 2026] 127.0.0.1:53206 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 22:07:12 2026] 127.0.0.1:53212 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 22:07:12 2026] 127.0.0.1:53222 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 22:07:12 2026] 127.0.0.1:53206 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53212 Closing
-[Wed May 13 22:07:12 2026] 127.0.0.1:53222 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53224 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53224 [200]: POST /admin.php
-[Wed May 13 22:07:13 2026] 127.0.0.1:53224 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53234 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53234 [404]: GET /images/logo-Tw.png - No such file or directory
-[Wed May 13 22:07:13 2026] 127.0.0.1:53234 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53250 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53256 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53270 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53286 Accepted
-[Wed May 13 22:07:13 2026] 127.0.0.1:53250 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
-[Wed May 13 22:07:13 2026] 127.0.0.1:53256 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
-[Wed May 13 22:07:13 2026] 127.0.0.1:53270 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
-[Wed May 13 22:07:13 2026] 127.0.0.1:53286 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
-[Wed May 13 22:07:13 2026] 127.0.0.1:53250 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53256 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53270 Closing
-[Wed May 13 22:07:13 2026] 127.0.0.1:53286 Closing
+[Thu May 14 12:35:12 2026] PHP 8.3.6 Development Server (http://0.0.0.0:8000) started
+[Thu May 14 12:36:00 2026] 127.0.0.1:55990 Accepted
+[Thu May 14 12:36:00 2026] 127.0.0.1:55990 [200]: GET /admin.php
+[Thu May 14 12:36:00 2026] 127.0.0.1:55990 Closing
+[Thu May 14 12:36:00 2026] 127.0.0.1:55994 Accepted
+[Thu May 14 12:36:00 2026] 127.0.0.1:55994 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:00 2026] 127.0.0.1:55994 Closing
+[Thu May 14 12:36:01 2026] 127.0.0.1:56010 Accepted
+[Thu May 14 12:36:01 2026] 127.0.0.1:56014 Accepted
+[Thu May 14 12:36:01 2026] 127.0.0.1:56020 Accepted
+[Thu May 14 12:36:01 2026] 127.0.0.1:56026 Accepted
+[Thu May 14 12:36:01 2026] 127.0.0.1:56010 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:01 2026] 127.0.0.1:56014 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:01 2026] 127.0.0.1:56010 Closing
+[Thu May 14 12:36:01 2026] 127.0.0.1:56014 Closing
+[Thu May 14 12:36:01 2026] 127.0.0.1:56020 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:01 2026] 127.0.0.1:56020 Closing
+[Thu May 14 12:36:01 2026] 127.0.0.1:56026 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:01 2026] 127.0.0.1:56026 Closing
+[Thu May 14 12:36:02 2026] 127.0.0.1:56036 Accepted
+[Thu May 14 12:36:02 2026] 127.0.0.1:56036 [200]: POST /admin.php
+[Thu May 14 12:36:02 2026] 127.0.0.1:56036 Closing
+[Thu May 14 12:36:02 2026] 127.0.0.1:56044 Accepted
+[Thu May 14 12:36:02 2026] 127.0.0.1:56044 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:02 2026] 127.0.0.1:56044 Closing
+[Thu May 14 12:36:03 2026] 127.0.0.1:56046 Accepted
+[Thu May 14 12:36:03 2026] 127.0.0.1:56058 Accepted
+[Thu May 14 12:36:03 2026] 127.0.0.1:56068 Accepted
+[Thu May 14 12:36:03 2026] 127.0.0.1:56070 Accepted
+[Thu May 14 12:36:03 2026] 127.0.0.1:56046 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:03 2026] 127.0.0.1:56046 Closing
+[Thu May 14 12:36:03 2026] 127.0.0.1:56058 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:03 2026] 127.0.0.1:56058 Closing
+[Thu May 14 12:36:03 2026] 127.0.0.1:56068 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:03 2026] 127.0.0.1:56068 Closing
+[Thu May 14 12:36:03 2026] 127.0.0.1:56070 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:03 2026] 127.0.0.1:56070 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56086 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56086 [200]: GET /admin.php?tab=staff
+[Thu May 14 12:36:04 2026] 127.0.0.1:56086 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56096 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56096 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:04 2026] 127.0.0.1:56096 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56108 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56116 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56118 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56126 Accepted
+[Thu May 14 12:36:04 2026] 127.0.0.1:56108 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:04 2026] 127.0.0.1:56108 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56116 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:04 2026] 127.0.0.1:56116 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56118 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:04 2026] 127.0.0.1:56126 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:04 2026] 127.0.0.1:56118 Closing
+[Thu May 14 12:36:04 2026] 127.0.0.1:56126 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56132 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56132 [200]: POST /admin.php?tab=staff
+[Thu May 14 12:36:05 2026] 127.0.0.1:56132 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56142 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56142 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:05 2026] 127.0.0.1:56142 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56144 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56150 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56158 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56164 Accepted
+[Thu May 14 12:36:05 2026] 127.0.0.1:56144 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:05 2026] 127.0.0.1:56144 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56150 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:05 2026] 127.0.0.1:56150 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56158 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:05 2026] 127.0.0.1:56164 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:05 2026] 127.0.0.1:56158 Closing
+[Thu May 14 12:36:05 2026] 127.0.0.1:56164 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56172 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56172 [200]: GET /admin.php?tab=manage_staff&username=1111111111
+[Thu May 14 12:36:06 2026] 127.0.0.1:56172 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56184 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56184 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:06 2026] 127.0.0.1:56184 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56192 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56200 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56214 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56192 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:06 2026] 127.0.0.1:56200 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:06 2026] 127.0.0.1:56220 Accepted
+[Thu May 14 12:36:06 2026] 127.0.0.1:56192 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56200 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56214 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:06 2026] 127.0.0.1:56214 Closing
+[Thu May 14 12:36:06 2026] 127.0.0.1:56220 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:06 2026] 127.0.0.1:56220 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52402 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52402 [200]: POST /admin.php?tab=manage_staff&username=1111111111
+[Thu May 14 12:36:08 2026] 127.0.0.1:52402 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52414 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52414 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:08 2026] 127.0.0.1:52414 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52428 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52444 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52428 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:08 2026] 127.0.0.1:52458 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52428 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52444 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:08 2026] 127.0.0.1:52474 Accepted
+[Thu May 14 12:36:08 2026] 127.0.0.1:52444 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52458 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:08 2026] 127.0.0.1:52458 Closing
+[Thu May 14 12:36:08 2026] 127.0.0.1:52474 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:08 2026] 127.0.0.1:52474 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52490 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52490 [302]: GET /admin.php?logout_admin=1
+[Thu May 14 12:36:09 2026] 127.0.0.1:52490 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52492 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52492 [200]: GET /admin.php
+[Thu May 14 12:36:09 2026] 127.0.0.1:52492 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52494 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52494 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52494 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52506 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52520 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52522 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52534 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52506 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52520 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52522 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52506 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52520 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52522 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52534 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52534 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52550 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52550 [200]: GET /login.php
+[Thu May 14 12:36:09 2026] 127.0.0.1:52550 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52554 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52554 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52554 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52568 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52582 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52598 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52606 Accepted
+[Thu May 14 12:36:09 2026] 127.0.0.1:52568 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52568 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52582 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52582 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52598 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52606 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:09 2026] 127.0.0.1:52598 Closing
+[Thu May 14 12:36:09 2026] 127.0.0.1:52606 Closing
+[Thu May 14 12:36:10 2026] 127.0.0.1:52622 Accepted
+[Thu May 14 12:36:10 2026] 127.0.0.1:52622 [302]: POST /login.php
+[Thu May 14 12:36:10 2026] 127.0.0.1:52622 Closing
+[Thu May 14 12:36:10 2026] 127.0.0.1:52636 Accepted
+[Thu May 14 12:36:10 2026] 127.0.0.1:52636 [200]: GET /dashboard.php
+[Thu May 14 12:36:10 2026] 127.0.0.1:52636 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52638 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52638 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52638 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52646 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52650 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52660 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52666 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52676 Accepted
+[Thu May 14 12:36:11 2026] 127.0.0.1:52646 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52646 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52650 [404]: GET /fonts/Vazirmatn-Medium.woff2 - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52650 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52660 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52660 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52666 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52666 Closing
+[Thu May 14 12:36:11 2026] 127.0.0.1:52676 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:11 2026] 127.0.0.1:52676 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58784 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58784 [200]: GET /admin.php
+[Thu May 14 12:36:38 2026] 127.0.0.1:58784 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58800 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58800 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:38 2026] 127.0.0.1:58800 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58810 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58820 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58824 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58838 Accepted
+[Thu May 14 12:36:38 2026] 127.0.0.1:58810 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:38 2026] 127.0.0.1:58810 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58820 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:38 2026] 127.0.0.1:58820 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58824 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:38 2026] 127.0.0.1:58824 Closing
+[Thu May 14 12:36:38 2026] 127.0.0.1:58838 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:38 2026] 127.0.0.1:58838 Closing
+[Thu May 14 12:36:39 2026] 127.0.0.1:58850 Accepted
+[Thu May 14 12:36:39 2026] 127.0.0.1:58850 [200]: POST /admin.php
+[Thu May 14 12:36:39 2026] 127.0.0.1:58850 Closing
+[Thu May 14 12:36:39 2026] 127.0.0.1:58866 Accepted
+[Thu May 14 12:36:39 2026] 127.0.0.1:58866 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:39 2026] 127.0.0.1:58866 Closing
+[Thu May 14 12:36:40 2026] 127.0.0.1:58882 Accepted
+[Thu May 14 12:36:40 2026] 127.0.0.1:58896 Accepted
+[Thu May 14 12:36:40 2026] 127.0.0.1:58906 Accepted
+[Thu May 14 12:36:40 2026] 127.0.0.1:58916 Accepted
+[Thu May 14 12:36:40 2026] 127.0.0.1:58882 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:40 2026] 127.0.0.1:58882 Closing
+[Thu May 14 12:36:40 2026] 127.0.0.1:58896 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:40 2026] 127.0.0.1:58896 Closing
+[Thu May 14 12:36:40 2026] 127.0.0.1:58906 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:40 2026] 127.0.0.1:58906 Closing
+[Thu May 14 12:36:40 2026] 127.0.0.1:58916 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:40 2026] 127.0.0.1:58916 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58918 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58918 [200]: GET /admin.php?tab=staff
+[Thu May 14 12:36:41 2026] 127.0.0.1:58918 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58926 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58926 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:41 2026] 127.0.0.1:58926 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58934 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58936 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58938 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58950 Accepted
+[Thu May 14 12:36:41 2026] 127.0.0.1:58934 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:41 2026] 127.0.0.1:58934 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58936 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:41 2026] 127.0.0.1:58936 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58938 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:41 2026] 127.0.0.1:58938 Closing
+[Thu May 14 12:36:41 2026] 127.0.0.1:58950 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:41 2026] 127.0.0.1:58950 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:58966 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:58966 [200]: POST /admin.php?tab=staff
+[Thu May 14 12:36:42 2026] 127.0.0.1:58966 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:58976 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:58976 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:42 2026] 127.0.0.1:58976 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:58988 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:58996 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:59002 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:59016 Accepted
+[Thu May 14 12:36:42 2026] 127.0.0.1:58988 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:42 2026] 127.0.0.1:58988 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:58996 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:42 2026] 127.0.0.1:58996 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:59002 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:42 2026] 127.0.0.1:59016 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:42 2026] 127.0.0.1:59002 Closing
+[Thu May 14 12:36:42 2026] 127.0.0.1:59016 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59018 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59018 [200]: GET /admin.php?tab=manage_staff&username=1111111111
+[Thu May 14 12:36:43 2026] 127.0.0.1:59018 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59030 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59030 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:43 2026] 127.0.0.1:59030 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59032 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59032 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:43 2026] 127.0.0.1:59032 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59040 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59048 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59050 Accepted
+[Thu May 14 12:36:43 2026] 127.0.0.1:59040 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:43 2026] 127.0.0.1:59048 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:43 2026] 127.0.0.1:59040 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59048 Closing
+[Thu May 14 12:36:43 2026] 127.0.0.1:59050 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:43 2026] 127.0.0.1:59050 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59052 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59052 [200]: POST /admin.php?tab=manage_staff&username=1111111111
+[Thu May 14 12:36:44 2026] 127.0.0.1:59052 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59068 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59068 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:44 2026] 127.0.0.1:59068 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59072 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59076 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59088 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59104 Accepted
+[Thu May 14 12:36:44 2026] 127.0.0.1:59072 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:44 2026] 127.0.0.1:59072 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59076 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:44 2026] 127.0.0.1:59076 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59088 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:44 2026] 127.0.0.1:59104 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:44 2026] 127.0.0.1:59088 Closing
+[Thu May 14 12:36:44 2026] 127.0.0.1:59104 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59116 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59116 [302]: GET /admin.php?logout_admin=1
+[Thu May 14 12:36:46 2026] 127.0.0.1:59116 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59120 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59120 [200]: GET /admin.php
+[Thu May 14 12:36:46 2026] 127.0.0.1:59120 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59132 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59132 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59132 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59148 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59162 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59178 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59184 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59148 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59148 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59162 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59162 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59178 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59178 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59184 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59184 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59192 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59192 [200]: GET /login.php
+[Thu May 14 12:36:46 2026] 127.0.0.1:59192 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59204 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59204 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59204 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59212 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59218 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59212 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59212 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59228 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59236 Accepted
+[Thu May 14 12:36:46 2026] 127.0.0.1:59218 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59228 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59218 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59228 Closing
+[Thu May 14 12:36:46 2026] 127.0.0.1:59236 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:46 2026] 127.0.0.1:59236 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55330 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55330 [302]: POST /login.php
+[Thu May 14 12:36:47 2026] 127.0.0.1:55330 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55336 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55336 [200]: GET /dashboard.php
+[Thu May 14 12:36:47 2026] 127.0.0.1:55336 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55338 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55338 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55338 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55352 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55354 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55370 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55382 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55386 Accepted
+[Thu May 14 12:36:47 2026] 127.0.0.1:55352 [404]: GET /fonts/Vazirmatn-Medium.woff2 - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55352 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55354 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55354 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55370 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55370 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55382 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55386 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:47 2026] 127.0.0.1:55382 Closing
+[Thu May 14 12:36:47 2026] 127.0.0.1:55386 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55396 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55396 [200]: GET /dashboard.php?personal_info=1
+[Thu May 14 12:36:49 2026] 127.0.0.1:55396 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55404 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55404 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55404 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55420 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55428 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55434 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55440 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55448 Accepted
+[Thu May 14 12:36:49 2026] 127.0.0.1:55420 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55420 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55428 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55428 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55434 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55434 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55440 [404]: GET /fonts/Vazirmatn-Medium.woff2 - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55440 Closing
+[Thu May 14 12:36:49 2026] 127.0.0.1:55448 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:49 2026] 127.0.0.1:55448 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55462 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55462 [200]: GET /dashboard.php
+[Thu May 14 12:36:50 2026] 127.0.0.1:55462 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55476 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55476 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55476 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55486 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55498 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55486 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55512 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55486 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55498 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55514 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55498 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55512 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55518 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55514 [404]: GET /fonts/Vazirmatn-Medium.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55512 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55514 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55518 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55518 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55526 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55526 [200]: GET /dashboard.php?page=grades
+[Thu May 14 12:36:50 2026] 127.0.0.1:55526 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55536 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55536 [404]: GET /images/logo-Tw.png - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55536 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55548 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55562 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55578 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55582 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55588 Accepted
+[Thu May 14 12:36:50 2026] 127.0.0.1:55548 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55548 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55562 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55562 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55578 [404]: GET /fonts/Vazirmatn-Light.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55578 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55582 [404]: GET /fonts/Vazirmatn-Medium.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55582 Closing
+[Thu May 14 12:36:50 2026] 127.0.0.1:55588 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Thu May 14 12:36:50 2026] 127.0.0.1:55588 Closing

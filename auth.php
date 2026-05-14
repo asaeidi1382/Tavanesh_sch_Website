@@ -17,23 +17,69 @@ function getDB() {
             email       TEXT UNIQUE,
             password    TEXT NOT NULL,
             full_name   TEXT DEFAULT '',
+            role        TEXT DEFAULT 'student',
             created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
-        // اضافه کردن ستون full_name به جدول قدیمی (اگر وجود نداشت)
+        // ستون‌های مورد نیاز
         try { $db->exec("ALTER TABLE users ADD COLUMN full_name TEXT DEFAULT ''"); } catch(Exception $e){}
+        try { $db->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'"); } catch(Exception $e){}
 
         // جدول اقساط شهریه
         $db->exec("CREATE TABLE IF NOT EXISTS tuition (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             national_id     TEXT NOT NULL,
             installment_no  INTEGER NOT NULL,
-            description     TEXT,
             amount          INTEGER NOT NULL DEFAULT 0,
             due_date        TEXT,
             paid_amount     INTEGER DEFAULT 0,
             paid_date       TEXT,
-            status          TEXT DEFAULT 'unpaid'
+            status          TEXT DEFAULT 'unpaid',
+            academic_year   TEXT DEFAULT '1404-1405'
+        )");
+        try { $db->exec("ALTER TABLE tuition ADD COLUMN academic_year TEXT DEFAULT '1404-1405'"); } catch(Exception $e){}
+        try { $db->exec("ALTER TABLE tuition DROP COLUMN description"); } catch(Exception $e){}
+
+        // جدول پروفایل دانش‌آموزان
+        $db->exec("CREATE TABLE IF NOT EXISTS student_profiles (
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL DEFAULT '1404-1405',
+            first_name     TEXT,
+            last_name      TEXT,
+            grade          TEXT,
+            major          TEXT,
+            father_name    TEXT,
+            mother_name    TEXT,
+            mother_phone   TEXT,
+            father_phone   TEXT,
+            home_phone     TEXT,
+            left_handed    INTEGER DEFAULT 0,
+            seat_no        TEXT,
+            address        TEXT,
+            student_phone  TEXT,
+            PRIMARY KEY (national_id, academic_year)
+        )");
+
+        // جدول پروفایل کارکنان
+        $db->exec("CREATE TABLE IF NOT EXISTS staff_profiles (
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            first_name     TEXT,
+            last_name      TEXT,
+            birth_date     TEXT,
+            birth_place    TEXT,
+            education      TEXT,
+            position       TEXT,
+            father_name    TEXT,
+            home_phone     TEXT,
+            address        TEXT,
+            schedule       TEXT,
+            mobile_phone   TEXT,
+            contract_date  TEXT,
+            bank           TEXT,
+            sheba          TEXT,
+            letter_no      TEXT,
+            PRIMARY KEY (national_id, academic_year)
         )");
     }
     return $db;
@@ -59,10 +105,33 @@ function loginUser($usernameOrEmail, $password) {
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['username']   = $user['username'];
-        $_SESSION['full_name']  = $user['full_name'] ?: $user['username'];
+        $_SESSION['role']       = $user['role'] ?: 'student';
+
+        // پیدا کردن نام واقعی از پروفایل
+        $fullName = getUserRealName($user['username'], $user['role']);
+        $_SESSION['full_name']  = $fullName ?: ($user['full_name'] ?: $user['username']);
+
         return ['success' => true];
     }
     return ['success' => false];
+}
+
+function getUserRealName($national_id, $role, $academic_year = null) {
+    if (!$academic_year) {
+        $academic_year = $_SESSION['active_year'] ?? '1404-1405';
+    }
+    $db = getDB();
+    if ($role === 'staff') {
+        $stmt = $db->prepare("SELECT first_name, last_name FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+    } else {
+        $stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+    }
+    $stmt->execute([$national_id, $academic_year]);
+    $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($profile && ($profile['first_name'] || $profile['last_name'])) {
+        return trim($profile['first_name'] . ' ' . $profile['last_name']);
+    }
+    return null;
 }
 
 function registerUser($username, $email, $password, $full_name = '') {
@@ -87,35 +156,70 @@ function registerUser($username, $email, $password, $full_name = '') {
 }
 
 // ایجاد یا به‌روزرسانی حساب دانش‌آموز (برای ایمپورت)
-function upsertStudent($national_id, $full_name, $academic_year = '1404-1405') {
+function upsertStudent($national_id, $first_name, $last_name, $academic_year = '1404-1405') {
     $db = getDB();
     $hash = password_hash($national_id, PASSWORD_BCRYPT);
-    // اگر وجود داشت فقط نام را آپدیت کن، وگرنه بساز
     $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
     $stmt->execute([$national_id]);
     $user_exists = $stmt->fetch();
 
     if (!$user_exists) {
-        $db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)")
+        $db->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'student')")
             ->execute([
                 $national_id,
                 $national_id . '@tavanesh.local',
-                $hash,
-                $full_name
+                $hash
             ]);
         $status = 'created';
     } else {
-        $db->prepare("UPDATE users SET full_name = ? WHERE username = ?")
-           ->execute([$full_name, $national_id]);
+        $db->prepare("UPDATE users SET role = 'student' WHERE username = ?")
+           ->execute([$national_id]);
         $status = 'updated';
     }
 
-    // اطمینان از وجود پروفایل برای این سال تحصیلی
     $stmt = $db->prepare("SELECT national_id FROM student_profiles WHERE national_id = ? AND academic_year = ?");
     $stmt->execute([$national_id, $academic_year]);
     if (!$stmt->fetch()) {
-        $db->prepare("INSERT INTO student_profiles (national_id, academic_year) VALUES (?, ?)")
-           ->execute([$national_id, $academic_year]);
+        $db->prepare("INSERT INTO student_profiles (national_id, academic_year, first_name, last_name) VALUES (?, ?, ?, ?)")
+           ->execute([$national_id, $academic_year, $first_name, $last_name]);
+    } else {
+        $db->prepare("UPDATE student_profiles SET first_name = ?, last_name = ? WHERE national_id = ? AND academic_year = ?")
+           ->execute([$first_name, $last_name, $national_id, $academic_year]);
+    }
+
+    return $status;
+}
+
+// ایجاد یا به‌روزرسانی حساب کارمند
+function upsertStaff($national_id, $first_name, $last_name, $academic_year = '1404-1405') {
+    $db = getDB();
+    $hash = password_hash($national_id, PASSWORD_BCRYPT);
+    $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt->execute([$national_id]);
+    $user_exists = $stmt->fetch();
+
+    if (!$user_exists) {
+        $db->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'staff')")
+            ->execute([
+                $national_id,
+                $national_id . '@tavanesh.local',
+                $hash
+            ]);
+        $status = 'created';
+    } else {
+        $db->prepare("UPDATE users SET role = 'staff' WHERE username = ?")
+           ->execute([$national_id]);
+        $status = 'updated';
+    }
+
+    $stmt = $db->prepare("SELECT national_id FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+    $stmt->execute([$national_id, $academic_year]);
+    if (!$stmt->fetch()) {
+        $db->prepare("INSERT INTO staff_profiles (national_id, academic_year, first_name, last_name) VALUES (?, ?, ?, ?)")
+           ->execute([$national_id, $academic_year, $first_name, $last_name]);
+    } else {
+        $db->prepare("UPDATE staff_profiles SET first_name = ?, last_name = ? WHERE national_id = ? AND academic_year = ?")
+           ->execute([$first_name, $last_name, $national_id, $academic_year]);
     }
 
     return $status;

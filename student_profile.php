@@ -1,26 +1,30 @@
 <?php
+require_once 'auth.php';
 
-require_once 'auth_new.php';
+// اگر ادمین است که دسترسی دارد، اگر دانش‌آموز است فقط به پروفایل خودش
+if (isset($_SESSION['is_admin'])) {
+    $db = getDB();
+    if (isset($_GET['id'])) {
+        $id = (int)$_GET['id'];
+        $stmt = $db->prepare("SELECT username FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $national_id = $stmt->fetchColumn();
+    } else {
+        $national_id = $_GET['username'] ?? '';
+    }
+} else {
+    requireLogin();
+    $national_id = $_SESSION['username'];
+}
 
-requireAdmin();
-
+$academic_year = $_GET['year'] ?? ($_SESSION['active_year'] ?? '1404-1405');
 $db = getDB();
 
-$id = (int)($_GET['id'] ?? 0);
-$academic_year = $_GET['year'] ?? '1404-1405';
-
-$stmt = $db->prepare("
-    SELECT *
-    FROM student_profiles
-    WHERE national_id = (SELECT username FROM users WHERE id = ?) AND academic_year = ?
-");
-
-$stmt->execute([$id, $academic_year]);
-
+$stmt = $db->prepare("SELECT * FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+$stmt->execute([$national_id, $academic_year]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$student) {
-
     die('دانش‌آموز پیدا نشد.');
 }
 ?>
@@ -69,11 +73,7 @@ body{
 <div class="container">
 
 <?php
-// واکشی نام از جدول کاربران چون در پروفایل ممکن است خالی باشد
-$u_stmt = $db->prepare("SELECT full_name FROM users WHERE username = ?");
-$u_stmt->execute([$student['national_id']]);
-$user_data = $u_stmt->fetch();
-$display_name = $user_data['full_name'] ?: ($student['first_name'] . ' ' . $student['last_name']);
+$display_name = trim(($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')) ?: $student['national_id'];
 ?>
 
 <h1>

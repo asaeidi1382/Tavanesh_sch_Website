@@ -51,15 +51,15 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_st
         $rowNum = 0;
         while (($row = fgetcsv($file)) !== false) {
             $rowNum++;
-            // رد کردن سطر عنوان
-            if ($rowNum === 1 && (trim($row[0]) === 'full_name' || trim($row[0]) === 'نام_و_نام_خانوادگی')) continue;
-            if (count($row) < 2) { $skipped++; continue; }
+            if ($rowNum === 1 && (trim($row[0]) === 'first_name' || trim($row[0]) === 'نام')) continue;
+            if (count($row) < 3) { $skipped++; continue; }
 
-            $full_name   = trim($row[0]);
-            $national_id = trim($row[1]);
-            if (!$full_name || !$national_id) { $skipped++; continue; }
+            $first_name  = trim($row[0]);
+            $last_name   = trim($row[1]);
+            $national_id = trim($row[2]);
+            if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
 
-            $result = upsertStudent($national_id, $full_name, $active_year);
+            $result = upsertStudent($national_id, $first_name, $last_name, $active_year);
             if ($result === 'created') $created++;
             else $updated++;
         }
@@ -120,35 +120,81 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
 }
 // ─── افزودن دستی دانش‌آموز ───
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_student_manual'])) {
-
-    $full_name   = trim($_POST['full_name'] ?? '');
+    $first_name  = trim($_POST['first_name'] ?? '');
+    $last_name   = trim($_POST['last_name'] ?? '');
     $national_id = trim($_POST['national_id'] ?? '');
 
-    if (!$full_name || !$national_id) {
-
-        $msgs[] = [
-            'type' => 'error',
-            'text' => '❌ نام و کد ملی الزامی هستند.'
-        ];
-
+    if (!$first_name || !$last_name || !$national_id) {
+        $msgs[] = ['type' => 'error', 'text' => '❌ نام، نام خانوادگی و کد ملی الزامی هستند.'];
     } else {
-
-        $result = upsertStudent($national_id, $full_name, $active_year);
-
+        $result = upsertStudent($national_id, $first_name, $last_name, $active_year);
         if ($result === 'created') {
-
-            $msgs[] = [
-                'type' => 'success',
-                'text' => '✅ دانش‌آموز جدید ایجاد شد.'
-            ];
-
+            $msgs[] = ['type' => 'success', 'text' => '✅ دانش‌آموز جدید ایجاد شد.'];
         } else {
-
-            $msgs[] = [
-                'type' => 'success',
-                'text' => '✅ اطلاعات دانش‌آموز به‌روزرسانی شد.'
-            ];
+            $msgs[] = ['type' => 'success', 'text' => '✅ اطلاعات دانش‌آموز به‌روزرسانی شد.'];
         }
+    }
+}
+
+// ─── مدیریت کارکنان ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_staff_manual'])) {
+    $first_name  = trim($_POST['first_name'] ?? '');
+    $last_name   = trim($_POST['last_name'] ?? '');
+    $national_id = trim($_POST['national_id'] ?? '');
+
+    if (!$first_name || !$last_name || !$national_id) {
+        $msgs[] = ['type' => 'error', 'text' => '❌ نام، نام خانوادگی و کد ملی الزامی هستند.'];
+    } else {
+        $result = upsertStaff($national_id, $first_name, $last_name, $active_year);
+        if ($result === 'created') {
+            $msgs[] = ['type' => 'success', 'text' => '✅ کارمند جدید ایجاد شد.'];
+        } else {
+            $msgs[] = ['type' => 'success', 'text' => '✅ اطلاعات کارمند به‌روزرسانی شد.'];
+        }
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_staff_profile'])) {
+    $db = getDB();
+    $old_username = $_POST['old_username'];
+    $new_username = trim($_POST['new_username']);
+    $first_name   = trim($_POST['first_name']);
+    $last_name    = trim($_POST['last_name']);
+    $new_password = trim($_POST['new_password'] ?? '');
+
+    $fields = [
+        'birth_date', 'birth_place', 'education', 'position', 'father_name',
+        'home_phone', 'address', 'schedule', 'mobile_phone', 'contract_date',
+        'bank', 'sheba', 'letter_no'
+    ];
+    $data = [];
+    foreach ($fields as $f) {
+        $data[$f] = $_POST[$f] ?? '';
+    }
+
+    try {
+        $db->beginTransaction();
+        if ($new_password) {
+            $hash = password_hash($new_password, PASSWORD_BCRYPT);
+            $db->prepare("UPDATE users SET username=?, password=? WHERE username=?")->execute([$new_username, $hash, $old_username]);
+        } else {
+            $db->prepare("UPDATE users SET username=? WHERE username=?")->execute([$new_username, $old_username]);
+        }
+
+        if ($new_username !== $old_username) {
+            $db->prepare("UPDATE staff_profiles SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
+        }
+
+        $sql = "UPDATE staff_profiles SET first_name=?, last_name=?, " . implode("=?, ", $fields) . "=? WHERE national_id=? AND academic_year=?";
+        $params = array_merge([$first_name, $last_name], array_values($data), [$new_username, $active_year]);
+        $db->prepare($sql)->execute($params);
+
+        $db->commit();
+        $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل کارمند بروزرسانی شد.'];
+        $_GET['username'] = $new_username;
+    } catch (Exception $e) {
+        $db->rollBack();
+        $msgs[] = ['type'=>'error', 'text'=>'❌ خطا: ' . $e->getMessage()];
     }
 }
 // ─── افزودن دستی قسط ───
@@ -233,7 +279,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
     $db = getDB();
     $old_username = $_POST['old_username'];
     $new_username = trim($_POST['new_username']);
-    $full_name    = trim($_POST['full_name']);
+    $first_name   = trim($_POST['first_name']);
+    $last_name    = trim($_POST['last_name']);
     $new_password = trim($_POST['new_password'] ?? '');
 
     // Metadata
@@ -254,11 +301,11 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
         // Update users table
         if ($new_password) {
             $hash = password_hash($new_password, PASSWORD_BCRYPT);
-            $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, password=? WHERE username=?");
-            $stmt->execute([$new_username, $full_name, $hash, $old_username]);
+            $stmt = $db->prepare("UPDATE users SET username=?, password=? WHERE username=?");
+            $stmt->execute([$new_username, $hash, $old_username]);
         } else {
-            $stmt = $db->prepare("UPDATE users SET username=?, full_name=? WHERE username=?");
-            $stmt->execute([$new_username, $full_name, $old_username]);
+            $stmt = $db->prepare("UPDATE users SET username=? WHERE username=?");
+            $stmt->execute([$new_username, $old_username]);
         }
 
         if ($new_username !== $old_username) {
@@ -268,11 +315,11 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
 
         // Update student_profiles table for active year
         $stmt = $db->prepare("UPDATE student_profiles SET
-            grade=?, major=?, father_name=?, mother_name=?, mother_phone=?, father_phone=?,
+            first_name=?, last_name=?, grade=?, major=?, father_name=?, mother_name=?, mother_phone=?, father_phone=?,
             home_phone=?, student_phone=?, address=?, left_handed=?
             WHERE national_id=? AND academic_year=?");
         $stmt->execute([
-            $grade, $major, $father_name, $mother_name, $mother_phone, $father_phone,
+            $first_name, $last_name, $grade, $major, $father_name, $mother_name, $mother_phone, $father_phone,
             $home_phone, $student_phone, $address, $left_handed,
             $new_username, $active_year
         ]);
@@ -530,14 +577,26 @@ if ($isAdmin && isset($_GET['export_excel'])) {
 $students = [];
 if ($isAdmin) {
     $db = getDB();
-    // دانش‌آموزانی که در سال تحصیلی فعال رکورد دارند یا اگر سال پیش‌فرض است، همه
-    if ($active_year === '1404-1405') {
-        $students = $db->query("SELECT id, username, full_name, created_at FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    } else {
-        $stmt = $db->prepare("SELECT u.id, u.username, u.full_name, u.created_at FROM users u JOIN student_profiles sp ON u.username = sp.national_id WHERE sp.academic_year = ? ORDER BY u.full_name ASC");
-        $stmt->execute([$active_year]);
-        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $stmt = $db->prepare("SELECT u.id, u.username, sp.first_name, sp.last_name, u.created_at
+                          FROM users u
+                          JOIN student_profiles sp ON u.username = sp.national_id
+                          WHERE sp.academic_year = ? AND u.role = 'student'
+                          ORDER BY sp.last_name, sp.first_name ASC");
+    $stmt->execute([$active_year]);
+    $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// ─── لیست کارکنان ───
+$staff = [];
+if ($isAdmin) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT u.id, u.username, st.first_name, st.last_name, st.position, u.created_at
+                          FROM users u
+                          JOIN staff_profiles st ON u.username = st.national_id
+                          WHERE st.academic_year = ? AND u.role = 'staff'
+                          ORDER BY st.last_name, st.first_name ASC");
+    $stmt->execute([$active_year]);
+    $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $tab = $_GET['tab'] ?? 'db_mgmt';
@@ -702,6 +761,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
+    <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
     <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
@@ -734,12 +794,15 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <h3>➕ افزودن دستی دانش‌آموز</h3>
 
   <form method="POST">
-
-    <div class="field">
-      <label>نام و نام خانوادگی</label>
-      <input type="text"
-             name="full_name"
-             placeholder="مثلاً فاطمه محمدی">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="field">
+          <label>نام</label>
+          <input type="text" name="first_name" placeholder="مثلاً فاطمه">
+        </div>
+        <div class="field">
+          <label>نام خانوادگی</label>
+          <input type="text" name="last_name" placeholder="مثلاً محمدی">
+        </div>
     </div>
 
     <div class="field">
@@ -773,9 +836,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </form>
     <div class="guide">
       <strong>فرمت فایل CSV دانش‌آموزان:</strong><br>
-      ستون اول: نام و نام خانوادگی — ستون دوم: کد ملی<br>
-      <code>فاطمه محمدی,1234567890</code><br>
-      <code>زهرا احمدی,0987654321</code><br><br>
+      ستون اول: نام — ستون دوم: نام خانوادگی — ستون سوم: کد ملی<br>
+      <code>فاطمه,محمدی,1234567890</code><br>
+      <code>زهرا,احمدی,0987654321</code><br><br>
       ⚡ نام کاربری و رمز عبور اولیه هر دانش‌آموز = کد ملی او<br>
       🔄 اگر کد ملی قبلاً وجود داشته باشد، فقط نام به‌روز می‌شود.<br><br>
       <strong>برای ذخیره اکسل به CSV:</strong> در اکسل ← <em>File → Save As → CSV UTF-8 (Comma delimited)</em>
@@ -793,7 +856,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <input type="text" name="national_id" list="students_list" autocomplete="off">
       <datalist id="students_list">
         <?php foreach ($students as $s): ?>
-          <option value="<?= htmlspecialchars($s['username']) ?>"><?= htmlspecialchars($s['full_name']) ?> (<?= htmlspecialchars($s['username']) ?>)</option>
+          <option value="<?= htmlspecialchars($s['username']) ?>"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?> (<?= htmlspecialchars($s['username']) ?>)</option>
         <?php endforeach; ?>
       </datalist>
     </div>
@@ -918,20 +981,22 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         <thead>
           <tr>
             <th onclick="sortTable(0)" style="cursor:pointer;"># ↕</th>
-            <th onclick="sortTable(1)" style="cursor:pointer;">نام و نام خانوادگی ↕</th>
-            <th onclick="sortTable(2)" style="cursor:pointer;">کد ملی (نام کاربری) ↕</th>
-            <th onclick="sortTable(3)" style="cursor:pointer;">تاریخ ثبت ↕</th>
+            <th onclick="sortTable(1)" style="cursor:pointer;">نام ↕</th>
+            <th onclick="sortTable(2)" style="cursor:pointer;">نام خانوادگی ↕</th>
+            <th onclick="sortTable(3)" style="cursor:pointer;">کد ملی (نام کاربری) ↕</th>
+            <th onclick="sortTable(4)" style="cursor:pointer;">تاریخ ثبت ↕</th>
             <th>عملیات</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($students)): ?>
-            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز دانش‌آموزی ثبت نشده</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray)">هنوز دانش‌آموزی ثبت نشده</td></tr>
           <?php endif; ?>
           <?php foreach ($students as $i => $s): ?>
           <tr>
             <td><?= to_persian_num($i + 1) ?></td>
-            <td><?= htmlspecialchars($s['full_name'] ?: '—') ?></td>
+            <td><?= htmlspecialchars($s['first_name'] ?: '—') ?></td>
+            <td><?= htmlspecialchars($s['last_name'] ?: '—') ?></td>
             <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
             <td><?= to_persian_num(convert_to_jalali($s['created_at'])) ?></td>
             <td>
@@ -960,20 +1025,25 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       $stmt = $db->prepare("SELECT * FROM student_profiles WHERE national_id = ? AND academic_year = ?");
       $stmt->execute([$target_user, $active_year]);
       $prof = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+      $fullName = trim(($prof['first_name']??'').' '.($prof['last_name']??'')) ?: $student_info['username'];
 
       $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? AND academic_year = ? ORDER BY installment_no ASC");
       $t_stmt->execute([$target_user, $active_year]);
       $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
   <div class="card">
-    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
+    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($fullName) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
     <form method="POST">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
           <div class="field">
-            <label>نام و نام خانوادگی</label>
-            <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+            <label>نام</label>
+            <input type="text" name="first_name" value="<?= htmlspecialchars($prof['first_name']??'') ?>">
+          </div>
+          <div class="field">
+            <label>نام خانوادگی</label>
+            <input type="text" name="last_name" value="<?= htmlspecialchars($prof['last_name']??'') ?>">
           </div>
           <div class="field">
             <label>کد ملی (نام کاربری)</label>
@@ -1201,6 +1271,98 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   </div>
   <?php endif; ?>
 
+  <?php elseif ($tab === 'staff'): ?>
+
+  <div class="card">
+    <h3>👥 مدیریت کارکنان</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>نام و نام خانوادگی</th>
+            <th>کد ملی</th>
+            <th>سمت</th>
+            <th>تاریخ ثبت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($staff)): ?>
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">هنوز کارمندی ثبت نشده</td></tr>
+          <?php endif; ?>
+          <?php foreach ($staff as $i => $s): ?>
+          <tr>
+            <td><?= to_persian_num($i + 1) ?></td>
+            <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+            <td><?= htmlspecialchars($s['position'] ?: '—') ?></td>
+            <td><?= to_persian_num(convert_to_jalali($s['created_at'])) ?></td>
+            <td>
+              <a href="?tab=manage_staff&username=<?= urlencode($s['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">ویرایش</a>
+              <a href="?tab=staff&delete_user=<?= $s['id'] ?>" class="btn-del" onclick="return confirm('حذف این کارمند؟')">حذف</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>➕ افزودن دستی کارمند</h3>
+    <form method="POST">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="field"><label>نام</label><input type="text" name="first_name"></div>
+        <div class="field"><label>نام خانوادگی</label><input type="text" name="last_name"></div>
+      </div>
+      <div class="field"><label>کد ملی</label><input type="text" name="national_id"></div>
+      <button type="submit" name="add_staff_manual" class="btn-primary">ثبت کارمند</button>
+    </form>
+  </div>
+
+  <?php elseif ($tab === 'manage_staff' && isset($_GET['username'])):
+    $db = getDB();
+    $target_user = $_GET['username'];
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$target_user]);
+    $u_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$u_info):
+      echo "<div class='alert error'>❌ کارمند یافت نشد.</div>";
+    else:
+      $stmt = $db->prepare("SELECT * FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+      $stmt->execute([$target_user, $active_year]);
+      $st_prof = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+  ?>
+  <div class="card">
+    <h3>⚙️ مدیریت پروفایل کارمند: <?= htmlspecialchars(($st_prof['first_name']??'') . ' ' . ($st_prof['last_name']??'')) ?></h3>
+    <form method="POST">
+      <input type="hidden" name="old_username" value="<?= htmlspecialchars($u_info['username']) ?>">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div class="field"><label>نام</label><input type="text" name="first_name" value="<?= htmlspecialchars($st_prof['first_name']??'') ?>"></div>
+          <div class="field"><label>نام خانوادگی</label><input type="text" name="last_name" value="<?= htmlspecialchars($st_prof['last_name']??'') ?>"></div>
+          <div class="field"><label>کد ملی (نام کاربری)</label><input type="text" name="new_username" value="<?= htmlspecialchars($u_info['username']) ?>"></div>
+          <div class="field"><label>رمز عبور جدید</label><input type="password" name="new_password" placeholder="********"></div>
+          <div class="field"><label>تاریخ تولد</label><input type="text" name="birth_date" value="<?= htmlspecialchars($st_prof['birth_date']??'') ?>"></div>
+          <div class="field"><label>محل صدور</label><input type="text" name="birth_place" value="<?= htmlspecialchars($st_prof['birth_place']??'') ?>"></div>
+          <div class="field"><label>مدرک تحصیلی</label><input type="text" name="education" value="<?= htmlspecialchars($st_prof['education']??'') ?>"></div>
+          <div class="field"><label>سمت (دبیر، مستخدم و ...)</label><input type="text" name="position" value="<?= htmlspecialchars($st_prof['position']??'') ?>"></div>
+          <div class="field"><label>نام پدر</label><input type="text" name="father_name" value="<?= htmlspecialchars($st_prof['father_name']??'') ?>"></div>
+          <div class="field"><label>تلفن منزل</label><input type="text" name="home_phone" value="<?= htmlspecialchars($st_prof['home_phone']??'') ?>"></div>
+          <div class="field"><label>تلفن همراه</label><input type="text" name="mobile_phone" value="<?= htmlspecialchars($st_prof['mobile_phone']??'') ?>"></div>
+          <div class="field"><label>تاریخ قرارداد</label><input type="text" name="contract_date" value="<?= htmlspecialchars($st_prof['contract_date']??'') ?>"></div>
+          <div class="field"><label>بانک</label><input type="text" name="bank" value="<?= htmlspecialchars($st_prof['bank']??'') ?>"></div>
+          <div class="field"><label>شماره شبا</label><input type="text" name="sheba" value="<?= htmlspecialchars($st_prof['sheba']??'') ?>"></div>
+          <div class="field"><label>شماره نامه</label><input type="text" name="letter_no" value="<?= htmlspecialchars($st_prof['letter_no']??'') ?>"></div>
+      </div>
+      <div class="field"><label>آدرس</label><textarea name="address" rows="2" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:10px; font-family:Vazirmatn;"><?= htmlspecialchars($st_prof['address']??'') ?></textarea></div>
+      <div class="field"><label>برنامه حضور</label><textarea name="schedule" rows="2" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:10px; font-family:Vazirmatn;"><?= htmlspecialchars($st_prof['schedule']??'') ?></textarea></div>
+      <button type="submit" name="update_staff_profile" class="btn-primary">بروزرسانی پروفایل کارمند</button>
+    </form>
+  </div>
+  <?php endif; ?>
+
   <?php elseif ($tab === 'debtors'):
     if (isset($_POST['ref_y'], $_POST['ref_m'], $_POST['ref_d'])) {
         $ref_date = sprintf("%04d/%02d/%02d", $_POST['ref_y'], $_POST['ref_m'], $_POST['ref_d']);
@@ -1209,8 +1371,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     }
     $db = getDB();
 
-    // واکشی همه کاربران و محاسبات بدهی
-    $all_users = $db->query("SELECT username, full_name FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $db->prepare("SELECT u.username, sp.first_name, sp.last_name FROM users u JOIN student_profiles sp ON u.username = sp.national_id WHERE sp.academic_year = ? AND u.role = 'student'");
+    $stmt->execute([$active_year]);
+    $all_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $debtors = [];
 
     foreach ($all_users as $u) {
@@ -1224,7 +1387,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
         if ($debt > 0) {
             $debtors[] = [
-                'full_name' => $u['full_name'],
+                'full_name' => trim($u['first_name'].' '.$u['last_name']),
                 'username'  => $u['username'],
                 'total_due' => $total_due,
                 'total_paid'=> $total_paid,
@@ -1275,7 +1438,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           <?php endif; ?>
           <?php foreach ($debtors as $d): ?>
           <tr>
-            <td><?= htmlspecialchars($d['full_name']) ?></td>
+            <td><?= htmlspecialchars($d['full_name'] ?: $d['username']) ?></td>
             <td><?= to_persian_num(htmlspecialchars($d['username'])) ?></td>
             <td><?= to_persian_num(number_format($d['total_due'])) ?> تومان</td>
             <td><?= to_persian_num(number_format($d['total_paid'])) ?> تومان</td>
