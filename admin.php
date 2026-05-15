@@ -28,11 +28,13 @@ $isAdmin = !empty($_SESSION['is_admin']) || (isset($_SESSION['role']) && $_SESSI
 
 // ─── مدیریت سال تحصیلی ───
 $academic_years = ['1404-1405', '1405-1406'];
-if (!isset($_SESSION['active_year'])) {
-    $_SESSION['active_year'] = '1404-1405';
-}
 if (isset($_POST['set_active_year'])) {
-    $_SESSION['active_year'] = $_POST['active_year'];
+    $db = getDB();
+    $new_year = $_POST['active_year'];
+    $_SESSION['active_year'] = $new_year;
+    // ذخیره در دیتابیس برای پایداری
+    $stmt = $db->prepare("UPDATE settings SET value = ? WHERE key = 'active_year'");
+    $stmt->execute([$new_year]);
 }
 $active_year = $_SESSION['active_year'];
 

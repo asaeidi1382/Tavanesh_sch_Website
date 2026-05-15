@@ -116,8 +116,36 @@ function getDB() {
             created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(exam_id, student_id)
         )");
+
+        // جدول تنظیمات
+        $db->exec("CREATE TABLE IF NOT EXISTS settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT
+        )");
+
+        // مقدار پیش‌فرض سال تحصیلی
+        $stmt = $db->query("SELECT value FROM settings WHERE key = 'active_year'");
+        if (!$stmt->fetch()) {
+            $db->exec("INSERT INTO settings (key, value) VALUES ('active_year', '1404-1405')");
+        }
     }
     return $db;
+}
+
+// مقداردهی سال تحصیلی فعال در سشن از دیتابیس
+if (!isset($_SESSION['active_year'])) {
+    try {
+        $db = getDB();
+        $stmt = $db->query("SELECT value FROM settings WHERE key = 'active_year'");
+        $val = $stmt->fetchColumn();
+        if ($val) {
+            $_SESSION['active_year'] = $val;
+        } else {
+            $_SESSION['active_year'] = '1404-1405';
+        }
+    } catch (Exception $e) {
+        $_SESSION['active_year'] = '1404-1405';
+    }
 }
 
 function isLoggedIn() {
