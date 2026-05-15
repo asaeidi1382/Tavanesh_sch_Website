@@ -528,6 +528,32 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_pa
     }
 }
 
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_paystub_title'])) {
+    $db = getDB();
+    $id = (int)$_POST['paystub_id'];
+    $title = trim($_POST['new_title']);
+    if ($title) {
+        $stmt = $db->prepare("UPDATE paystubs SET title=? WHERE id=?");
+        $stmt->execute([$title, $id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ عنوان فیش حقوقی بروزرسانی شد.'];
+    }
+}
+
+if ($isAdmin && isset($_GET['delete_paystub'])) {
+    $db = getDB();
+    $id = (int)$_GET['delete_paystub'];
+    $stmt = $db->prepare("SELECT file_path FROM paystubs WHERE id=?");
+    $stmt->execute([$id]);
+    $ps = $stmt->fetch();
+    if ($ps) {
+        if (file_exists($ps['file_path'])) {
+            unlink($ps['file_path']);
+        }
+        $db->prepare("DELETE FROM paystubs WHERE id=?")->execute([$id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ فیش حقوقی حذف شد.'];
+    }
+}
+
 // ─── مدیریت دیتابیس (Backup/Restore/Excel) ───
 if ($isAdmin && isset($_GET['download_db'])) {
     if (file_exists(DB_PATH)) {
@@ -784,7 +810,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
-    <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 آپلود فیش حقوقی</a>
+    <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 مدیریت فیش‌های حقوقی</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
     <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
@@ -1299,8 +1325,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <?php elseif ($tab === 'upload_paystubs'): ?>
   <div class="card">
-    <h3>💵 آپلود گروهی فیش حقوقی (سال <?= to_persian_num($active_year) ?>)</h3>
-    <form method="POST" enctype="multipart/form-data">
+    <h3>💵 مدیریت و آپلود فیش‌های حقوقی (سال <?= to_persian_num($active_year) ?>)</h3>
+    <form method="POST" action="?tab=upload_paystubs" enctype="multipart/form-data">
       <div class="field">
         <label>عنوان (مثلاً: فیش حقوقی اردیبهشت ۱۴۰۴)</label>
         <input type="text" name="paystub_title" placeholder="عنوان فیش را وارد کنید..." required>
@@ -1328,6 +1354,92 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <button type="submit" name="upload_paystubs" class="btn-primary" style="margin-top:20px;">📤 شروع آپلود فیش‌ها</button>
     </form>
   </div>
+
+  <?php
+    $db = getDB();
+    $stmt = $db->prepare("SELECT ps.*, st.first_name, st.last_name
+                          FROM paystubs ps
+                          JOIN staff_profiles st ON ps.national_id = st.national_id AND ps.academic_year = st.academic_year
+                          WHERE ps.academic_year = ?
+                          ORDER BY ps.id DESC");
+    $stmt->execute([$active_year]);
+    $all_paystubs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📋 مدیریت فیش‌های صادر شده (سال <?= to_persian_num($active_year) ?>)</h3>
+
+    <div class="field" style="margin-bottom: 20px;">
+        <input type="text" id="paystubSearch" placeholder="🔍 جستجوی نام پرسنل یا عنوان فیش..." onkeyup="filterPaystubs()" style="padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--turquoise-light); width: 100%; font-family: Vazirmatn;">
+    </div>
+
+    <div class="table-wrap">
+      <table id="paystubTable">
+        <thead>
+          <tr>
+            <th>عنوان فیش</th>
+            <th>نام پرسنل</th>
+            <th>کد ملی</th>
+            <th>تاریخ آپلود</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($all_paystubs)): ?>
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز فیش حقوقی در این سال تحصیلی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($all_paystubs as $ps): ?>
+          <tr>
+            <td>
+                <form method="POST" action="?tab=upload_paystubs" style="display:flex; gap:5px;">
+                    <input type="hidden" name="paystub_id" value="<?= $ps['id'] ?>">
+                    <input type="text" name="new_title" value="<?= htmlspecialchars($ps['title']) ?>" style="padding:5px; font-size:0.85rem; flex:1;">
+                    <button type="submit" name="update_paystub_title" class="btn-sm" style="background:var(--green); padding:5px 10px;">💾</button>
+                </form>
+            </td>
+            <td><?= htmlspecialchars($ps['first_name'] . ' ' . $ps['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($ps['national_id'])) ?></td>
+            <td><?= to_persian_num(convert_to_jalali($ps['upload_date'])) ?></td>
+            <td style="white-space: nowrap;">
+              <a href="<?= htmlspecialchars($ps['file_path']) ?>" target="_blank" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">👁️ مشاهده</a>
+              <a href="?tab=upload_paystubs&delete_paystub=<?= $ps['id'] ?>"
+                 class="btn-del"
+                 onclick="return confirm('آیا از حذف این فیش حقوقی اطمینان دارید؟ (فایل نیز از سرور حذف خواهد شد)')">حذف</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+  function filterPaystubs() {
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("paystubSearch");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("paystubTable");
+      tr = table.getElementsByTagName("tr");
+      for (i = 1; i < tr.length; i++) {
+          tr[i].style.display = "none";
+          var tds = tr[i].getElementsByTagName("td");
+          // Check title column (index 0) and staff name column (index 1)
+          for (var j = 0; j <= 1; j++) {
+              if (tds[j]) {
+                  // For title column, we need to check the input value
+                  if (j === 0) {
+                      txtValue = tds[j].querySelector('input[name="new_title"]').value;
+                  } else {
+                      txtValue = tds[j].textContent || tds[j].innerText;
+                  }
+                  if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                      tr[i].style.display = "";
+                      break;
+                  }
+              }
+          }
+      }
+  }
+  </script>
 
   <?php elseif ($tab === 'staff'): ?>
 
