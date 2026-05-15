@@ -24,7 +24,7 @@ if (isset($_GET['logout_admin'])) {
     exit;
 }
 
-$isAdmin = !empty($_SESSION['is_admin']);
+$isAdmin = !empty($_SESSION['is_admin']) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
 // ─── مدیریت سال تحصیلی ───
 $academic_years = ['1404-1405', '1405-1406'];
@@ -501,6 +501,41 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
 }
 
 
+// ─── مدیریت امتحانات ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_exam'])) {
+    $db = getDB();
+    $id = $_POST['exam_id'] ?? null;
+    $title = trim($_POST['title']);
+    $date_y = $_POST['date_y'];
+    $date_m = $_POST['date_m'];
+    $date_d = $_POST['date_d'];
+    $date = sprintf("%04d/%02d/%02d", $date_y, $date_m, $date_d);
+    $lesson = trim($_POST['lesson']);
+    $grade = $_POST['grade'];
+    $major = $_POST['major'];
+    $max_score = (float)$_POST['max_score'];
+    $is_published = isset($_POST['is_published']) ? 1 : 0;
+    $teacher_id = $_POST['teacher_id'];
+
+    if ($id) {
+        $stmt = $db->prepare("UPDATE exams SET title=?, date=?, lesson=?, grade=?, major=?, teacher_id=?, max_score=?, is_published=? WHERE id=?");
+        $stmt->execute([$title, $date, $lesson, $grade, $major, $teacher_id, $max_score, $is_published, $id]);
+        $msgs[] = ['type' => 'success', 'text' => '✅ امتحان با موفقیت بروزرسانی شد.'];
+    } else {
+        $stmt = $db->prepare("INSERT INTO exams (title, date, lesson, grade, major, teacher_id, max_score, is_published, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $date, $lesson, $grade, $major, $teacher_id, $max_score, $is_published, $active_year]);
+        $msgs[] = ['type' => 'success', 'text' => '✅ امتحان جدید با موفقیت ثبت شد.'];
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_exam'])) {
+    $db = getDB();
+    $id = $_POST['exam_id'];
+    $db->prepare("DELETE FROM exams WHERE id=?")->execute([$id]);
+    $db->prepare("DELETE FROM scores WHERE exam_id=?")->execute([$id]);
+    $msgs[] = ['type' => 'success', 'text' => '✅ امتحان و نمرات آن حذف شدند.'];
+}
+
 // ─── آپلود فیش حقوقی ───
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_paystubs'])) {
     $db = getDB();
@@ -813,6 +848,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 مدیریت فیش‌های حقوقی</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
     <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
+    <a href="?tab=exams"     class="tab <?= $tab==='exams'     ?'active':'' ?>">📝 مدیریت نمرات و امتحانات</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
     <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
@@ -1622,6 +1658,123 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       </table>
     </div>
   </div>
+  <?php elseif ($tab === 'exams'):
+    $db = getDB();
+    // Fetch Exams
+    $stmt = $db->prepare("SELECT e.*, st.first_name, st.last_name FROM exams e LEFT JOIN staff_profiles st ON e.teacher_id = st.national_id AND e.academic_year = st.academic_year WHERE e.academic_year = ? ORDER BY e.date DESC");
+    $stmt->execute([$active_year]);
+    $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch Teachers
+    $stmt = $db->prepare("SELECT national_id, first_name, last_name FROM staff_profiles WHERE academic_year = ? AND position LIKE '%دبیر%'");
+    $stmt->execute([$active_year]);
+    $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $edit_exam = null;
+    if (isset($_GET['edit_exam_id'])) {
+        $stmt = $db->prepare("SELECT * FROM exams WHERE id=?");
+        $stmt->execute([$_GET['edit_exam_id']]);
+        $edit_exam = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+  ?>
+  <div class="card">
+    <h3><?= $edit_exam ? '✏️ ویرایش امتحان' : '➕ ایجاد امتحان جدید' ?></h3>
+    <form method="POST">
+        <?php if ($edit_exam): ?>
+            <input type="hidden" name="exam_id" value="<?= $edit_exam['id'] ?>">
+        <?php endif; ?>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+            <div class="field"><label>عنوان امتحان</label><input type="text" name="title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم ریاضی"></div>
+            <div class="field">
+                <label>تاریخ امتحان</label>
+                <?php
+                    $d_y = $d_m = $d_d = "";
+                    if (!empty($edit_exam['date'])) {
+                        list($d_y, $d_m, $d_d) = explode('/', $edit_exam['date']);
+                    } else {
+                        list($d_y, $d_m, $d_d) = explode('/', get_jalali_today());
+                    }
+                ?>
+                <div style="display:flex; gap:5px; direction:rtl;">
+                    <select name="date_d" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?></select>
+                    <select name="date_m" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?></select>
+                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
+                </div>
+            </div>
+            <div class="field"><label>درس</label><input type="text" name="lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required></div>
+            <div class="field">
+                <label>پایه</label>
+                <select name="grade" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach(['دهم','یازدهم','دوازدهم'] as $g) echo "<option value='$g' ".((($edit_exam['grade']??'')==$g)?'selected':'').">$g</option>"; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label>رشته</label>
+                <select name="major" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".((($edit_exam['major']??'')==$m)?'selected':'').">$m</option>"; ?>
+                </select>
+            </div>
+            <div class="field"><label>نمره از چند</label><input type="number" step="0.25" name="max_score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required></div>
+            <div class="field">
+                <label>دبیر</label>
+                <select name="teacher_id" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach($teachers as $t) echo "<option value='{$t['national_id']}' ".((($edit_exam['teacher_id']??'')==$t['national_id'])?'selected':'').">{$t['first_name']} {$t['last_name']}</option>"; ?>
+                </select>
+            </div>
+            <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:25px;">
+                <input type="checkbox" name="is_published" id="pub" <?= ($edit_exam ? ($edit_exam['is_published'] ? 'checked' : '') : 'checked') ?>>
+                <label for="pub" style="margin-bottom:0;">انتشار برای دانش‌آموزان</label>
+            </div>
+        </div>
+        <div style="margin-top:15px;">
+            <button type="submit" name="save_exam" class="btn-primary" style="width:auto; padding:10px 25px;"><?= $edit_exam ? 'بروزرسانی امتحان' : 'ثبت امتحان' ?></button>
+            <?php if ($edit_exam): ?><a href="?tab=exams" class="btn-sm" style="background:var(--gray); text-decoration:none; padding:10px 20px; border-radius:10px;">انصراف</a><?php endif; ?>
+        </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>📋 لیست امتحانات (سال <?= to_persian_num($active_year) ?>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>عنوان</th>
+            <th>درس</th>
+            <th>پایه و رشته</th>
+            <th>دبیر</th>
+            <th>تاریخ</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($exams)): ?>
+            <tr><td colspan="7" style="text-align:center; padding:20px;">هیچ امتحانی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($exams as $e): ?>
+          <tr>
+            <td><?= htmlspecialchars($e['title']) ?></td>
+            <td><?= htmlspecialchars($e['lesson']) ?></td>
+            <td><?= htmlspecialchars($e['grade'] . ' - ' . $e['major']) ?></td>
+            <td><?= htmlspecialchars($e['first_name'] . ' ' . $e['last_name']) ?></td>
+            <td><?= to_persian_num($e['date']) ?></td>
+            <td><?= $e['is_published'] ? '<span style="color:var(--green)">منتشر شده</span>' : '<span style="color:var(--gray)">منتشر نشده</span>' ?></td>
+            <td>
+              <a href="manage_scores.php?exam_id=<?= $e['id'] ?>" class="btn-sm" style="background:var(--green); text-decoration:none;">📝 نمرات</a>
+              <a href="?tab=exams&edit_exam_id=<?= $e['id'] ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">✏️</a>
+              <form method="POST" style="display:inline;" onsubmit="return confirm('حذف امتحان و نمرات؟')">
+                <input type="hidden" name="exam_id" value="<?= $e['id'] ?>">
+                <button type="submit" name="delete_exam" class="btn-del" style="padding: 5px 10px;">🗑️</button>
+              </form>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <?php elseif ($tab === 'news'):
     $db = getDB();
     $all_news = $db->query("SELECT * FROM news ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
