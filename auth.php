@@ -89,6 +89,33 @@ function getDB() {
             file_path      TEXT NOT NULL,
             upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
+
+        // جدول امتحانات
+        $db->exec("CREATE TABLE IF NOT EXISTS exams (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            title          TEXT NOT NULL,
+            date           TEXT NOT NULL,
+            lesson         TEXT NOT NULL,
+            grade          TEXT NOT NULL,
+            major          TEXT NOT NULL,
+            teacher_id     TEXT NOT NULL,
+            max_score      REAL DEFAULT 20,
+            is_published   INTEGER DEFAULT 0,
+            academic_year  TEXT NOT NULL,
+            created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // جدول نمرات
+        $db->exec("CREATE TABLE IF NOT EXISTS scores (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id        INTEGER NOT NULL,
+            student_id     TEXT NOT NULL,
+            score          REAL,
+            status         TEXT DEFAULT 'present',
+            description    TEXT,
+            created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(exam_id, student_id)
+        )");
     }
     return $db;
 }

@@ -252,7 +252,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
         </a>
 
         <?php if ($isTeacher): ?>
-        <a href="?page=grades" class="card">
+        <a href="manage_exams.php" class="card">
           <div class="card-icon">📝</div>
           <h3>مدیریت نمرات</h3>
           <p>ثبت و ویرایش نمرات دانش‌آموزان</p>
@@ -294,11 +294,11 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <h3>تکالیف</h3>
           <p>ارسال تکالیف و پیگیری وضعیت تحویل</p>
         </div>
-        <div class="card">
+        <a href="student_scores.php" class="card">
           <div class="card-icon">🏆</div>
           <h3>نمرات</h3>
           <p>مشاهده نمرات آزمون‌ها و کارنامه تحصیلی</p>
-        </div>
+        </a>
         <div class="card">
           <div class="card-icon">📆</div>
           <h3>تقویم آزمون‌ها</h3>
