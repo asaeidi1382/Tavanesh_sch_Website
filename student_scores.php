@@ -3,7 +3,7 @@ require_once 'auth.php';
 requireLogin();
 
 $db = getDB();
-$active_year = $_SESSION['active_year'] ?? '1404-1405';
+$selected_year = $_GET['year'] ?? ($_SESSION['active_year'] ?? '1404-1405');
 $user_id = $_SESSION['username'];
 $role = $_SESSION['role'];
 
@@ -11,17 +11,29 @@ if ($role !== 'student') {
     die("این صفحه مختص دانش‌آموزان است.");
 }
 
-// Fetch published exams and the student's scores
-$stmt = $db->prepare("
-    SELECT e.*, s.score, s.status, s.description, st.first_name as t_first, st.last_name as t_last
-    FROM exams e
-    LEFT JOIN scores s ON e.id = s.exam_id AND s.student_id = ?
-    LEFT JOIN staff_profiles st ON e.teacher_id = st.national_id AND e.academic_year = st.academic_year
-    WHERE e.academic_year = ? AND e.is_published = 1
-    ORDER BY e.date DESC
-");
-$stmt->execute([$user_id, $active_year]);
-$exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// واکشی پروفایل دانش‌آموز برای سال انتخابی
+$stmt = $db->prepare("SELECT grade, major FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+$stmt->execute([$user_id, $selected_year]);
+$profile = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$exams = [];
+$profile_missing = false;
+
+if (!$profile) {
+    $profile_missing = true;
+} else {
+    // Fetch published exams and the student's scores filtering by grade and major
+    $stmt = $db->prepare("
+        SELECT e.*, s.score, s.status, s.description, st.first_name as t_first, st.last_name as t_last
+        FROM exams e
+        LEFT JOIN scores s ON e.id = s.exam_id AND s.student_id = ?
+        LEFT JOIN staff_profiles st ON e.teacher_id = st.national_id AND e.academic_year = st.academic_year
+        WHERE e.academic_year = ? AND e.is_published = 1 AND e.grade = ? AND e.major = ?
+        ORDER BY e.date DESC
+    ");
+    $stmt->execute([$user_id, $selected_year, $profile['grade'], $profile['major']]);
+    $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 function getStatusLabel($status) {
     switch ($status) {
@@ -66,12 +78,27 @@ th:hover { background:#e0f2f4 !important; }
 </head>
 <body>
 <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h1>🏆 نمرات من</h1>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <h1>🏆 نمرات من</h1>
+            <select onchange="location.href='?year='+this.value" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:0.9rem; color:#0c8790; outline:none;">
+                <?php
+                $years = ['1404-1405', '1405-1406'];
+                foreach($years as $y): ?>
+                    <option value="<?= $y ?>" <?= $y===$selected_year?'selected':'' ?>><?= to_persian_num($y) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
         <a href="dashboard.php" class="btn btn-secondary">← بازگشت به داشبورد</a>
     </div>
 
     <div class="card">
+        <?php if ($profile_missing): ?>
+            <div style="text-align:center; padding:40px; color:#c94040;">
+                <h3 style="margin-bottom:10px;">⚠️ عدم ثبت اطلاعات</h3>
+                <p>در سال تحصیلی <?= to_persian_num($selected_year) ?> اطلاعاتی برای شما ثبت نگردیده است.</p>
+            </div>
+        <?php else: ?>
         <div class="table-wrap">
             <table>
                 <thead id="scoresHead">
@@ -88,7 +115,7 @@ th:hover { background:#e0f2f4 !important; }
                 </thead>
                 <tbody id="scoresBody">
                     <?php if (empty($exams)): ?>
-                        <tr><td colspan="8" style="text-align:center; padding:30px;">هنوز نمره‌ای منتشر نشده است.</td></tr>
+                        <tr><td colspan="8" style="text-align:center; padding:30px;">هنوز نمره‌ای برای این سال تحصیلی منتشر نشده است.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($exams as $e): ?>
                     <tr>
@@ -120,6 +147,7 @@ th:hover { background:#e0f2f4 !important; }
                 </tbody>
             </table>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 <script>
