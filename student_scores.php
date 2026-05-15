@@ -53,9 +53,15 @@ h1 { color:#0c8790; margin-bottom:20px; text-align:center; }
 table { width:100%; border-collapse:collapse; background:#fff; }
 th, td { padding:14px; text-align:right; border-bottom:1px solid #f0fbfd; }
 th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
-.score-value { font-weight:700; color:#19b8c2; font-size:1.1rem; }
+.score-value { font-weight:700; font-size:1.1rem; }
+.score-low { color:#c94040; }
+.score-medium { color:#ff9800; }
+.score-high { color:#19b8c2; }
+.score-excellent { color:#1a9960; }
 .status-absent { color:#c94040; }
 .status-excused { color:#997a1a; }
+th { cursor:pointer; user-select:none; }
+th:hover { background:#e0f2f4 !important; }
 </style>
 </head>
 <body>
@@ -68,19 +74,19 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
     <div class="card">
         <div class="table-wrap">
             <table>
-                <thead>
+                <thead id="scoresHead">
                     <tr>
-                        <th>عنوان امتحان</th>
-                        <th>تاریخ</th>
-                        <th>درس</th>
-                        <th>دبیر</th>
-                        <th>نمره</th>
-                        <th>از چند</th>
-                        <th>وضعیت</th>
-                        <th>توضیحات دبیر</th>
+                        <th onclick="sortTable(0)">عنوان امتحان ↕</th>
+                        <th onclick="sortTable(1)">تاریخ ↕</th>
+                        <th onclick="sortTable(2)">درس ↕</th>
+                        <th onclick="sortTable(3)">دبیر ↕</th>
+                        <th onclick="sortTable(4)">نمره ↕</th>
+                        <th onclick="sortTable(5)">از چند ↕</th>
+                        <th onclick="sortTable(6)">وضعیت ↕</th>
+                        <th onclick="sortTable(7)">توضیحات دبیر ↕</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="scoresBody">
                     <?php if (empty($exams)): ?>
                         <tr><td colspan="8" style="text-align:center; padding:30px;">هنوز نمره‌ای منتشر نشده است.</td></tr>
                     <?php endif; ?>
@@ -90,10 +96,15 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                         <td><?= to_persian_num($e['date']) ?></td>
                         <td><?= htmlspecialchars($e['lesson']) ?></td>
                         <td><?= htmlspecialchars($e['t_first'] . ' ' . $e['t_last']) ?></td>
-                        <td class="score-value">
+                        <td class="score-value" data-val="<?= $e['score'] ?? -1 ?>">
                             <?php
-                            if ($e['status'] === 'present') {
-                                echo ($e['score'] !== null) ? to_persian_num($e['score']) : '—';
+                            if ($e['status'] === 'present' && $e['score'] !== null) {
+                                $s = $e['score'];
+                                $class = 'score-high';
+                                if ($s < 10) $class = 'score-low';
+                                elseif ($s < 15) $class = 'score-medium';
+                                elseif ($s >= 18) $class = 'score-excellent';
+                                echo "<span class='$class'>" . to_persian_num($s) . "</span>";
                             } else {
                                 echo '—';
                             }
@@ -111,5 +122,53 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
         </div>
     </div>
 </div>
+<script>
+function sortTable(n) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    table = document.getElementById("scoresBody");
+    switching = true;
+    dir = "asc";
+    while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 0; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName("TD")[n];
+            y = rows[i + 1].getElementsByTagName("TD")[n];
+
+            var xVal = x.getAttribute('data-val') || x.innerText.toLowerCase();
+            var yVal = y.getAttribute('data-val') || y.innerText.toLowerCase();
+
+            // Check if numeric
+            if (!isNaN(parseFloat(xVal)) && isFinite(xVal) && !isNaN(parseFloat(yVal)) && isFinite(yVal)) {
+                xVal = parseFloat(xVal);
+                yVal = parseFloat(yVal);
+            }
+
+            if (dir == "asc") {
+                if (xVal > yVal) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else if (dir == "desc") {
+                if (xVal < yVal) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+            switchcount++;
+        } else {
+            if (switchcount == 0 && dir == "asc") {
+                dir = "desc";
+                switching = true;
+            }
+        }
+    }
+}
+</script>
 </body>
 </html>
