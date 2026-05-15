@@ -77,11 +77,12 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                         <th>نمره</th>
                         <th>از چند</th>
                         <th>وضعیت</th>
+                        <th>توضیحات دبیر</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($exams)): ?>
-                        <tr><td colspan="7" style="text-align:center; padding:30px;">هنوز نمره‌ای منتشر نشده است.</td></tr>
+                        <tr><td colspan="8" style="text-align:center; padding:30px;">هنوز نمره‌ای منتشر نشده است.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($exams as $e): ?>
                     <tr>
@@ -102,6 +103,7 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                         <td class="status-<?= $e['status'] ?>">
                             <?= getStatusLabel($e['status']) ?>
                         </td>
+                        <td style="font-size:.85rem; color:var(--gray);"><?= htmlspecialchars($e['description'] ?? '—') ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

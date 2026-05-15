@@ -6,7 +6,7 @@ $db = getDB();
 $active_year = $_SESSION['active_year'] ?? '1404-1405';
 $user_id = $_SESSION['username'];
 $role = $_SESSION['role'];
-$isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin']);
+$isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin']) || ($_SESSION['role'] === 'admin');
 
 // Check if user is a teacher or admin
 $isTeacher = false;
@@ -14,7 +14,7 @@ if ($role === 'staff') {
     $stmt = $db->prepare("SELECT position FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
     $stmt->execute([$user_id, $active_year]);
     $staff_info = $stmt->fetch();
-    $isTeacher = ($staff_info && strpos($staff_info['position'], 'دبیر') !== false);
+    $isTeacher = ($staff_info && $staff_info['position'] && strpos($staff_info['position'], 'دبیر') !== false);
 }
 
 if (!$isTeacher && !$isAdmin) {
@@ -28,7 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save_exam'])) {
         $id = $_POST['exam_id'] ?? null;
         $title = trim($_POST['title']);
-        $date = trim($_POST['date']);
+        $date_y = $_POST['date_y'];
+        $date_m = $_POST['date_m'];
+        $date_d = $_POST['date_d'];
+        $date = sprintf("%04d/%02d/%02d", $date_y, $date_m, $date_d);
         $lesson = trim($_POST['lesson']);
         $grade = $_POST['grade'];
         $major = $_POST['major'];
@@ -115,11 +118,11 @@ if (isset($_GET['edit'])) {
 @font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
 body { font-family:'Vazirmatn', sans-serif; background:#f5fbfd; color:#0f3d42; padding:20px; line-height:1.6; }
 .container { max-width:1000px; margin:0 auto; }
-.card { background:#fff; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,.05); border:1.5px solid #e6f8fa; margin-bottom:20px; }
-h1, h2, h3 { color:#0c8790; margin-bottom:20px; }
-.field { margin-bottom:15px; }
-label { display:block; font-size:.85rem; font-weight:700; margin-bottom:5px; color:#4e8a90; }
-input[type=text], input[type=number], select { width:100%; padding:12px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; }
+.card { background:#fff; border-radius:18px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,.05); border:1.5px solid #e6f8fa; margin-bottom:20px; }
+h1, h2, h3 { color:#0c8790; margin-bottom:15px; }
+.field { margin-bottom:12px; }
+label { display:block; font-size:.8rem; font-weight:700; margin-bottom:4px; color:#4e8a90; }
+input[type=text], input[type=number], select { width:100%; padding:8px 12px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:.9rem; }
 .btn { padding:10px 20px; border-radius:10px; border:none; cursor:pointer; font-family:Vazirmatn; font-weight:700; transition:0.3s; text-decoration:none; display:inline-block; }
 .btn-primary { background:#19b8c2; color:#fff; }
 .btn-primary:hover { background:#0c8790; }
@@ -160,8 +163,26 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                     <input type="text" name="title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم فصل اول">
                 </div>
                 <div class="field">
-                    <label>تاریخ (YYYY/MM/DD)</label>
-                    <input type="text" name="date" value="<?= htmlspecialchars($edit_exam['date'] ?? get_jalali_today()) ?>" required>
+                    <label>تاریخ امتحان</label>
+                    <?php
+                        $d_y = $d_m = $d_d = "";
+                        if (!empty($edit_exam['date'])) {
+                            list($d_y, $d_m, $d_d) = explode('/', $edit_exam['date']);
+                        } else {
+                            list($d_y, $d_m, $d_d) = explode('/', get_jalali_today());
+                        }
+                    ?>
+                    <div style="display:flex; gap:5px; direction:rtl;">
+                        <select name="date_d" style="flex:1;">
+                            <?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?>
+                        </select>
+                        <select name="date_m" style="flex:1;">
+                            <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?>
+                        </select>
+                        <select name="date_y" style="flex:1;">
+                            <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                        </select>
+                    </div>
                 </div>
                 <div class="field">
                     <label>درس</label>
@@ -192,7 +213,7 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                 </div>
                 <?php endif; ?>
                 <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:25px;">
-                    <input type="checkbox" name="is_published" id="pub" <?= ($edit_exam['is_published']??0)?'checked':'' ?>>
+                    <input type="checkbox" name="is_published" id="pub" <?= ($edit_exam ? ($edit_exam['is_published'] ? 'checked' : '') : 'checked') ?>>
                     <label for="pub" style="margin-bottom:0;">انتشار نمرات برای دانش‌آموزان</label>
                 </div>
             </div>

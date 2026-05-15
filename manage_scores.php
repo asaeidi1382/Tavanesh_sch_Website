@@ -5,7 +5,7 @@ requireLogin();
 $db = getDB();
 $active_year = $_SESSION['active_year'] ?? '1404-1405';
 $user_id = $_SESSION['username'];
-$isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin']);
+$isAdmin = (isset($_SESSION['is_admin']) && $_SESSION['is_admin']) || ($_SESSION['role'] === 'admin');
 
 if (!isset($_GET['exam_id'])) {
     header("Location: manage_exams.php");
