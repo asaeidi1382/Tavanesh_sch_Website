@@ -22,6 +22,7 @@ function getDB() {
 
         // ستون‌های مورد نیاز
         try { $db->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'"); } catch(Exception $e){}
+        try { $db->exec("ALTER TABLE users ADD COLUMN profile_image TEXT"); } catch(Exception $e){}
 
         // جدول اقساط شهریه
         $db->exec("CREATE TABLE IF NOT EXISTS tuition (
@@ -177,9 +178,10 @@ function loginUser($usernameOrEmail, $password) {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id']    = $user['id'];
-        $_SESSION['username']   = $user['username'];
-        $_SESSION['role']       = $user['role'] ?: 'student';
+        $_SESSION['user_id']       = $user['id'];
+        $_SESSION['username']      = $user['username'];
+        $_SESSION['role']          = $user['role'] ?: 'student';
+        $_SESSION['profile_image'] = $user['profile_image'];
 
         // پیدا کردن نام واقعی از پروفایل
         $fullName = getUserRealName($user['username'], $user['role']);
@@ -411,4 +413,47 @@ function to_persian_num($str) {
     $en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     $fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
     return str_replace($en, $fa, (string)$str);
+}
+
+/**
+ * پردازش و ذخیره تصویر پروفایل (برش مربعی از مرکز)
+ */
+function handleProfileImageUpload($file, $username) {
+    if (!$file || $file['error'] !== UPLOAD_ERR_OK) return null;
+
+    $info = getimagesize($file['tmp_name']);
+    if (!$info) return null;
+
+    $mime = $info['mime'];
+    switch ($mime) {
+        case 'image/jpeg': $src = imagecreatefromjpeg($file['tmp_name']); break;
+        case 'image/png':  $src = imagecreatefrompng($file['tmp_name']); break;
+        case 'image/webp': $src = imagecreatefromwebp($file['tmp_name']); break;
+        default: return null;
+    }
+
+    if (!$src) return null;
+
+    $width = imagesx($src);
+    $height = imagesy($src);
+    $size = min($width, $height);
+
+    $x = ($width - $size) / 2;
+    $y = ($height - $size) / 2;
+
+    $dst = imagecreatetruecolor(300, 300); // سایز مناسب ۳۰۰ در ۳۰۰
+    imagecopyresampled($dst, $src, 0, 0, $x, $y, 300, 300, $size, $size);
+
+    if (!is_dir('uploads/profiles')) {
+        mkdir('uploads/profiles', 0777, true);
+    }
+
+    $filename = 'profile_' . $username . '_' . time() . '.jpg';
+    $target = 'uploads/profiles/' . $filename;
+
+    imagejpeg($dst, $target, 85);
+    imagedestroy($src);
+    imagedestroy($dst);
+
+    return $target;
 }
