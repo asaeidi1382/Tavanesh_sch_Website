@@ -164,8 +164,10 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_pa
         if ($xlsx = SimpleXLSX::parse($_FILES['payments_excel']['tmp_name'])) {
             $db = getDB();
             $processed = $skipped = 0;
+            $errors = [];
             foreach ($xlsx->rows() as $i => $row) {
                 if ($i === 0) continue; // Skip header
+                $rowNum = $i + 1;
                 if (count($row) < 2) { $skipped++; continue; }
 
                 $national_id = trim($row[0]);
@@ -174,13 +176,36 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_pa
 
                 if (!$national_id || $pay_amount <= 0) { $skipped++; continue; }
 
+                // واکشی نام دانش‌آموز برای پیام خطا
+                $u_stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+                $u_stmt->execute([$national_id, $active_year]);
+                $u_prof = $u_stmt->fetch(PDO::FETCH_ASSOC);
+                $fullName = $u_prof ? trim($u_prof['first_name'] . ' ' . $u_prof['last_name']) : $national_id;
+
+                // واکشی اقساط برای محاسبه سقف پرداخت
                 $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
                 $stmt->execute([$national_id, $active_year]);
                 $tuition_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (empty($tuition_rows)) {
+                    $errors[] = "⚠️ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (بدهی: ۰ تومان).";
+                    $skipped++;
+                    continue;
+                }
+
+                $total_debt = 0;
+                foreach ($tuition_rows as $t_row) {
+                    $total_debt += ($t_row['amount'] - $t_row['paid_amount']);
+                }
+
+                if ($pay_amount > $total_debt) {
+                    $excess = number_format($pay_amount - $total_debt);
+                    $errors[] = "⚠️ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (مبلغ مازاد: $excess تومان).";
+                    $skipped++;
+                    continue;
+                }
+
                 $remaining = $pay_amount;
-
-                if (empty($tuition_rows)) { $skipped++; continue; }
-
                 foreach ($tuition_rows as $t_row) {
                     if ($remaining <= 0) break;
                     $needed = $t_row['amount'] - $t_row['paid_amount'];
@@ -200,6 +225,9 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_pa
                 $processed++;
             }
             $msgs[] = ['type'=>'success', 'text'=>"✅ پرداخت‌های خودکار (Excel): پردازش شده: $processed | رد شده: $skipped"];
+            foreach ($errors as $err) {
+                $msgs[] = ['type'=>'error', 'text'=>$err];
+            }
         } else {
             $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
         }
