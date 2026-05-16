@@ -1714,9 +1714,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     $f_grade = $_GET['grade'] ?? '';
     $f_major = $_GET['major'] ?? '';
     $db = getDB();
-    $sql = "SELECT u.username, sp.first_name, sp.last_name, sp.grade, sp.major
-            FROM users u
-            JOIN student_profiles sp ON u.username = sp.national_id
+    $sql = "SELECT u.username, sp.first_name, sp.last_name, sp.grade, sp.major 
+            FROM users u 
+            JOIN student_profiles sp ON u.username = sp.national_id 
             WHERE sp.academic_year = ? AND u.role = 'student'";
     $params = [$active_year];
     if ($f_grade) { $sql .= " AND sp.grade = ?"; $params[] = $f_grade; }
@@ -1728,7 +1728,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   ?>
   <div class="card">
     <h3>📜 مدیریت و آپلود کارنامه‌ها (سال <?= to_persian_num($active_year) ?>)</h3>
-
+    
     <div style="background:var(--turquoise-lighter); padding:15px; border-radius:12px; margin-bottom:20px; display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
         <span>فیلتر لیست:</span>
         <select onchange="location.href='?tab=report_cards&grade='+this.value+'&major=<?= urlencode($f_major) ?>'" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
@@ -1776,7 +1776,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   </div>
 
   <?php
-    $stmt = $db->prepare("SELECT rc.*, sp.first_name, sp.last_name
+    $stmt = $db->prepare("SELECT rc.*, sp.first_name, sp.last_name 
                           FROM report_cards rc
                           JOIN student_profiles sp ON rc.national_id = sp.national_id AND rc.academic_year = sp.academic_year
                           WHERE rc.academic_year = ?

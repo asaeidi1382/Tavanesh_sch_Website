@@ -367,7 +367,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <p>مشاهده و دریافت کارنامه‌های تحصیلی</p>
         </a>
 
-        <!--
+        <!-- 
         <div class="card">
           <div class="card-icon">📚</div>
           <h3>دروس و محتوا</h3>
@@ -384,7 +384,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <p>ارسال تکالیف و پیگیری وضعیت تحویل</p>
         </div>
         -->
-
+        
         <a href="student_scores.php" class="card">
           <div class="card-icon">🏆</div>
           <h3>نمرات</h3>
