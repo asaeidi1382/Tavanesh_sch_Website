@@ -12,6 +12,14 @@ $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 <style>
 .placeholder-msg { padding: 40px; text-align: center; background: #fff; border-radius: 20px; border: 1.5px dashed var(--turquoise); margin-top: 20px; }
 .placeholder-msg h2 { color: var(--turquoise-dark); margin-bottom: 10px; }
+
+/* استایل دکمه‌های عملیات (فیش حقوقی و کارنامه) */
+.btn-action { padding:6px 12px; border-radius:8px; font-size:.8rem; font-weight:700; text-decoration:none; display:inline-block; margin-left:5px; transition: 0.2s; }
+.btn-view { background:var(--turquoise-light); color:var(--turquoise-dark); }
+.btn-view:hover { background:var(--turquoise-dark); color:#fff; }
+.btn-download { background:var(--turquoise); color:#fff; }
+.btn-download:hover { background:var(--turquoise-dark); }
+.btn-disabled { background:#800000 !important; color:#fff !important; cursor:not-allowed; opacity: 0.8; }
 </style>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
@@ -129,10 +137,6 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
                     tbody tr { border-bottom:1px solid #edf6f8; transition: background .2s; }
                     tbody tr:hover { background:var(--turquoise-lighter); }
                     tbody td { padding:14px; font-size:.92rem; }
-                    .btn-action { padding:6px 12px; border-radius:8px; font-size:.8rem; font-weight:700; text-decoration:none; display:inline-block; margin-left:5px; }
-                    .btn-view { background:var(--turquoise-light); color:var(--turquoise-dark); }
-                    .btn-download { background:var(--turquoise); color:#fff; }
-                    .btn-disabled { background:#eee !important; color:#999 !important; cursor:not-allowed; }
                 </style>
                 <table>
                     <thead>
@@ -195,18 +199,25 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
                             <td><?= htmlspecialchars($rc['title']) ?></td>
                             <td><?= to_persian_num(convert_to_jalali($rc['upload_date'])) ?></td>
                             <td>
-                                <?php if ($rc['is_visible']): ?>
-                                    <a href="<?= htmlspecialchars($rc['file_path']) ?>" target="_blank" class="btn-action btn-view">👁️ مشاهده</a>
-                                    <a href="<?= htmlspecialchars($rc['file_path']) ?>" download class="btn-action btn-download">📥 دانلود</a>
-                                <?php else: ?>
-                                    <div style="display:flex; flex-direction:column; gap:5px;">
-                                        <div>
+                                <style>
+                                    .report-actions { display:flex; flex-direction:column; gap:4px; }
+                                    .report-buttons { display:flex; gap:5px; }
+                                    .contact-msg { color:#800000; font-weight:800; font-size:1.2rem; margin-top:6px; }
+                                </style>
+                                <div class="report-actions">
+                                    <div class="report-buttons">
+                                        <?php if ($rc['is_visible']): ?>
+                                            <a href="<?= htmlspecialchars($rc['file_path']) ?>" target="_blank" class="btn-action btn-view">👁️ مشاهده</a>
+                                            <a href="<?= htmlspecialchars($rc['file_path']) ?>" download class="btn-action btn-download">📥 دانلود</a>
+                                        <?php else: ?>
                                             <span class="btn-action btn-disabled">👁️ مشاهده</span>
                                             <span class="btn-action btn-disabled">📥 دانلود</span>
-                                        </div>
-                                        <div style="color:var(--red); font-weight:bold; font-size:0.8rem;">لطفاً با مدرسه تماس بگیرید</div>
+                                        <?php endif; ?>
                                     </div>
-                                <?php endif; ?>
+                                    <?php if (!$rc['is_visible']): ?>
+                                        <div class="contact-msg">لطفاً با مدرسه تماس بگیرید</div>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
