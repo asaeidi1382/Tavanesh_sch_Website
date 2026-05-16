@@ -165,66 +165,78 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_pa
             $db = getDB();
             $processed = $skipped = 0;
             $errors = [];
-            foreach ($xlsx->rows() as $i => $row) {
-                if ($i === 0) continue; // Skip header
-                $rowNum = $i + 1;
-                if (count($row) < 2) { $skipped++; continue; }
 
-                $national_id = trim($row[0]);
-                $pay_amount  = (int)str_replace([',', '،'], '', trim($row[1]));
-                $pay_date    = trim($row[2] ?? get_jalali_today());
+            try {
+                $db->beginTransaction();
+                foreach ($xlsx->rows() as $i => $row) {
+                    if ($i === 0) continue; // Skip header
+                    $rowNum = $i + 1;
+                    if (count($row) < 2) { $skipped++; continue; }
 
-                if (!$national_id || $pay_amount <= 0) { $skipped++; continue; }
-
-                // واکشی نام دانش‌آموز برای پیام خطا
-                $u_stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
-                $u_stmt->execute([$national_id, $active_year]);
-                $u_prof = $u_stmt->fetch(PDO::FETCH_ASSOC);
-                $fullName = $u_prof ? trim($u_prof['first_name'] . ' ' . $u_prof['last_name']) : $national_id;
-
-                // واکشی اقساط برای محاسبه سقف پرداخت
-                $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
-                $stmt->execute([$national_id, $active_year]);
-                $tuition_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                if (empty($tuition_rows)) {
-                    $errors[] = "⚠️ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (بدهی: ۰ تومان).";
-                    $skipped++;
-                    continue;
-                }
-
-                $total_debt = 0;
-                foreach ($tuition_rows as $t_row) {
-                    $total_debt += ($t_row['amount'] - $t_row['paid_amount']);
-                }
-
-                if ($pay_amount > $total_debt) {
-                    $excess = number_format($pay_amount - $total_debt);
-                    $errors[] = "⚠️ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (مبلغ مازاد: $excess تومان).";
-                    $skipped++;
-                    continue;
-                }
-
-                $remaining = $pay_amount;
-                foreach ($tuition_rows as $t_row) {
-                    if ($remaining <= 0) break;
-                    $needed = $t_row['amount'] - $t_row['paid_amount'];
-                    if ($needed <= 0) continue;
-                    if ($remaining >= $needed) {
-                        $new_paid = $t_row['amount'];
-                        $new_status = 'paid';
-                        $remaining -= $needed;
-                    } else {
-                        $new_paid = $t_row['paid_amount'] + $remaining;
-                        $new_status = 'partial';
-                        $remaining = 0;
+                    $national_id = trim((string)$row[0]);
+                    if (stripos($national_id, 'e+') !== false) {
+                        $national_id = (string)number_format((float)$national_id, 0, '', '');
                     }
-                    $db->prepare("UPDATE tuition SET paid_amount=?, status=?, paid_date=? WHERE id=?")
-                       ->execute([$new_paid, $new_status, $pay_date, $t_row['id']]);
+                    if (strpos($national_id, '.') !== false) {
+                        $national_id = explode('.', $national_id)[0];
+                    }
+
+                    $pay_amount  = (int)preg_replace('/[^0-9]/', '', (string)$row[1]);
+                    $raw_date    = trim((string)($row[2] ?? ''));
+                    $pay_date    = !empty($raw_date) ? $raw_date : get_jalali_today();
+
+                    if (!$national_id || $pay_amount <= 0) { $skipped++; continue; }
+
+                    // واکشی نام دانش‌آموز برای پیام خطا
+                    $u_stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+                    $u_stmt->execute([$national_id, $active_year]);
+                    $u_prof = $u_stmt->fetch(PDO::FETCH_ASSOC);
+                    $fullName = $u_prof ? trim($u_prof['first_name'] . ' ' . $u_prof['last_name']) : "کد ملی " . $national_id;
+
+                    // واکشی اقساط برای محاسبه سقف پرداخت
+                    $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
+                    $stmt->execute([$national_id, $active_year]);
+                    $tuition_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    $total_debt = 0;
+                    foreach ($tuition_rows as $t_row) {
+                        $total_debt += ($t_row['amount'] - $t_row['paid_amount']);
+                    }
+
+                    if ($pay_amount > $total_debt) {
+                        $excess = number_format($pay_amount - $total_debt);
+                        $errors[] = "❌ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (مبلغ مازاد: $excess تومان).";
+                        $skipped++;
+                        continue;
+                    }
+
+                    $remaining = $pay_amount;
+                    foreach ($tuition_rows as $t_row) {
+                        if ($remaining <= 0) break;
+                        $needed = $t_row['amount'] - $t_row['paid_amount'];
+                        if ($needed <= 0) continue;
+
+                        if ($remaining >= $needed) {
+                            $new_paid = $t_row['amount'];
+                            $new_status = 'paid';
+                            $remaining -= $needed;
+                        } else {
+                            $new_paid = $t_row['paid_amount'] + $remaining;
+                            $new_status = 'partial';
+                            $remaining = 0;
+                        }
+                        $db->prepare("UPDATE tuition SET paid_amount=?, status=?, paid_date=? WHERE id=?")
+                           ->execute([$new_paid, $new_status, $pay_date, $t_row['id']]);
+                    }
+                    $processed++;
                 }
-                $processed++;
+                $db->commit();
+                $msgs[] = ['type'=>'success', 'text'=>"✅ پرداخت‌های خودکار (Excel): پردازش شده: $processed | رد شده: $skipped"];
+            } catch (Exception $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                $msgs[] = ['type'=>'error', 'text'=>'❌ خطای دیتابیس: ' . $e->getMessage()];
             }
-            $msgs[] = ['type'=>'success', 'text'=>"✅ پرداخت‌های خودکار (Excel): پردازش شده: $processed | رد شده: $skipped"];
+
             foreach ($errors as $err) {
                 $msgs[] = ['type'=>'error', 'text'=>$err];
             }
