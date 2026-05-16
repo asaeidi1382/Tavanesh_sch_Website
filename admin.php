@@ -384,6 +384,25 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
     $last_name    = trim($_POST['last_name']);
     $new_password = trim($_POST['new_password'] ?? '');
 
+    // Profile Image
+    if (isset($_POST['remove_profile_image'])) {
+        $stmt = $db->prepare("SELECT profile_image FROM users WHERE username = ?");
+        $stmt->execute([$old_username]);
+        $old_img = $stmt->fetchColumn();
+        if ($old_img && file_exists($old_img)) unlink($old_img);
+        $db->prepare("UPDATE users SET profile_image = NULL WHERE username = ?")->execute([$old_username]);
+    }
+    if (!empty($_FILES['profile_image']['name'])) {
+        $new_img = handleProfileImageUpload($_FILES['profile_image'], $new_username);
+        if ($new_img) {
+            $stmt = $db->prepare("SELECT profile_image FROM users WHERE username = ?");
+            $stmt->execute([$old_username]);
+            $old_img = $stmt->fetchColumn();
+            if ($old_img && file_exists($old_img)) unlink($old_img);
+            $db->prepare("UPDATE users SET profile_image = ? WHERE username = ?")->execute([$new_img, $old_username]);
+        }
+    }
+
     $fields = [
         'birth_date', 'birth_place', 'education', 'position', 'father_name',
         'home_phone', 'address', 'schedule', 'mobile_phone', 'contract_date',
@@ -502,6 +521,25 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
     $first_name   = trim($_POST['first_name']);
     $last_name    = trim($_POST['last_name']);
     $new_password = trim($_POST['new_password'] ?? '');
+
+    // Profile Image
+    if (isset($_POST['remove_profile_image'])) {
+        $stmt = $db->prepare("SELECT profile_image FROM users WHERE username = ?");
+        $stmt->execute([$old_username]);
+        $old_img = $stmt->fetchColumn();
+        if ($old_img && file_exists($old_img)) unlink($old_img);
+        $db->prepare("UPDATE users SET profile_image = NULL WHERE username = ?")->execute([$old_username]);
+    }
+    if (!empty($_FILES['profile_image']['name'])) {
+        $new_img = handleProfileImageUpload($_FILES['profile_image'], $new_username);
+        if ($new_img) {
+            $stmt = $db->prepare("SELECT profile_image FROM users WHERE username = ?");
+            $stmt->execute([$old_username]);
+            $old_img = $stmt->fetchColumn();
+            if ($old_img && file_exists($old_img)) unlink($old_img);
+            $db->prepare("UPDATE users SET profile_image = ? WHERE username = ?")->execute([$new_img, $old_username]);
+        }
+    }
 
     // Metadata
     $grade         = $_POST['grade'] ?? '';
@@ -1471,8 +1509,29 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   ?>
   <div class="card">
     <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($fullName) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
+
+      <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; background:var(--turquoise-lighter); padding:15px; border-radius:15px; border:1px solid var(--turquoise-light);">
+          <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:var(--shadow-sm); background:#fff; display:flex; align-items:center; justify-content:center; font-size:40px;">
+              <?php if (!empty($student_info['profile_image'])): ?>
+                  <img src="<?= htmlspecialchars($student_info['profile_image']) ?>" style="width:100%; height:100%; object-fit:cover;">
+              <?php else: ?>
+                  👤
+              <?php endif; ?>
+          </div>
+          <div style="flex:1;">
+              <label style="margin-bottom:5px;">عکس پروفایل جدید</label>
+              <input type="file" name="profile_image" accept="image/*" style="font-size:0.8rem;">
+              <?php if (!empty($student_info['profile_image'])): ?>
+                  <div style="margin-top:8px;">
+                      <label style="color:var(--red); font-size:0.85rem; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                          <input type="checkbox" name="remove_profile_image" value="1"> حذف عکس فعلی
+                      </label>
+                  </div>
+              <?php endif; ?>
+          </div>
+      </div>
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
           <div class="field">
@@ -2009,8 +2068,30 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   ?>
   <div class="card">
     <h3>⚙️ مدیریت پروفایل کارمند: <?= htmlspecialchars(($st_prof['first_name']??'') . ' ' . ($st_prof['last_name']??'')) ?></h3>
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($u_info['username']) ?>">
+
+      <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; background:var(--turquoise-lighter); padding:15px; border-radius:15px; border:1px solid var(--turquoise-light);">
+          <div style="width:100px; height:100px; border-radius:50%; overflow:hidden; border:3px solid #fff; box-shadow:var(--shadow-sm); background:#fff; display:flex; align-items:center; justify-content:center; font-size:40px;">
+              <?php if (!empty($u_info['profile_image'])): ?>
+                  <img src="<?= htmlspecialchars($u_info['profile_image']) ?>" style="width:100%; height:100%; object-fit:cover;">
+              <?php else: ?>
+                  👤
+              <?php endif; ?>
+          </div>
+          <div style="flex:1;">
+              <label style="margin-bottom:5px;">عکس پروفایل جدید</label>
+              <input type="file" name="profile_image" accept="image/*" style="font-size:0.8rem;">
+              <?php if (!empty($u_info['profile_image'])): ?>
+                  <div style="margin-top:8px;">
+                      <label style="color:var(--red); font-size:0.85rem; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                          <input type="checkbox" name="remove_profile_image" value="1"> حذف عکس فعلی
+                      </label>
+                  </div>
+              <?php endif; ?>
+          </div>
+      </div>
+
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
           <div class="field"><label>نام</label><input type="text" name="first_name" value="<?= htmlspecialchars($st_prof['first_name']??'') ?>"></div>
           <div class="field"><label>نام خانوادگی</label><input type="text" name="last_name" value="<?= htmlspecialchars($st_prof['last_name']??'') ?>"></div>

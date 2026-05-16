@@ -20,7 +20,10 @@ if (isset($_SESSION['is_admin'])) {
 $academic_year = $_GET['year'] ?? ($_SESSION['active_year'] ?? '1404-1405');
 $db = getDB();
 
-$stmt = $db->prepare("SELECT * FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+$stmt = $db->prepare("SELECT sp.*, u.profile_image
+                      FROM student_profiles sp
+                      JOIN users u ON sp.national_id = u.username
+                      WHERE sp.national_id = ? AND sp.academic_year = ?");
 $stmt->execute([$national_id, $academic_year]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -95,6 +98,13 @@ main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
 <main>
   <div class="card">
     <div style="margin-bottom:30px; text-align:center;">
+        <div style="width:120px; height:120px; border-radius:50%; overflow:hidden; margin:0 auto 20px; border:4px solid var(--turquoise-light); box-shadow:var(--shadow-md); background:#fff; display:flex; align-items:center; justify-content:center; font-size:60px;">
+            <?php if (!empty($student['profile_image'])): ?>
+                <img src="<?= htmlspecialchars($student['profile_image']) ?>" style="width:100%; height:100%; object-fit:cover;">
+            <?php else: ?>
+                👤
+            <?php endif; ?>
+        </div>
         <h1 style="font-size:2rem; font-weight:800; color:var(--turquoise-dark); margin-bottom:5px;"><?= to_persian_num(htmlspecialchars($display_name)) ?></h1>
         <p style="color:var(--gray);">سال تحصیلی: <?= to_persian_num(htmlspecialchars($academic_year)) ?></p>
     </div>

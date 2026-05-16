@@ -2,6 +2,12 @@
 require_once 'auth.php';
 requireLogin();
 $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
+
+// واکشی تصویر پروفایل در هر بار لود داشبورد برای اطمینان از بروز بودن
+$db = getDB();
+$stmt = $db->prepare("SELECT profile_image FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$profile_image = $stmt->fetchColumn();
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -19,6 +25,14 @@ $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 .btn-view:hover { background:var(--turquoise-dark); color:#fff; }
 .btn-download { background:var(--turquoise); color:#fff; }
 .btn-download:hover { background:var(--turquoise-dark); }
+
+/* رنگ‌های ملایم دکمه‌های داشبورد */
+.card-btn-1 { background-color: #e3f2fd !important; border-color: #bbdefb !important; }
+.card-btn-2 { background-color: #fce4ec !important; border-color: #f8bbd0 !important; }
+.card-btn-3 { background-color: #f1f8e9 !important; border-color: #dcedc8 !important; }
+.card-btn-4 { background-color: #fffde7 !important; border-color: #fff9c4 !important; }
+.card-btn-5 { background-color: #f3e5f5 !important; border-color: #e1bee7 !important; }
+.card-btn-6 { background-color: #fff3e0 !important; border-color: #ffe0b2 !important; }
 .btn-disabled { background:#800000 !important; color:#fff !important; cursor:not-allowed; opacity: 0.8; }
 </style>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
@@ -109,7 +123,16 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       </div>
     </div>
     <div class="topbar-left">
-      <div class="user-badge">👤 <?= to_persian_num(htmlspecialchars($fullName)) ?></div>
+      <div class="user-badge" style="display:flex; align-items:center; gap:10px; padding: 5px 12px 5px 16px;">
+        <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; font-size:20px;">
+            <?php if ($profile_image): ?>
+                <img src="<?= htmlspecialchars($profile_image) ?>" style="width:100%; height:100%; object-fit:cover;">
+            <?php else: ?>
+                👤
+            <?php endif; ?>
+        </div>
+        <?= to_persian_num(htmlspecialchars($fullName)) ?>
+      </div>
       <a href="logout.php" class="btn-logout">خروج ←</a>
     </div>
   </div>
@@ -243,7 +266,11 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
     </div>
   <?php elseif (isset($_GET['personal_info'])):
       $db = getDB();
-      $stmt = $db->prepare("SELECT * FROM staff_profiles WHERE national_id = ? ORDER BY academic_year DESC LIMIT 1");
+      $stmt = $db->prepare("SELECT sp.*, u.profile_image
+                            FROM staff_profiles sp
+                            JOIN users u ON sp.national_id = u.username
+                            WHERE sp.national_id = ?
+                            ORDER BY sp.academic_year DESC LIMIT 1");
       $stmt->execute([$_SESSION['username']]);
       $prof = $stmt->fetch(PDO::FETCH_ASSOC);
   ?>
@@ -266,6 +293,17 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
     </div>
     <div class="card">
         <?php if ($prof): ?>
+            <div style="text-align:center; margin-bottom:30px;">
+                <div style="width:120px; height:120px; border-radius:50%; overflow:hidden; margin:0 auto 15px; border:4px solid var(--turquoise-light); box-shadow:var(--shadow-md); background:#fff; display:flex; align-items:center; justify-content:center; font-size:60px;">
+                    <?php if (!empty($prof['profile_image'])): ?>
+                        <img src="<?= htmlspecialchars($prof['profile_image']) ?>" style="width:100%; height:100%; object-fit:cover;">
+                    <?php else: ?>
+                        👤
+                    <?php endif; ?>
+                </div>
+                <h1 style="font-size:1.8rem; font-weight:800; color:var(--turquoise-dark);"><?= htmlspecialchars($prof['first_name'].' '.$prof['last_name']) ?></h1>
+            </div>
+
             <h2>👤 مشخصات فردی و شغلی</h2>
             <div class="profile-grid">
                 <div class="info-item"><span class="info-label">نام</span><span class="info-value"><?= htmlspecialchars($prof['first_name'] ?: '—') ?></span></div>
@@ -314,7 +352,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
     <div class="grid">
 
       <?php if ($_SESSION['role'] === 'admin'): ?>
-        <a href="manage_exams.php" class="card">
+        <a href="manage_exams.php" class="card card-btn-1">
           <div class="card-icon">📝</div>
           <h3>مدیریت نمرات</h3>
           <p>ثبت و ویرایش نمرات دانش‌آموزان</p>
@@ -327,41 +365,41 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           $staff_info = $stmt->fetch();
           $isTeacher = ($staff_info && strpos($staff_info['position'], 'دبیر') !== false);
       ?>
-        <a href="?personal_info=1" class="card featured">
+        <a href="?personal_info=1" class="card card-btn-1">
           <div class="card-icon">👤</div>
           <h3>اطلاعات پرسنلی</h3>
           <p>مشاهده و ویرایش مشخصات فردی</p>
         </a>
 
         <?php if ($isTeacher): ?>
-        <a href="manage_exams.php" class="card">
+        <a href="manage_exams.php" class="card card-btn-2">
           <div class="card-icon">📝</div>
           <h3>مدیریت نمرات</h3>
           <p>ثبت و ویرایش نمرات دانش‌آموزان</p>
         </a>
         <?php endif; ?>
 
-        <a href="?page=paystub" class="card">
+        <a href="?page=paystub" class="card card-btn-3">
           <div class="card-icon">💵</div>
           <h3>مشاهده فیش حقوقی</h3>
           <p>اطلاعات پرداختی‌ها و حقوق</p>
         </a>
 
       <?php else: ?>
-        <!-- اقساط شهریه — برجسته -->
-        <a href="tuition.php" class="card featured">
+        <!-- اقساط شهریه -->
+        <a href="tuition.php" class="card card-btn-1">
           <div class="card-icon">💳</div>
           <h3>اقساط شهریه</h3>
           <p>مشاهده وضعیت پرداخت اقساط شهریه</p>
         </a>
 
-        <a href="student_profile.php" class="card">
+        <a href="student_profile.php" class="card card-btn-2">
           <div class="card-icon">👤</div>
           <h3>پروفایل من</h3>
           <p>مشاهده اطلاعات ثبت شده در سیستم</p>
         </a>
 
-        <a href="?page=report_card" class="card">
+        <a href="?page=report_card" class="card card-btn-3">
           <div class="card-icon">📜</div>
           <h3>کارنامه</h3>
           <p>مشاهده و دریافت کارنامه‌های تحصیلی</p>
@@ -385,7 +423,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
         </div>
         -->
         
-        <a href="student_scores.php" class="card">
+        <a href="student_scores.php" class="card card-btn-4">
           <div class="card-icon">🏆</div>
           <h3>نمرات</h3>
           <p>مشاهده نمرات آزمون‌ها و کارنامه تحصیلی</p>
