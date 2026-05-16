@@ -3,6 +3,20 @@
 
 
 
+<?php
+require_once 'auth.php';
+$isLoggedIn = isLoggedIn();
+$fullName = '';
+$profile_image = null;
+
+if ($isLoggedIn) {
+    $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
+    $db = getDB();
+    $stmt = $db->prepare("SELECT profile_image FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $profile_image = $stmt->fetchColumn();
+}
+?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -162,6 +176,7 @@
     }
 
     *{ box-sizing: border-box; margin:0; padding:0; }
+    html, body { overflow-x: hidden; width: 100%; position: relative; }
     body{
       background: linear-gradient(to bottom, #f5fbfd, #ffffff);
       color: var(--text); font-family: "Vazirmatn", sans-serif; line-height: 1.7;
@@ -187,10 +202,40 @@
     .site-title{ font-size:2rem; font-weight:800; }
     .page-subtitle{ font-size:1.1rem; opacity:0.95; }
 
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .user-badge {
+        background: rgba(255,255,255,.18);
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 12px;
+        padding: 5px 12px 5px 16px;
+        font-size: .85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: #fff;
+        transition: var(--transition);
+    }
+    .user-badge:hover { background: rgba(255,255,255,.28); transform: translateY(-2px); }
+    .user-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .user-img img { width: 100%; height: 100%; object-fit: cover; }
+
     .hamburger{
       display:none; cursor:pointer; width:50px; height:50px; border-radius:16px;
       background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4);
-      display:flex; align-items:center; justify-content:center;
+      align-items:center; justify-content:center;
       box-shadow: var(--shadow-sm); transition: var(--transition);
     }
     .hamburger:hover{ background: rgba(255,255,255,0.3); transform: translateY(-3px); }
@@ -254,6 +299,8 @@
       box-shadow: var(--shadow-lg);
       aspect-ratio: 16 / 9;
       background: var(--white);
+      max-width: 900px;
+      margin: 0 auto;
     }
 
     .slides {
@@ -379,13 +426,40 @@
     .stat:hover{ transform: translateY(-3px) scale(1.05); }
 
     @media(max-width:991px){
+      .topbar-inner { padding: 10px 15px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
       .hamburger{ display:flex; }
-      .quick-links{ grid-template-columns:repeat(2,1fr); }
+      .topbar-left { gap: 8px; }
+      .brand { display: flex; flex-direction: row; align-items: center; text-align: right; gap: 8px; }
+      .titles { text-align: right; }
+      .site-title { font-size: 1.1rem; }
+      .page-subtitle { font-size: 0.7rem; }
+      .logo { width: 45px; height: 45px; }
+      .user-badge { padding: 4px 8px 4px 12px; font-size: 0.7rem; gap: 5px; }
+      .user-img { width: 28px; height: 28px; font-size: 14px; }
+      .quick-links{ grid-template-columns:repeat(2,1fr); gap: 8px; }
+      .quick-link, .quick-linkb { padding: 18px 10px; font-size: 1rem; }
+      .stat { min-width: 140px; font-size: 1.1rem; padding: 12px 20px; }
+      .stats-center { gap: 15px; padding: 15px; }
+      footer { padding: 20px; }
       aside.sidebar{
-        position:fixed; top:74px; left:0; bottom:0; width:80vw; max-width:340px;
-        transform:translateX(-100%); transition:var(--transition); z-index:1100; border-radius:0;
+        position:fixed; top:0; left:0; bottom:0; width:80vw; max-width:340px;
+        transform:translateX(-101%); transition:var(--transition); z-index:1100; border-radius:0;
+        height: 100vh;
       }
       aside.sidebar.open{ transform:translateX(0); }
+    }
+
+    @media(max-width:480px){
+        .site-title { font-size: 1rem; }
+        .page-subtitle { font-size: 0.65rem; }
+        .logo { width: 40px; height: 40px; border-radius: 10px; }
+        .topbar-left { gap: 8px; }
+        .user-badge { padding: 3px 6px 3px 10px; font-size: 0.65rem; }
+        .user-img { width: 24px; height: 24px; font-size: 12px; }
+        .hamburger { width: 40px; height: 40px; border-radius: 12px; }
+        .hamburger .bar, .hamburger .bar::before, .hamburger .bar::after { width: 18px; height: 2px; }
+        .hamburger .bar::before { top: -6px; }
+        .hamburger .bar::after { top: 6px; }
     }
     @media(min-width:992px){
       .layout{ grid-template-columns: 310px 1fr; gap:26px; }
@@ -405,7 +479,21 @@
         <div class="page-subtitle">خانه دختران توانمند فردا</div>
       </div>
     </div>
-    <div class="hamburger" id="hamburgerBtn"><span class="bar"></span></div>
+    <div class="topbar-left">
+        <a href="<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>" class="user-badge">
+            <div class="user-img">
+                <?php if ($isLoggedIn && $profile_image): ?>
+                    <img src="<?= htmlspecialchars($profile_image) ?>" alt="تصویر پروفایل">
+                <?php elseif ($isLoggedIn): ?>
+                    👤
+                <?php else: ?>
+                    🔑
+                <?php endif; ?>
+            </div>
+            <?= $isLoggedIn ? to_persian_num(htmlspecialchars($fullName)) : 'ورود کاربران' ?>
+        </a>
+        <div class="hamburger" id="hamburgerBtn"><span class="bar"></span></div>
+    </div>
   </div>
 </header>
 
@@ -518,6 +606,7 @@
   let autoTimer = null;
   const AUTO_MS = 6000;
 
+  dotsEl.innerHTML = '';
   for(let i=0;i<totalSlides;i++){
     const d = document.createElement('span');
     d.className = 'dot' + (i===0?' active':'');
@@ -527,7 +616,9 @@
   }
 
   function update(){
-    slidesEl.style.transform = `translateX(-${current*100}%)`;
+    const isRTL = document.dir === 'rtl';
+    const offset = current * 100;
+    slidesEl.style.transform = isRTL ? `translateX(${offset}%)` : `translateX(-${offset}%)`;
     dotsEl.querySelectorAll('.dot').forEach((dot,idx)=>dot.classList.toggle('active', idx===current));
   }
   function goTo(idx){ current = (idx + totalSlides) % totalSlides; update(); restartAuto(); }
