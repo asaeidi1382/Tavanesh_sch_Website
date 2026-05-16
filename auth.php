@@ -122,7 +122,7 @@ function getDB() {
             key   TEXT PRIMARY KEY,
             value TEXT
         )");
-
+        
         // مقدار پیش‌فرض سال تحصیلی
         $stmt = $db->query("SELECT value FROM settings WHERE key = 'active_year'");
         if (!$stmt->fetch()) {

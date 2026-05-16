@@ -42,11 +42,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_scores'])) {
             $description = trim($data['description'] ?? '');
 
             // Insert or Update score
-            $stmt = $db->prepare("INSERT INTO scores (exam_id, student_id, score, status, description)
+            $stmt = $db->prepare("INSERT INTO scores (exam_id, student_id, score, status, description) 
                                   VALUES (?, ?, ?, ?, ?)
-                                  ON CONFLICT(exam_id, student_id) DO UPDATE SET
-                                  score = excluded.score,
-                                  status = excluded.status,
+                                  ON CONFLICT(exam_id, student_id) DO UPDATE SET 
+                                  score = excluded.score, 
+                                  status = excluded.status, 
                                   description = excluded.description");
             $stmt->execute([$exam_id, $student_id, $score, $status, $description]);
         }
@@ -137,7 +137,7 @@ input[type=number], input[type=text], select { padding:8px; border-radius:8px; b
                         <?php if (empty($students)): ?>
                             <tr><td colspan="5" style="text-align:center;">دانش‌آموزی در این پایه و رشته یافت نشد.</td></tr>
                         <?php endif; ?>
-                        <?php foreach ($students as $s):
+                        <?php foreach ($students as $s): 
                             $sid = $s['national_id'];
                             $current_score = $existing_scores[$sid]['score'] ?? '';
                             $current_status = $existing_scores[$sid]['status'] ?? 'present';
