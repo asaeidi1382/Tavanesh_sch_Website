@@ -250,9 +250,54 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             }
         }
         fclose($file);
-        $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط: وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
+        $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط (CSV): وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
     } else {
         $msgs[] = ['type'=>'error', 'text'=>'❌ فایل CSV انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت اقساط از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tuition_excel'])) {
+    if (!empty($_FILES['tuition_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['tuition_excel']['tmp_name'])) {
+            $db = getDB();
+            $inserted = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $national_id    = trim($row[0]);
+                $installment_no = (int)trim($row[1]);
+                $amount         = (int)str_replace([',', '،'], '', trim($row[2]));
+                $due_date       = trim($row[3] ?? '');
+                $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
+                $paid_date      = trim($row[5] ?? '');
+                $status         = trim($row[6] ?? 'unpaid');
+                if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
+
+                if (!$national_id || !$installment_no) { $skipped++; continue; }
+
+                // بررسی وجود رکورد
+                $check = $db->prepare("SELECT id FROM tuition WHERE national_id=? AND installment_no=? AND academic_year=?");
+                $check->execute([$national_id, $installment_no, $active_year]);
+                $existing = $check->fetch();
+
+                if ($existing) {
+                    $db->prepare("UPDATE tuition SET amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                       ->execute([$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
+                    $updated++;
+                } else {
+                    $db->prepare("INSERT INTO tuition (national_id,installment_no,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?)")
+                       ->execute([$national_id,$installment_no,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
+                    $inserted++;
+                }
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط (Excel): وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
     }
 }
 // ─── افزودن دستی دانش‌آموز ───
@@ -1244,14 +1289,28 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <strong>فرمت فایل CSV اقساط (۷ ستون):</strong><br>
       <code>کد_ملی , شماره_قسط , مبلغ , تاریخ_سررسید , پرداخت_شده , تاریخ_پرداخت , وضعیت</code><br><br>
       <strong>مثال:</strong><br>
-      <code>1234567890,1,5000000,1403/07/01,5000000,1403/06/28,paid</code><br>
-      <code>1234567890,2,قسط دوم,5000000,1403/09/01,2500000,,partial</code><br>
-      <code>1234567890,3,قسط سوم,5000000,1403/11/01,0,,unpaid</code><br><br>
+      <code>1234567890,1,5000000,1403/07/01,5000000,1403/06/28,paid</code><br><br>
       <strong>مقادیر وضعیت:</strong>
       <code>paid</code> پرداخت شده &nbsp;|&nbsp;
       <code>partial</code> ناقص &nbsp;|&nbsp;
       <code>unpaid</code> پرداخت نشده<br>
       🔄 اگر کد ملی + شماره قسط قبلاً موجود بود، به‌روز می‌شود.
+    </div>
+  </div>
+
+  <!-- ایمپورت اقساط اکسل -->
+  <div class="card">
+    <h3>💳 وارد کردن اقساط شهریه از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel اقساط (.xlsx)</label>
+        <input type="file" name="tuition_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_tuition_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel اقساط (۷ ستون):</strong><br>
+      <small>۱. کد ملی | ۲. شماره قسط | ۳. مبلغ | ۴. تاریخ سررسید | ۵. مبلغ پرداخت شده | ۶. تاریخ پرداخت | ۷. وضعیت (paid, partial, unpaid)</small>
     </div>
   </div>
 
