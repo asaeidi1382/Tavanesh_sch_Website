@@ -193,7 +193,7 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                             <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?>
                         </select>
                         <select name="date_y" style="flex:1;">
-                            <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                            <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                         </select>
                     </div>
                 </div>

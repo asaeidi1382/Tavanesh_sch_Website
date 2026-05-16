@@ -132,6 +132,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
                     .btn-action { padding:6px 12px; border-radius:8px; font-size:.8rem; font-weight:700; text-decoration:none; display:inline-block; margin-left:5px; }
                     .btn-view { background:var(--turquoise-light); color:var(--turquoise-dark); }
                     .btn-download { background:var(--turquoise); color:#fff; }
+                    .btn-disabled { background:#eee !important; color:#999 !important; cursor:not-allowed; }
                 </style>
                 <table>
                     <thead>
@@ -166,6 +167,63 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
         </div>
     </div>
 
+  <?php elseif (isset($_GET['page']) && $_GET['page'] === 'report_card'):
+      require_once 'auth.php';
+      $db = getDB();
+      $stmt = $db->prepare("SELECT * FROM report_cards WHERE national_id = ? ORDER BY upload_date DESC");
+      $stmt->execute([$_SESSION['username']]);
+      $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+    <div class="welcome">
+        <h1>📜 مشاهده کارنامه</h1>
+        <p>لیست کارنامه‌های صادر شده برای شما</p>
+    </div>
+    <div class="card">
+        <?php if ($reports): ?>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>عنوان کارنامه</th>
+                            <th>تاریخ آپلود</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($reports as $rc): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($rc['title']) ?></td>
+                            <td><?= to_persian_num(convert_to_jalali($rc['upload_date'])) ?></td>
+                            <td>
+                                <?php if ($rc['is_visible']): ?>
+                                    <a href="<?= htmlspecialchars($rc['file_path']) ?>" target="_blank" class="btn-action btn-view">👁️ مشاهده</a>
+                                    <a href="<?= htmlspecialchars($rc['file_path']) ?>" download class="btn-action btn-download">📥 دانلود</a>
+                                <?php else: ?>
+                                    <div style="display:flex; flex-direction:column; gap:5px;">
+                                        <div>
+                                            <span class="btn-action btn-disabled">👁️ مشاهده</span>
+                                            <span class="btn-action btn-disabled">📥 دانلود</span>
+                                        </div>
+                                        <div style="color:var(--red); font-weight:bold; font-size:0.8rem;">لطفاً با مدرسه تماس بگیرید</div>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="placeholder-msg">
+                <h2>کارنامه‌ای یافت نشد</h2>
+                <p>هنوز هیچ کارنامه‌ای برای شما در سیستم ثبت نشده است.</p>
+            </div>
+        <?php endif; ?>
+        <div style="margin-top:30px; text-align:center;">
+            <a href="dashboard.php" class="btn-logout" style="background:var(--turquoise-dark); border:none;">← بازگشت به داشبورد</a>
+        </div>
+    </div>
+
   <?php elseif (isset($_GET['page'])): ?>
     <div class="placeholder-msg">
         <h2>این بخش بعدا تکمیل خواهد شد</h2>
@@ -182,8 +240,14 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
       .profile-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:20px; }
       .info-item { margin-bottom:15px; }
       .info-label { display:block; font-size:.8rem; color:var(--gray); font-weight:700; margin-bottom:4px; }
-      .info-value { display:block; font-size:1rem; font-weight:500; background:var(--turquoise-lighter); padding:10px 14px; border-radius:10px; border:1px solid #e0f2f4; }
+      .info-value { display:block; font-size:1rem; font-weight:500; background:var(--turquoise-lighter); padding:10px 14px; border-radius:10px; border:1px solid #e0f2f4; overflow-wrap: break-word; }
       .card h2 { font-size:1.4rem; font-weight:800; margin-bottom:24px; color:var(--turquoise-dark); border-bottom:2px solid var(--turquoise-light); padding-bottom:12px; display:flex; align-items:center; gap:10px; }
+      @media (max-width: 600px) {
+        .profile-grid { grid-template-columns: 1fr; gap: 10px; }
+        .info-item { margin-bottom: 10px; }
+        .info-value { font-size: 0.9rem; padding: 8px 12px; }
+        .info-item[style*="grid-column: span 2;"] { grid-column: span 1 !important; }
+      }
     </style>
     <div class="welcome">
         <h1>اطلاعات پرسنلی</h1>
@@ -238,7 +302,14 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
     <div class="section-title">امکانات پرتال</div>
     <div class="grid">
 
-      <?php if ($_SESSION['role'] === 'staff'):
+      <?php if ($_SESSION['role'] === 'admin'): ?>
+        <a href="manage_exams.php" class="card">
+          <div class="card-icon">📝</div>
+          <h3>مدیریت نمرات</h3>
+          <p>ثبت و ویرایش نمرات دانش‌آموزان</p>
+        </a>
+
+      <?php elseif ($_SESSION['role'] === 'staff'):
           $db = getDB();
           $stmt = $db->prepare("SELECT position FROM staff_profiles WHERE national_id = ? ORDER BY academic_year DESC LIMIT 1");
           $stmt->execute([$_SESSION['username']]);
@@ -279,6 +350,13 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <p>مشاهده اطلاعات ثبت شده در سیستم</p>
         </a>
 
+        <a href="?page=report_card" class="card">
+          <div class="card-icon">📜</div>
+          <h3>کارنامه</h3>
+          <p>مشاهده و دریافت کارنامه‌های تحصیلی</p>
+        </a>
+
+        <!--
         <div class="card">
           <div class="card-icon">📚</div>
           <h3>دروس و محتوا</h3>
@@ -294,11 +372,15 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <h3>تکالیف</h3>
           <p>ارسال تکالیف و پیگیری وضعیت تحویل</p>
         </div>
+        -->
+
         <a href="student_scores.php" class="card">
           <div class="card-icon">🏆</div>
           <h3>نمرات</h3>
           <p>مشاهده نمرات آزمون‌ها و کارنامه تحصیلی</p>
         </a>
+
+        <!--
         <div class="card">
           <div class="card-icon">📆</div>
           <h3>تقویم آزمون‌ها</h3>
@@ -314,6 +396,7 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
           <h3>پیام‌ها</h3>
           <p>ارتباط با معلمان و ارسال پیام</p>
         </div>
+        -->
       <?php endif; ?>
     </div>
   <?php endif; ?>
