@@ -123,6 +123,19 @@ h1, h2, h3 { color:#0c8790; margin-bottom:15px; }
 .field { margin-bottom:12px; }
 label { display:block; font-size:.8rem; font-weight:700; margin-bottom:4px; color:#4e8a90; }
 input[type=text], input[type=number], select { width:100%; padding:8px 12px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:.9rem; }
+.field-title { width: 80% !important; }
+.field-lesson { width: 70% !important; }
+.field-max-score { width: 33% !important; }
+
+@media (max-width: 600px) {
+    .exam-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .field-title, .field-lesson, .field-max-score {
+        width: 100% !important;
+    }
+}
+
 .btn { padding:10px 20px; border-radius:10px; border:none; cursor:pointer; font-family:Vazirmatn; font-weight:700; transition:0.3s; text-decoration:none; display:inline-block; }
 .btn-primary { background:#19b8c2; color:#fff; }
 .btn-primary:hover { background:#0c8790; }
@@ -157,10 +170,10 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                 <input type="hidden" name="exam_id" value="<?= $edit_exam['id'] ?>">
             <?php endif; ?>
             
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+            <div class="exam-form-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                 <div class="field">
                     <label>عنوان امتحان</label>
-                    <input type="text" name="title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم فصل اول">
+                    <input type="text" name="title" class="field-title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم فصل اول">
                 </div>
                 <div class="field">
                     <label>تاریخ امتحان</label>
@@ -180,13 +193,13 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                             <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?>
                         </select>
                         <select name="date_y" style="flex:1;">
-                            <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                            <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                         </select>
                     </div>
                 </div>
                 <div class="field">
                     <label>درس</label>
-                    <input type="text" name="lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required placeholder="مثلاً: ریاضی">
+                    <input type="text" name="lesson" class="field-lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required placeholder="مثلاً: ریاضی">
                 </div>
                 <div class="field">
                     <label>پایه</label>
@@ -202,7 +215,7 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
                 </div>
                 <div class="field">
                     <label>نمره از چند</label>
-                    <input type="number" step="0.25" name="max_score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required>
+                    <input type="number" step="0.25" name="max_score" class="field-max-score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required>
                 </div>
                 <?php if ($isAdmin): ?>
                 <div class="field">

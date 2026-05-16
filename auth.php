@@ -219,7 +219,7 @@ function registerUser($username, $email, $password) {
 }
 
 // ایجاد یا به‌روزرسانی حساب دانش‌آموز (برای ایمپورت)
-function upsertStudent($national_id, $first_name, $last_name, $academic_year = '1404-1405') {
+function upsertStudent($national_id, $first_name, $last_name, $academic_year = '1404-1405', $extra = []) {
     $db = getDB();
     $hash = password_hash($national_id, PASSWORD_BCRYPT);
     $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
@@ -243,18 +243,33 @@ function upsertStudent($national_id, $first_name, $last_name, $academic_year = '
     $stmt = $db->prepare("SELECT national_id FROM student_profiles WHERE national_id = ? AND academic_year = ?");
     $stmt->execute([$national_id, $academic_year]);
     if (!$stmt->fetch()) {
-        $db->prepare("INSERT INTO student_profiles (national_id, academic_year, first_name, last_name) VALUES (?, ?, ?, ?)")
-           ->execute([$national_id, $academic_year, $first_name, $last_name]);
+        $fields = ['national_id', 'academic_year', 'first_name', 'last_name'];
+        $values = [$national_id, $academic_year, $first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = $k;
+            $values[] = $v;
+        }
+        $placeholders = implode(',', array_fill(0, count($fields), '?'));
+        $sql = "INSERT INTO student_profiles (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        $db->prepare($sql)->execute($values);
     } else {
-        $db->prepare("UPDATE student_profiles SET first_name = ?, last_name = ? WHERE national_id = ? AND academic_year = ?")
-           ->execute([$first_name, $last_name, $national_id, $academic_year]);
+        $fields = ['first_name = ?', 'last_name = ?'];
+        $values = [$first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = "$k = ?";
+            $values[] = $v;
+        }
+        $values[] = $national_id;
+        $values[] = $academic_year;
+        $sql = "UPDATE student_profiles SET " . implode(',', $fields) . " WHERE national_id = ? AND academic_year = ?";
+        $db->prepare($sql)->execute($values);
     }
 
     return $status;
 }
 
 // ایجاد یا به‌روزرسانی حساب کارمند
-function upsertStaff($national_id, $first_name, $last_name, $academic_year = '1404-1405') {
+function upsertStaff($national_id, $first_name, $last_name, $academic_year = '1404-1405', $extra = []) {
     $db = getDB();
     $hash = password_hash($national_id, PASSWORD_BCRYPT);
     $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
@@ -278,11 +293,26 @@ function upsertStaff($national_id, $first_name, $last_name, $academic_year = '14
     $stmt = $db->prepare("SELECT national_id FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
     $stmt->execute([$national_id, $academic_year]);
     if (!$stmt->fetch()) {
-        $db->prepare("INSERT INTO staff_profiles (national_id, academic_year, first_name, last_name) VALUES (?, ?, ?, ?)")
-           ->execute([$national_id, $academic_year, $first_name, $last_name]);
+        $fields = ['national_id', 'academic_year', 'first_name', 'last_name'];
+        $values = [$national_id, $academic_year, $first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = $k;
+            $values[] = $v;
+        }
+        $placeholders = implode(',', array_fill(0, count($fields), '?'));
+        $sql = "INSERT INTO staff_profiles (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        $db->prepare($sql)->execute($values);
     } else {
-        $db->prepare("UPDATE staff_profiles SET first_name = ?, last_name = ? WHERE national_id = ? AND academic_year = ?")
-           ->execute([$first_name, $last_name, $national_id, $academic_year]);
+        $fields = ['first_name = ?', 'last_name = ?'];
+        $values = [$first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = "$k = ?";
+            $values[] = $v;
+        }
+        $values[] = $national_id;
+        $values[] = $academic_year;
+        $sql = "UPDATE staff_profiles SET " . implode(',', $fields) . " WHERE national_id = ? AND academic_year = ?";
+        $db->prepare($sql)->execute($values);
     }
 
     return $status;

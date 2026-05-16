@@ -8,7 +8,7 @@ $fullName    = getUserRealName($national_id, 'student');
 if (!$fullName) $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 
 // مدیریت سال تحصیلی
-$academic_years = ['1404-1405', '1405-1406'];
+$academic_years = ['1402-1403', '1403-1404', '1404-1405', '1404-1405', '1406-1407'];
 if (isset($_GET['year']) && in_array($_GET['year'], $academic_years)) {
     $_SESSION['student_active_year'] = $_GET['year'];
 }
