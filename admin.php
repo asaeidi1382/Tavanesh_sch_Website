@@ -29,7 +29,7 @@ if (isset($_GET['logout_admin'])) {
 $isAdmin = !empty($_SESSION['is_admin']) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
 // ─── مدیریت سال تحصیلی ───
-$academic_years = ['1402-1403', '1403-1404', '1404-1405', '1405-1406', '1406-1407'];
+$academic_years = ['1404-1405', '1405-1406'];
 if (isset($_POST['set_active_year'])) {
     $db = getDB();
     $new_year = $_POST['active_year'];
@@ -812,6 +812,61 @@ if ($isAdmin && isset($_GET['delete_paystub'])) {
     }
 }
 
+// ─── آپلود کارنامه ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_report_cards'])) {
+    $db = getDB();
+    $title = trim($_POST['report_card_title'] ?? '');
+    if (!$title) {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ عنوان کارنامه الزامی است.'];
+    } else {
+        if (!is_dir('uploads/report_cards')) {
+            mkdir('uploads/report_cards', 0777, true);
+        }
+        $count = 0;
+        foreach ($_FILES['report_card_files']['tmp_name'] as $nid => $tmp_name) {
+            if ($tmp_name && is_uploaded_file($tmp_name)) {
+                $ext = pathinfo($_FILES['report_card_files']['name'][$nid], PATHINFO_EXTENSION);
+                $filename = "report_{$nid}_" . time() . ".$ext";
+                $target = "uploads/report_cards/" . $filename;
+                $is_visible = isset($_POST['report_card_visible'][$nid]) ? 1 : 0;
+                if (move_uploaded_file($tmp_name, $target)) {
+                    $stmt = $db->prepare("INSERT INTO report_cards (national_id, academic_year, title, file_path, is_visible) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$nid, $active_year, $title, $target, $is_visible]);
+                    $count++;
+                }
+            }
+        }
+        $msgs[] = ['type'=>'success', 'text'=>"✅ تعداد $count کارنامه با عنوان '{$title}' آپلود شد."];
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_report_card'])) {
+    $db = getDB();
+    $id = (int)$_POST['report_card_id'];
+    $title = trim($_POST['new_title']);
+    $is_visible = isset($_POST['is_visible']) ? 1 : 0;
+    if ($title) {
+        $stmt = $db->prepare("UPDATE report_cards SET title=?, is_visible=? WHERE id=?");
+        $stmt->execute([$title, $is_visible, $id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ کارنامه بروزرسانی شد.'];
+    }
+}
+
+if ($isAdmin && isset($_GET['delete_report_card'])) {
+    $db = getDB();
+    $id = (int)$_GET['delete_report_card'];
+    $stmt = $db->prepare("SELECT file_path FROM report_cards WHERE id=?");
+    $stmt->execute([$id]);
+    $rc = $stmt->fetch();
+    if ($rc) {
+        if (file_exists($rc['file_path'])) {
+            unlink($rc['file_path']);
+        }
+        $db->prepare("DELETE FROM report_cards WHERE id=?")->execute([$id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ کارنامه حذف شد.'];
+    }
+}
+
 // ─── مدیریت دیتابیس (Backup/Restore/Excel) ───
 if ($isAdmin && isset($_GET['download_db'])) {
     if (file_exists(DB_PATH)) {
@@ -1082,6 +1137,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
     <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 مدیریت فیش‌های حقوقی</a>
+    <a href="?tab=report_cards"  class="tab <?= $tab==='report_cards'  ?'active':'' ?>">📜 مدیریت کارنامه‌ها</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
     <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
     <a href="?tab=exams"     class="tab <?= $tab==='exams'     ?'active':'' ?>">📝 مدیریت نمرات و امتحانات</a>
@@ -1254,12 +1310,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
-            <option value="1402">1402</option>
-            <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
-            <option value="1407">1407</option>
         </select>
       </div>
     </div>
@@ -1282,12 +1335,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
-            <option value="1402">1402</option>
-            <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
-            <option value="1407">1407</option>
         </select>
       </div>
     </div>
@@ -1517,7 +1567,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$tm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="pay_y" id="pay_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -1583,7 +1633,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="due_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1605,7 +1655,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="paid_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1647,12 +1697,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             </select>
             <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">سال</option>
-            <option value="1402">1402</option>
-            <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
-            <option value="1407">1407</option>
             </select>
         </div>
       </div>
@@ -1661,6 +1708,122 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   </div>
   <?php endif; ?>
 
+
+  <?php elseif ($tab === 'report_cards'): ?>
+  <?php
+    $f_grade = $_GET['grade'] ?? '';
+    $f_major = $_GET['major'] ?? '';
+    $db = getDB();
+    $sql = "SELECT u.username, sp.first_name, sp.last_name, sp.grade, sp.major
+            FROM users u
+            JOIN student_profiles sp ON u.username = sp.national_id
+            WHERE sp.academic_year = ? AND u.role = 'student'";
+    $params = [$active_year];
+    if ($f_grade) { $sql .= " AND sp.grade = ?"; $params[] = $f_grade; }
+    if ($f_major) { $sql .= " AND sp.major = ?"; $params[] = $f_major; }
+    $sql .= " ORDER BY sp.last_name, sp.first_name ASC";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $filtered_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📜 مدیریت و آپلود کارنامه‌ها (سال <?= to_persian_num($active_year) ?>)</h3>
+
+    <div style="background:var(--turquoise-lighter); padding:15px; border-radius:12px; margin-bottom:20px; display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+        <span>فیلتر لیست:</span>
+        <select onchange="location.href='?tab=report_cards&grade='+this.value+'&major=<?= urlencode($f_major) ?>'" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">همه پایه‌ها</option>
+            <?php foreach(['دهم','یازدهم','دوازدهم'] as $g) echo "<option value='$g' ".($f_grade==$g?'selected':'').">$g</option>"; ?>
+        </select>
+        <select onchange="location.href='?tab=report_cards&grade=<?= urlencode($f_grade) ?>&major='+this.value" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">همه رشته‌ها</option>
+            <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".($f_major==$m?'selected':'').">$m</option>"; ?>
+        </select>
+        <a href="?tab=report_cards" style="font-size:0.8rem; color:var(--red);">حذف فیلترها</a>
+    </div>
+
+    <form method="POST" action="?tab=report_cards" enctype="multipart/form-data">
+      <div class="field">
+        <label>عنوان کارنامه (مثلاً: کارنامه نوبت اول ۱۴۰۴)</label>
+        <input type="text" name="report_card_title" placeholder="عنوان کارنامه را وارد کنید..." required>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>نام و نام خانوادگی</th>
+              <th>کد ملی</th>
+              <th>پایه و رشته</th>
+              <th>انتخاب فایل</th>
+              <th>قابل مشاهده</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($filtered_students as $s): ?>
+            <tr>
+              <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+              <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+              <td><?= htmlspecialchars($s['grade'] . ' - ' . $s['major']) ?></td>
+              <td><input type="file" name="report_card_files[<?= htmlspecialchars($s['username']) ?>]" accept=".pdf,.jpg,.jpeg,.png"></td>
+              <td style="text-align:center;"><input type="checkbox" name="report_card_visible[<?= htmlspecialchars($s['username']) ?>]" checked></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" name="upload_report_cards" class="btn-primary" style="margin-top:20px;">📤 شروع آپلود کارنامه‌ها</button>
+    </form>
+  </div>
+
+  <?php
+    $stmt = $db->prepare("SELECT rc.*, sp.first_name, sp.last_name
+                          FROM report_cards rc
+                          JOIN student_profiles sp ON rc.national_id = sp.national_id AND rc.academic_year = sp.academic_year
+                          WHERE rc.academic_year = ?
+                          ORDER BY rc.id DESC");
+    $stmt->execute([$active_year]);
+    $all_report_cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📋 مدیریت کارنامه‌های صادر شده (سال <?= to_persian_num($active_year) ?>)</h3>
+    <div class="table-wrap">
+      <table id="reportCardTable">
+        <thead>
+          <tr>
+            <th>عنوان کارنامه</th>
+            <th>نام دانش‌آموز</th>
+            <th>کد ملی</th>
+            <th>وضعیت نمایش</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($all_report_cards)): ?>
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز کارنامه‌ای در این سال تحصیلی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($all_report_cards as $rc): ?>
+          <tr>
+            <td>
+                <form method="POST" action="?tab=report_cards" style="display:flex; gap:5px; align-items:center;">
+                    <input type="hidden" name="report_card_id" value="<?= $rc['id'] ?>">
+                    <input type="text" name="new_title" value="<?= htmlspecialchars($rc['title']) ?>" style="padding:5px; font-size:0.85rem; flex:1;">
+                    <label style="font-size:0.7rem; margin-bottom:0;"><input type="checkbox" name="is_visible" <?= $rc['is_visible']?'checked':'' ?>> نمایش</label>
+                    <button type="submit" name="update_report_card" class="btn-sm" style="background:var(--green); padding:5px 10px;">💾</button>
+                </form>
+            </td>
+            <td><?= htmlspecialchars($rc['first_name'] . ' ' . $rc['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($rc['national_id'])) ?></td>
+            <td><?= $rc['is_visible'] ? '<span style="color:var(--green)">✅ قابل مشاهده</span>' : '<span style="color:var(--red)">❌ غیرفعال</span>' ?></td>
+            <td style="white-space: nowrap;">
+              <a href="<?= htmlspecialchars($rc['file_path']) ?>" target="_blank" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">👁️</a>
+              <a href="?tab=report_cards&delete_report_card=<?= $rc['id'] ?>" class="btn-del" onclick="return confirm('حذف کارنامه؟')">🗑️</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <?php elseif ($tab === 'upload_paystubs'): ?>
   <div class="card">
@@ -1921,7 +2084,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$rm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="ref_y" id="ref_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -2001,7 +2164,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <div style="display:flex; gap:5px; direction:rtl;">
                     <select name="date_d" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?></select>
                     <select name="date_m" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?></select>
-                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
+                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
                 </div>
             </div>
             <div class="field"><label>درس</label><input type="text" name="lesson" class="field-lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required></div>

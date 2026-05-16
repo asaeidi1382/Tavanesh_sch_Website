@@ -83,7 +83,7 @@ th:hover { background:#e0f2f4 !important; }
             <h1>🏆 نمرات من</h1>
             <select onchange="location.href='?year='+this.value" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:0.9rem; color:#0c8790; outline:none;">
                 <?php 
-                $years = ['1402-1403', '1403-1404', '1404-1405', '1404-1405', '1406-1407'];
+                $years = ['1404-1405', '1405-1406'];
                 foreach($years as $y): ?>
                     <option value="<?= $y ?>" <?= $y===$selected_year?'selected':'' ?>><?= to_persian_num($y) ?></option>
                 <?php endforeach; ?>

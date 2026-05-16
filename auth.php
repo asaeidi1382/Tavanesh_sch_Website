@@ -90,6 +90,17 @@ function getDB() {
             upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
+        // جدول کارنامه
+        $db->exec("CREATE TABLE IF NOT EXISTS report_cards (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            title          TEXT NOT NULL,
+            file_path      TEXT NOT NULL,
+            is_visible     INTEGER DEFAULT 1,
+            upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
         // جدول امتحانات
         $db->exec("CREATE TABLE IF NOT EXISTS exams (
             id             INTEGER PRIMARY KEY AUTOINCREMENT,
