@@ -2,6 +2,8 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once 'auth.php';
+require_once 'vendor/autoload.php';
+use Shuchkin\SimpleXLSX;
 
 // ════════════════════════════════════════════════════
 //  رمز ورود پنل مدیریت — حتماً تغییر دهید!
@@ -27,7 +29,7 @@ if (isset($_GET['logout_admin'])) {
 $isAdmin = !empty($_SESSION['is_admin']) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
 // ─── مدیریت سال تحصیلی ───
-$academic_years = ['1404-1405', '1405-1406'];
+$academic_years = ['1402-1403', '1403-1404', '1404-1405', '1405-1406', '1406-1407'];
 if (isset($_POST['set_active_year'])) {
     $db = getDB();
     $new_year = $_POST['active_year'];
@@ -69,6 +71,140 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_st
         $msgs[] = ['type'=>'success', 'text'=>"✅ دانش‌آموزان: ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
     } else {
         $msgs[] = ['type'=>'error', 'text'=>'❌ فایل CSV انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت دانش‌آموزان از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_students_excel'])) {
+    if (!empty($_FILES['students_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['students_excel']['tmp_name'])) {
+            $created = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $first_name  = trim($row[0]);
+                $last_name   = trim($row[1]);
+                $national_id = trim($row[2]);
+                if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
+
+                $extra = [
+                    'grade'         => $row[3] ?? '',
+                    'major'         => $row[4] ?? '',
+                    'father_name'   => $row[5] ?? '',
+                    'mother_name'   => $row[6] ?? '',
+                    'mother_phone'  => $row[7] ?? '',
+                    'father_phone'  => $row[8] ?? '',
+                    'home_phone'    => $row[9] ?? '',
+                    'left_handed'   => (isset($row[10]) && ($row[10] == 1 || $row[10] == 'بله')) ? 1 : 0,
+                    'seat_no'       => $row[11] ?? '',
+                    'address'       => $row[12] ?? '',
+                    'student_phone' => $row[13] ?? ''
+                ];
+
+                $result = upsertStudent($national_id, $first_name, $last_name, $active_year, $extra);
+                if ($result === 'created') $created++;
+                else $updated++;
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ دانش‌آموزان (Excel): ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت کارکنان از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_staff_excel'])) {
+    if (!empty($_FILES['staff_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['staff_excel']['tmp_name'])) {
+            $created = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $first_name  = trim($row[0]);
+                $last_name   = trim($row[1]);
+                $national_id = trim($row[2]);
+                if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
+
+                $extra = [
+                    'birth_date'    => $row[3] ?? '',
+                    'birth_place'   => $row[4] ?? '',
+                    'education'     => $row[5] ?? '',
+                    'position'      => $row[6] ?? '',
+                    'father_name'   => $row[7] ?? '',
+                    'home_phone'    => $row[8] ?? '',
+                    'address'       => $row[9] ?? '',
+                    'schedule'      => $row[10] ?? '',
+                    'mobile_phone'  => $row[11] ?? '',
+                    'contract_date' => $row[12] ?? '',
+                    'bank'          => $row[13] ?? '',
+                    'sheba'         => $row[14] ?? '',
+                    'letter_no'     => $row[15] ?? ''
+                ];
+
+                $result = upsertStaff($national_id, $first_name, $last_name, $active_year, $extra);
+                if ($result === 'created') $created++;
+                else $updated++;
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ کارکنان (Excel): ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت پرداخت‌های خودکار از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_payments_excel'])) {
+    if (!empty($_FILES['payments_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['payments_excel']['tmp_name'])) {
+            $db = getDB();
+            $processed = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 2) { $skipped++; continue; }
+
+                $national_id = trim($row[0]);
+                $pay_amount  = (int)str_replace([',', '،'], '', trim($row[1]));
+                $pay_date    = trim($row[2] ?? get_jalali_today());
+
+                if (!$national_id || $pay_amount <= 0) { $skipped++; continue; }
+
+                $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
+                $stmt->execute([$national_id, $active_year]);
+                $tuition_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $remaining = $pay_amount;
+
+                if (empty($tuition_rows)) { $skipped++; continue; }
+
+                foreach ($tuition_rows as $t_row) {
+                    if ($remaining <= 0) break;
+                    $needed = $t_row['amount'] - $t_row['paid_amount'];
+                    if ($needed <= 0) continue;
+                    if ($remaining >= $needed) {
+                        $new_paid = $t_row['amount'];
+                        $new_status = 'paid';
+                        $remaining -= $needed;
+                    } else {
+                        $new_paid = $t_row['paid_amount'] + $remaining;
+                        $new_status = 'partial';
+                        $remaining = 0;
+                    }
+                    $db->prepare("UPDATE tuition SET paid_amount=?, status=?, paid_date=? WHERE id=?")
+                       ->execute([$new_paid, $new_status, $pay_date, $t_row['id']]);
+                }
+                $processed++;
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ پرداخت‌های خودکار (Excel): پردازش شده: $processed | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
     }
 }
 
@@ -778,6 +914,19 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 .guide { background:var(--turquoise-lighter); border:1px solid var(--turquoise-light); border-radius:14px; padding:18px 20px; font-size:.85rem; color:var(--text); line-height:1.8; margin-top:12px; }
 .guide strong { color:var(--turquoise-dark); }
 .guide code { background:#d0eff3; border-radius:6px; padding:2px 7px; font-family:monospace; font-size:.82rem; }
+
+.field-title { width: 80% !important; }
+.field-lesson { width: 70% !important; }
+.field-max-score { width: 33% !important; }
+
+@media (max-width: 600px) {
+    .exam-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .field-title, .field-lesson, .field-max-score {
+        width: 100% !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -926,11 +1075,58 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     <div class="guide">
       <strong>فرمت فایل CSV دانش‌آموزان:</strong><br>
       ستون اول: نام — ستون دوم: نام خانوادگی — ستون سوم: کد ملی<br>
-      <code>فاطمه,محمدی,1234567890</code><br>
-      <code>زهرا,احمدی,0987654321</code><br><br>
+      <code>فاطمه,محمدی,1234567890</code><br><br>
       ⚡ نام کاربری و رمز عبور اولیه هر دانش‌آموز = کد ملی او<br>
-      🔄 اگر کد ملی قبلاً وجود داشته باشد، فقط نام به‌روز می‌شود.<br><br>
-      <strong>برای ذخیره اکسل به CSV:</strong> در اکسل ← <em>File → Save As → CSV UTF-8 (Comma delimited)</em>
+      🔄 اگر کد ملی قبلاً وجود داشته باشد، اطلاعات به‌روز می‌شود.
+    </div>
+  </div>
+
+  <!-- ایمپورت دانش‌آموزان اکسل -->
+  <div class="card">
+    <h3>👩‍🎓 وارد کردن دانش‌آموزان از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel دانش‌آموزان (.xlsx)</label>
+        <input type="file" name="students_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_students_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel دانش‌آموزان:</strong><br>
+      <small>۱. نام | ۲. نام خانوادگی | ۳. کد ملی | ۴. پایه | ۵. رشته | ۶. نام پدر | ۷. نام مادر | ۸. تلفن مادر | ۹. تلفن پدر | ۱۰. تلفن منزل | ۱۱. چپ‌دست (۱ یا بله) | ۱۲. شماره صندلی | ۱۳. آدرس | ۱۴. تلفن دانش‌آموز</small>
+    </div>
+  </div>
+
+  <!-- ایمپورت کارکنان اکسل -->
+  <div class="card">
+    <h3>👥 وارد کردن کارکنان از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel کارکنان (.xlsx)</label>
+        <input type="file" name="staff_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_staff_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel کارکنان:</strong><br>
+      <small>۱. نام | ۲. نام خانوادگی | ۳. کد ملی | ۴. تاریخ تولد | ۵. محل صدور | ۶. مدرک تحصیلی | ۷. سمت | ۸. نام پدر | ۹. تلفن منزل | ۱۰. آدرس | ۱۱. برنامه حضور | ۱۲. تلفن همراه | ۱۳. تاریخ قرارداد | ۱۴. بانک | ۱۵. شبا | ۱۶. شماره نامه</small>
+    </div>
+  </div>
+
+  <!-- ایمپورت پرداخت‌های خودکار اکسل -->
+  <div class="card">
+    <h3>💰 ثبت خودکار پرداختی با فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel پرداخت‌ها (.xlsx)</label>
+        <input type="file" name="payments_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_payments_excel" class="btn-primary">آپلود و ثبت پرداخت‌ها</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel پرداخت‌ها:</strong><br>
+      <small>۱. کد ملی | ۲. مبلغ (تومان) | ۳. تاریخ پرداخت (مثلاً ۱۴۰۳/۰۷/۰۱)</small><br>
+      ⚡ مبالغ به ترتیب بین اقساط پرداخت نشده دانش‌آموز توزیع می‌شود.
     </div>
   </div>
 <!-- افزودن دستی قسط -->
@@ -973,10 +1169,12 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
+            <option value="1402">1402</option>
             <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
+            <option value="1407">1407</option>
         </select>
       </div>
     </div>
@@ -999,10 +1197,12 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
+            <option value="1402">1402</option>
             <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
+            <option value="1407">1407</option>
         </select>
       </div>
     </div>
@@ -1218,7 +1418,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$tm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="pay_y" id="pay_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -1284,7 +1484,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="due_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1306,7 +1506,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="paid_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1348,10 +1548,12 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             </select>
             <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">سال</option>
-                <option value="1403">1403</option>
-                <option value="1404">1404</option>
-                <option value="1405" selected>1405</option>
-                <option value="1406">1406</option>
+            <option value="1402">1402</option>
+            <option value="1403">1403</option>
+            <option value="1404">1404</option>
+            <option value="1405" selected>1405</option>
+            <option value="1406">1406</option>
+            <option value="1407">1407</option>
             </select>
         </div>
       </div>
@@ -1620,7 +1822,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$rm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="ref_y" id="ref_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -1685,8 +1887,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         <?php if ($edit_exam): ?>
             <input type="hidden" name="exam_id" value="<?= $edit_exam['id'] ?>">
         <?php endif; ?>
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
-            <div class="field"><label>عنوان امتحان</label><input type="text" name="title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم ریاضی"></div>
+        <div class="exam-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+            <div class="field"><label>عنوان امتحان</label><input type="text" name="title" class="field-title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم ریاضی"></div>
             <div class="field">
                 <label>تاریخ امتحان</label>
                 <?php
@@ -1700,10 +1902,10 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <div style="display:flex; gap:5px; direction:rtl;">
                     <select name="date_d" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?></select>
                     <select name="date_m" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?></select>
-                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
+                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1402','1403','1404','1405','1406','1407'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
                 </div>
             </div>
-            <div class="field"><label>درس</label><input type="text" name="lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required></div>
+            <div class="field"><label>درس</label><input type="text" name="lesson" class="field-lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required></div>
             <div class="field">
                 <label>پایه</label>
                 <select name="grade" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
@@ -1716,7 +1918,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".((($edit_exam['major']??'')==$m)?'selected':'').">$m</option>"; ?>
                 </select>
             </div>
-            <div class="field"><label>نمره از چند</label><input type="number" step="0.25" name="max_score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required></div>
+            <div class="field"><label>نمره از چند</label><input type="number" step="0.25" name="max_score" class="field-max-score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required></div>
             <div class="field">
                 <label>دبیر</label>
                 <select name="teacher_id" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
