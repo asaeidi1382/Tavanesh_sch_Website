@@ -4,7 +4,8 @@ requireLogin();
 
 $db = getDB();
 $national_id = $_SESSION['username']; // نام کاربری همان کد ملی است
-$fullName    = $_SESSION['full_name'] ?? $_SESSION['username'];
+$fullName    = getUserRealName($national_id, 'student');
+if (!$fullName) $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 
 // مدیریت سال تحصیلی
 $academic_years = ['1404-1405', '1405-1406'];

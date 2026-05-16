@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ورود — دبیرستان دخترانه توانش</title>
+<title>ورود کاربران — دبیرستان دخترانه توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
 /* ───── فونت وزیرمتن — آفلاین از سرور ───── */
@@ -195,13 +195,13 @@ input::placeholder { color:#a8d5da; }
   </div>
   <div class="topbar-text">
     <h1>دبیرستان دخترانه توانش</h1>
-    <p>پرتال دانش‌آموزی</p>
+    <p>پرتال کاربران</p>
   </div>
 </div>
 
 <div class="card">
   <div class="card-title">ورود به حساب کاربری</div>
-  <div class="card-sub">خوش برگشتید! اطلاعات ورود خود را وارد کنید.</div>
+  <div class="card-sub">دانش‌آموزان و کارکنان گرامی، خوش آمدید.</div>
 
   <?php if ($error): ?>
     <div class="alert"><?= htmlspecialchars($error) ?></div>

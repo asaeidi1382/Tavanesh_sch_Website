@@ -16,27 +16,147 @@ function getDB() {
             username    TEXT UNIQUE NOT NULL,
             email       TEXT UNIQUE,
             password    TEXT NOT NULL,
-            full_name   TEXT DEFAULT '',
+            role        TEXT DEFAULT 'student',
             created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
 
-        // اضافه کردن ستون full_name به جدول قدیمی (اگر وجود نداشت)
-        try { $db->exec("ALTER TABLE users ADD COLUMN full_name TEXT DEFAULT ''"); } catch(Exception $e){}
+        // ستون‌های مورد نیاز
+        try { $db->exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'"); } catch(Exception $e){}
 
         // جدول اقساط شهریه
         $db->exec("CREATE TABLE IF NOT EXISTS tuition (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
             national_id     TEXT NOT NULL,
             installment_no  INTEGER NOT NULL,
-            description     TEXT,
             amount          INTEGER NOT NULL DEFAULT 0,
             due_date        TEXT,
             paid_amount     INTEGER DEFAULT 0,
             paid_date       TEXT,
-            status          TEXT DEFAULT 'unpaid'
+            status          TEXT DEFAULT 'unpaid',
+            academic_year   TEXT DEFAULT '1404-1405'
         )");
+        try { $db->exec("ALTER TABLE tuition ADD COLUMN academic_year TEXT DEFAULT '1404-1405'"); } catch(Exception $e){}
+        try { $db->exec("ALTER TABLE tuition DROP COLUMN description"); } catch(Exception $e){}
+
+        // جدول پروفایل دانش‌آموزان
+        $db->exec("CREATE TABLE IF NOT EXISTS student_profiles (
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL DEFAULT '1404-1405',
+            first_name     TEXT,
+            last_name      TEXT,
+            grade          TEXT,
+            major          TEXT,
+            father_name    TEXT,
+            mother_name    TEXT,
+            mother_phone   TEXT,
+            father_phone   TEXT,
+            home_phone     TEXT,
+            left_handed    INTEGER DEFAULT 0,
+            seat_no        TEXT,
+            address        TEXT,
+            student_phone  TEXT,
+            PRIMARY KEY (national_id, academic_year)
+        )");
+
+        // جدول پروفایل کارکنان
+        $db->exec("CREATE TABLE IF NOT EXISTS staff_profiles (
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            first_name     TEXT,
+            last_name      TEXT,
+            birth_date     TEXT,
+            birth_place    TEXT,
+            education      TEXT,
+            position       TEXT,
+            father_name    TEXT,
+            home_phone     TEXT,
+            address        TEXT,
+            schedule       TEXT,
+            mobile_phone   TEXT,
+            contract_date  TEXT,
+            bank           TEXT,
+            sheba          TEXT,
+            letter_no      TEXT,
+            PRIMARY KEY (national_id, academic_year)
+        )");
+
+        // جدول فیش حقوقی
+        $db->exec("CREATE TABLE IF NOT EXISTS paystubs (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            title          TEXT NOT NULL,
+            file_path      TEXT NOT NULL,
+            upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // جدول کارنامه
+        $db->exec("CREATE TABLE IF NOT EXISTS report_cards (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            national_id    TEXT NOT NULL,
+            academic_year  TEXT NOT NULL,
+            title          TEXT NOT NULL,
+            file_path      TEXT NOT NULL,
+            is_visible     INTEGER DEFAULT 1,
+            upload_date    DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // جدول امتحانات
+        $db->exec("CREATE TABLE IF NOT EXISTS exams (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            title          TEXT NOT NULL,
+            date           TEXT NOT NULL,
+            lesson         TEXT NOT NULL,
+            grade          TEXT NOT NULL,
+            major          TEXT NOT NULL,
+            teacher_id     TEXT NOT NULL,
+            max_score      REAL DEFAULT 20,
+            is_published   INTEGER DEFAULT 0,
+            academic_year  TEXT NOT NULL,
+            created_at     DATETIME DEFAULT CURRENT_TIMESTAMP
+        )");
+
+        // جدول نمرات
+        $db->exec("CREATE TABLE IF NOT EXISTS scores (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id        INTEGER NOT NULL,
+            student_id     TEXT NOT NULL,
+            score          REAL,
+            status         TEXT DEFAULT 'present',
+            description    TEXT,
+            created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(exam_id, student_id)
+        )");
+
+        // جدول تنظیمات
+        $db->exec("CREATE TABLE IF NOT EXISTS settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT
+        )");
+        
+        // مقدار پیش‌فرض سال تحصیلی
+        $stmt = $db->query("SELECT value FROM settings WHERE key = 'active_year'");
+        if (!$stmt->fetch()) {
+            $db->exec("INSERT INTO settings (key, value) VALUES ('active_year', '1404-1405')");
+        }
     }
     return $db;
+}
+
+// مقداردهی سال تحصیلی فعال در سشن از دیتابیس
+if (!isset($_SESSION['active_year'])) {
+    try {
+        $db = getDB();
+        $stmt = $db->query("SELECT value FROM settings WHERE key = 'active_year'");
+        $val = $stmt->fetchColumn();
+        if ($val) {
+            $_SESSION['active_year'] = $val;
+        } else {
+            $_SESSION['active_year'] = '1404-1405';
+        }
+    } catch (Exception $e) {
+        $_SESSION['active_year'] = '1404-1405';
+    }
 }
 
 function isLoggedIn() {
@@ -59,13 +179,36 @@ function loginUser($usernameOrEmail, $password) {
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user_id']    = $user['id'];
         $_SESSION['username']   = $user['username'];
-        $_SESSION['full_name']  = $user['full_name'] ?: $user['username'];
+        $_SESSION['role']       = $user['role'] ?: 'student';
+
+        // پیدا کردن نام واقعی از پروفایل
+        $fullName = getUserRealName($user['username'], $user['role']);
+        $_SESSION['full_name']  = $fullName ?: $user['username'];
+
         return ['success' => true];
     }
     return ['success' => false];
 }
 
-function registerUser($username, $email, $password, $full_name = '') {
+function getUserRealName($national_id, $role, $academic_year = null) {
+    if (!$academic_year) {
+        $academic_year = $_SESSION['active_year'] ?? '1404-1405';
+    }
+    $db = getDB();
+    if ($role === 'staff') {
+        $stmt = $db->prepare("SELECT first_name, last_name FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+    } else {
+        $stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+    }
+    $stmt->execute([$national_id, $academic_year]);
+    $profile = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($profile && ($profile['first_name'] || $profile['last_name'])) {
+        return trim($profile['first_name'] . ' ' . $profile['last_name']);
+    }
+    return null;
+}
+
+function registerUser($username, $email, $password) {
     if (strlen($username) < 3)
         return ['success' => false, 'error' => 'Username must be at least 3 characters.'];
     if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL))
@@ -76,8 +219,8 @@ function registerUser($username, $email, $password, $full_name = '') {
     $db = getDB();
     try {
         $hash = password_hash($password, PASSWORD_BCRYPT);
-        $stmt = $db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$username, $email ?: null, $hash, $full_name]);
+        $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $email ?: null, $hash]);
         return ['success' => true];
     } catch (PDOException $e) {
         if (strpos($e->getMessage(), 'UNIQUE') !== false)
@@ -87,35 +230,100 @@ function registerUser($username, $email, $password, $full_name = '') {
 }
 
 // ایجاد یا به‌روزرسانی حساب دانش‌آموز (برای ایمپورت)
-function upsertStudent($national_id, $full_name, $academic_year = '1404-1405') {
+function upsertStudent($national_id, $first_name, $last_name, $academic_year = '1404-1405', $extra = []) {
     $db = getDB();
     $hash = password_hash($national_id, PASSWORD_BCRYPT);
-    // اگر وجود داشت فقط نام را آپدیت کن، وگرنه بساز
     $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
     $stmt->execute([$national_id]);
     $user_exists = $stmt->fetch();
 
     if (!$user_exists) {
-        $db->prepare("INSERT INTO users (username, email, password, full_name) VALUES (?, ?, ?, ?)")
+        $db->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'student')")
             ->execute([
                 $national_id,
                 $national_id . '@tavanesh.local',
-                $hash,
-                $full_name
+                $hash
             ]);
         $status = 'created';
     } else {
-        $db->prepare("UPDATE users SET full_name = ? WHERE username = ?")
-           ->execute([$full_name, $national_id]);
+        $db->prepare("UPDATE users SET role = 'student' WHERE username = ?")
+           ->execute([$national_id]);
         $status = 'updated';
     }
 
-    // اطمینان از وجود پروفایل برای این سال تحصیلی
     $stmt = $db->prepare("SELECT national_id FROM student_profiles WHERE national_id = ? AND academic_year = ?");
     $stmt->execute([$national_id, $academic_year]);
     if (!$stmt->fetch()) {
-        $db->prepare("INSERT INTO student_profiles (national_id, academic_year) VALUES (?, ?)")
-           ->execute([$national_id, $academic_year]);
+        $fields = ['national_id', 'academic_year', 'first_name', 'last_name'];
+        $values = [$national_id, $academic_year, $first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = $k;
+            $values[] = $v;
+        }
+        $placeholders = implode(',', array_fill(0, count($fields), '?'));
+        $sql = "INSERT INTO student_profiles (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        $db->prepare($sql)->execute($values);
+    } else {
+        $fields = ['first_name = ?', 'last_name = ?'];
+        $values = [$first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = "$k = ?";
+            $values[] = $v;
+        }
+        $values[] = $national_id;
+        $values[] = $academic_year;
+        $sql = "UPDATE student_profiles SET " . implode(',', $fields) . " WHERE national_id = ? AND academic_year = ?";
+        $db->prepare($sql)->execute($values);
+    }
+
+    return $status;
+}
+
+// ایجاد یا به‌روزرسانی حساب کارمند
+function upsertStaff($national_id, $first_name, $last_name, $academic_year = '1404-1405', $extra = []) {
+    $db = getDB();
+    $hash = password_hash($national_id, PASSWORD_BCRYPT);
+    $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
+    $stmt->execute([$national_id]);
+    $user_exists = $stmt->fetch();
+
+    if (!$user_exists) {
+        $db->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, 'staff')")
+            ->execute([
+                $national_id,
+                $national_id . '@tavanesh.local',
+                $hash
+            ]);
+        $status = 'created';
+    } else {
+        $db->prepare("UPDATE users SET role = 'staff' WHERE username = ?")
+           ->execute([$national_id]);
+        $status = 'updated';
+    }
+
+    $stmt = $db->prepare("SELECT national_id FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+    $stmt->execute([$national_id, $academic_year]);
+    if (!$stmt->fetch()) {
+        $fields = ['national_id', 'academic_year', 'first_name', 'last_name'];
+        $values = [$national_id, $academic_year, $first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = $k;
+            $values[] = $v;
+        }
+        $placeholders = implode(',', array_fill(0, count($fields), '?'));
+        $sql = "INSERT INTO staff_profiles (" . implode(',', $fields) . ") VALUES ($placeholders)";
+        $db->prepare($sql)->execute($values);
+    } else {
+        $fields = ['first_name = ?', 'last_name = ?'];
+        $values = [$first_name, $last_name];
+        foreach ($extra as $k => $v) {
+            $fields[] = "$k = ?";
+            $values[] = $v;
+        }
+        $values[] = $national_id;
+        $values[] = $academic_year;
+        $sql = "UPDATE staff_profiles SET " . implode(',', $fields) . " WHERE national_id = ? AND academic_year = ?";
+        $db->prepare($sql)->execute($values);
     }
 
     return $status;
@@ -186,7 +394,7 @@ function gregorian_to_jalali($gy, $gm, $gd) {
 
 function convert_to_jalali($date_str) {
     if (empty($date_str)) return "";
-
+    
     // Check if it's already in YYYY/MM/DD (Jalali) format
     if (preg_match('/^\d{4}\/\d{2}\/\d{2}$/', $date_str)) {
         return $date_str;

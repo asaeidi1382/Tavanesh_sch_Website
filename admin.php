@@ -2,6 +2,8 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 require_once 'auth.php';
+require_once 'vendor/autoload.php';
+use Shuchkin\SimpleXLSX;
 
 // ════════════════════════════════════════════════════
 //  رمز ورود پنل مدیریت — حتماً تغییر دهید!
@@ -24,15 +26,17 @@ if (isset($_GET['logout_admin'])) {
     exit;
 }
 
-$isAdmin = !empty($_SESSION['is_admin']);
+$isAdmin = !empty($_SESSION['is_admin']) || (isset($_SESSION['role']) && $_SESSION['role'] === 'admin');
 
 // ─── مدیریت سال تحصیلی ───
 $academic_years = ['1404-1405', '1405-1406'];
-if (!isset($_SESSION['active_year'])) {
-    $_SESSION['active_year'] = '1404-1405';
-}
 if (isset($_POST['set_active_year'])) {
-    $_SESSION['active_year'] = $_POST['active_year'];
+    $db = getDB();
+    $new_year = $_POST['active_year'];
+    $_SESSION['active_year'] = $new_year;
+    // ذخیره در دیتابیس برای پایداری
+    $stmt = $db->prepare("UPDATE settings SET value = ? WHERE key = 'active_year'");
+    $stmt->execute([$new_year]);
 }
 $active_year = $_SESSION['active_year'];
 
@@ -51,15 +55,15 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_st
         $rowNum = 0;
         while (($row = fgetcsv($file)) !== false) {
             $rowNum++;
-            // رد کردن سطر عنوان
-            if ($rowNum === 1 && (trim($row[0]) === 'full_name' || trim($row[0]) === 'نام_و_نام_خانوادگی')) continue;
-            if (count($row) < 2) { $skipped++; continue; }
+            if ($rowNum === 1 && (trim($row[0]) === 'first_name' || trim($row[0]) === 'نام')) continue;
+            if (count($row) < 3) { $skipped++; continue; }
 
-            $full_name   = trim($row[0]);
-            $national_id = trim($row[1]);
-            if (!$full_name || !$national_id) { $skipped++; continue; }
+            $first_name  = trim($row[0]);
+            $last_name   = trim($row[1]);
+            $national_id = trim($row[2]);
+            if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
 
-            $result = upsertStudent($national_id, $full_name, $active_year);
+            $result = upsertStudent($national_id, $first_name, $last_name, $active_year);
             if ($result === 'created') $created++;
             else $updated++;
         }
@@ -67,6 +71,180 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_st
         $msgs[] = ['type'=>'success', 'text'=>"✅ دانش‌آموزان: ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
     } else {
         $msgs[] = ['type'=>'error', 'text'=>'❌ فایل CSV انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت دانش‌آموزان از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_students_excel'])) {
+    if (!empty($_FILES['students_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['students_excel']['tmp_name'])) {
+            $created = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $first_name  = trim($row[0]);
+                $last_name   = trim($row[1]);
+                $national_id = trim($row[2]);
+                if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
+
+                $extra = [
+                    'grade'         => $row[3] ?? '',
+                    'major'         => $row[4] ?? '',
+                    'father_name'   => $row[5] ?? '',
+                    'mother_name'   => $row[6] ?? '',
+                    'mother_phone'  => $row[7] ?? '',
+                    'father_phone'  => $row[8] ?? '',
+                    'home_phone'    => $row[9] ?? '',
+                    'left_handed'   => (isset($row[10]) && ($row[10] == 1 || $row[10] == 'بله')) ? 1 : 0,
+                    'seat_no'       => $row[11] ?? '',
+                    'address'       => $row[12] ?? '',
+                    'student_phone' => $row[13] ?? ''
+                ];
+
+                $result = upsertStudent($national_id, $first_name, $last_name, $active_year, $extra);
+                if ($result === 'created') $created++;
+                else $updated++;
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ دانش‌آموزان (Excel): ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت کارکنان از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_staff_excel'])) {
+    if (!empty($_FILES['staff_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['staff_excel']['tmp_name'])) {
+            $created = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $first_name  = trim($row[0]);
+                $last_name   = trim($row[1]);
+                $national_id = trim($row[2]);
+                if (!$first_name || !$last_name || !$national_id) { $skipped++; continue; }
+
+                $extra = [
+                    'birth_date'    => $row[3] ?? '',
+                    'birth_place'   => $row[4] ?? '',
+                    'education'     => $row[5] ?? '',
+                    'position'      => $row[6] ?? '',
+                    'father_name'   => $row[7] ?? '',
+                    'home_phone'    => $row[8] ?? '',
+                    'address'       => $row[9] ?? '',
+                    'schedule'      => $row[10] ?? '',
+                    'mobile_phone'  => $row[11] ?? '',
+                    'contract_date' => $row[12] ?? '',
+                    'bank'          => $row[13] ?? '',
+                    'sheba'         => $row[14] ?? '',
+                    'letter_no'     => $row[15] ?? ''
+                ];
+
+                $result = upsertStaff($national_id, $first_name, $last_name, $active_year, $extra);
+                if ($result === 'created') $created++;
+                else $updated++;
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ کارکنان (Excel): ایجاد شده: $created | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
+    }
+}
+
+// ─── ایمپورت پرداخت‌های خودکار از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_payments_excel'])) {
+    if (!empty($_FILES['payments_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['payments_excel']['tmp_name'])) {
+            $db = getDB();
+            $processed = $skipped = 0;
+            $errors = [];
+
+            try {
+                $db->beginTransaction();
+                foreach ($xlsx->rows() as $i => $row) {
+                    if ($i === 0) continue; // Skip header
+                    $rowNum = $i + 1;
+                    if (count($row) < 2) { $skipped++; continue; }
+
+                    $national_id = trim((string)$row[0]);
+                    if (stripos($national_id, 'e+') !== false) {
+                        $national_id = (string)number_format((float)$national_id, 0, '', '');
+                    }
+                    if (strpos($national_id, '.') !== false) {
+                        $national_id = explode('.', $national_id)[0];
+                    }
+
+                    $pay_amount  = (int)preg_replace('/[^0-9]/', '', (string)$row[1]);
+                    $raw_date    = trim((string)($row[2] ?? ''));
+                    $pay_date    = !empty($raw_date) ? $raw_date : get_jalali_today();
+
+                    if (!$national_id || $pay_amount <= 0) { $skipped++; continue; }
+
+                    // واکشی نام دانش‌آموز برای پیام خطا
+                    $u_stmt = $db->prepare("SELECT first_name, last_name FROM student_profiles WHERE national_id = ? AND academic_year = ?");
+                    $u_stmt->execute([$national_id, $active_year]);
+                    $u_prof = $u_stmt->fetch(PDO::FETCH_ASSOC);
+                    $fullName = $u_prof ? trim($u_prof['first_name'] . ' ' . $u_prof['last_name']) : "کد ملی " . $national_id;
+
+                    // واکشی اقساط برای محاسبه سقف پرداخت
+                    $stmt = $db->prepare("SELECT * FROM tuition WHERE national_id=? AND academic_year=? AND status != 'paid' ORDER BY installment_no ASC");
+                    $stmt->execute([$national_id, $active_year]);
+                    $tuition_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    $total_debt = 0;
+                    foreach ($tuition_rows as $t_row) {
+                        $total_debt += ($t_row['amount'] - $t_row['paid_amount']);
+                    }
+
+                    if ($pay_amount > $total_debt) {
+                        $excess = number_format($pay_amount - $total_debt);
+                        $errors[] = "❌ ردیف $rowNum: مبلغ وارد شده برای کاربر «{$fullName}» بیشتر از اقساط تعریف شده برای ایشان است (مبلغ مازاد: $excess تومان).";
+                        $skipped++;
+                        continue;
+                    }
+
+                    $remaining = $pay_amount;
+                    foreach ($tuition_rows as $t_row) {
+                        if ($remaining <= 0) break;
+                        $needed = $t_row['amount'] - $t_row['paid_amount'];
+                        if ($needed <= 0) continue;
+
+                        if ($remaining >= $needed) {
+                            $new_paid = $t_row['amount'];
+                            $new_status = 'paid';
+                            $remaining -= $needed;
+                        } else {
+                            $new_paid = $t_row['paid_amount'] + $remaining;
+                            $new_status = 'partial';
+                            $remaining = 0;
+                        }
+                        $db->prepare("UPDATE tuition SET paid_amount=?, status=?, paid_date=? WHERE id=?")
+                           ->execute([$new_paid, $new_status, $pay_date, $t_row['id']]);
+                    }
+                    $processed++;
+                }
+                $db->commit();
+                $msgs[] = ['type'=>'success', 'text'=>"✅ پرداخت‌های خودکار (Excel): پردازش شده: $processed | رد شده: $skipped"];
+            } catch (Exception $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                $msgs[] = ['type'=>'error', 'text'=>'❌ خطای دیتابیس: ' . $e->getMessage()];
+            }
+
+            foreach ($errors as $err) {
+                $msgs[] = ['type'=>'error', 'text'=>$err];
+            }
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
     }
 }
 
@@ -92,7 +270,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
             $paid_date      = trim($row[5] ?? '');
             $status         = trim($row[6] ?? 'unpaid');
-            $description    = '';
             if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
 
             if (!$national_id || !$installment_no) { $skipped++; continue; }
@@ -103,52 +280,143 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tu
             $existing = $check->fetch();
 
             if ($existing) {
-                $db->prepare("UPDATE tuition SET description=?,amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
-                   ->execute([$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
+                $db->prepare("UPDATE tuition SET amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                   ->execute([$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
                 $updated++;
             } else {
-                $db->prepare("INSERT INTO tuition (national_id,installment_no,description,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?,?)")
-                   ->execute([$national_id,$installment_no,$description,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
+                $db->prepare("INSERT INTO tuition (national_id,installment_no,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?)")
+                   ->execute([$national_id,$installment_no,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
                 $inserted++;
             }
         }
         fclose($file);
-        $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط: وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
+        $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط (CSV): وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
     } else {
         $msgs[] = ['type'=>'error', 'text'=>'❌ فایل CSV انتخاب نشده.'];
     }
 }
+
+// ─── ایمپورت اقساط از Excel ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_tuition_excel'])) {
+    if (!empty($_FILES['tuition_excel']['tmp_name'])) {
+        if ($xlsx = SimpleXLSX::parse($_FILES['tuition_excel']['tmp_name'])) {
+            $db = getDB();
+            $inserted = $updated = $skipped = 0;
+            foreach ($xlsx->rows() as $i => $row) {
+                if ($i === 0) continue; // Skip header
+                if (count($row) < 3) { $skipped++; continue; }
+
+                $national_id    = trim($row[0]);
+                $installment_no = (int)trim($row[1]);
+                $amount         = (int)str_replace([',', '،'], '', trim($row[2]));
+                $due_date       = trim($row[3] ?? '');
+                $paid_amount    = (int)str_replace([',', '،'], '', trim($row[4] ?? 0));
+                $paid_date      = trim($row[5] ?? '');
+                $status         = trim($row[6] ?? 'unpaid');
+                if (!in_array($status, ['paid','partial','unpaid'])) $status = 'unpaid';
+
+                if (!$national_id || !$installment_no) { $skipped++; continue; }
+
+                // بررسی وجود رکورد
+                $check = $db->prepare("SELECT id FROM tuition WHERE national_id=? AND installment_no=? AND academic_year=?");
+                $check->execute([$national_id, $installment_no, $active_year]);
+                $existing = $check->fetch();
+
+                if ($existing) {
+                    $db->prepare("UPDATE tuition SET amount=?,due_date=?,paid_amount=?,paid_date=?,status=? WHERE national_id=? AND installment_no=? AND academic_year=?")
+                       ->execute([$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$national_id,$installment_no,$active_year]);
+                    $updated++;
+                } else {
+                    $db->prepare("INSERT INTO tuition (national_id,installment_no,amount,due_date,paid_amount,paid_date,status,academic_year) VALUES (?,?,?,?,?,?,?,?)")
+                       ->execute([$national_id,$installment_no,$amount,$due_date,$paid_amount,$paid_date ?: null,$status,$active_year]);
+                    $inserted++;
+                }
+            }
+            $msgs[] = ['type'=>'success', 'text'=>"✅ اقساط (Excel): وارد شده: $inserted | به‌روز: $updated | رد شده: $skipped"];
+        } else {
+            $msgs[] = ['type'=>'error', 'text'=>'❌ خطا در خواندن فایل Excel: ' . SimpleXLSX::parseError()];
+        }
+    } else {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ فایل Excel انتخاب نشده.'];
+    }
+}
 // ─── افزودن دستی دانش‌آموز ───
 if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_student_manual'])) {
-
-    $full_name   = trim($_POST['full_name'] ?? '');
+    $first_name  = trim($_POST['first_name'] ?? '');
+    $last_name   = trim($_POST['last_name'] ?? '');
     $national_id = trim($_POST['national_id'] ?? '');
 
-    if (!$full_name || !$national_id) {
-
-        $msgs[] = [
-            'type' => 'error',
-            'text' => '❌ نام و کد ملی الزامی هستند.'
-        ];
-
+    if (!$first_name || !$last_name || !$national_id) {
+        $msgs[] = ['type' => 'error', 'text' => '❌ نام، نام خانوادگی و کد ملی الزامی هستند.'];
     } else {
-
-        $result = upsertStudent($national_id, $full_name, $active_year);
-
+        $result = upsertStudent($national_id, $first_name, $last_name, $active_year);
         if ($result === 'created') {
-
-            $msgs[] = [
-                'type' => 'success',
-                'text' => '✅ دانش‌آموز جدید ایجاد شد.'
-            ];
-
+            $msgs[] = ['type' => 'success', 'text' => '✅ دانش‌آموز جدید ایجاد شد.'];
         } else {
-
-            $msgs[] = [
-                'type' => 'success',
-                'text' => '✅ اطلاعات دانش‌آموز به‌روزرسانی شد.'
-            ];
+            $msgs[] = ['type' => 'success', 'text' => '✅ اطلاعات دانش‌آموز به‌روزرسانی شد.'];
         }
+    }
+}
+
+// ─── مدیریت کارکنان ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_staff_manual'])) {
+    $first_name  = trim($_POST['first_name'] ?? '');
+    $last_name   = trim($_POST['last_name'] ?? '');
+    $national_id = trim($_POST['national_id'] ?? '');
+
+    if (!$first_name || !$last_name || !$national_id) {
+        $msgs[] = ['type' => 'error', 'text' => '❌ نام، نام خانوادگی و کد ملی الزامی هستند.'];
+    } else {
+        $result = upsertStaff($national_id, $first_name, $last_name, $active_year);
+        if ($result === 'created') {
+            $msgs[] = ['type' => 'success', 'text' => '✅ کارمند جدید ایجاد شد.'];
+        } else {
+            $msgs[] = ['type' => 'success', 'text' => '✅ اطلاعات کارمند به‌روزرسانی شد.'];
+        }
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_staff_profile'])) {
+    $db = getDB();
+    $old_username = $_POST['old_username'];
+    $new_username = trim($_POST['new_username']);
+    $first_name   = trim($_POST['first_name']);
+    $last_name    = trim($_POST['last_name']);
+    $new_password = trim($_POST['new_password'] ?? '');
+
+    $fields = [
+        'birth_date', 'birth_place', 'education', 'position', 'father_name',
+        'home_phone', 'address', 'schedule', 'mobile_phone', 'contract_date',
+        'bank', 'sheba', 'letter_no'
+    ];
+    $data = [];
+    foreach ($fields as $f) {
+        $data[$f] = $_POST[$f] ?? '';
+    }
+
+    try {
+        $db->beginTransaction();
+        if ($new_password) {
+            $hash = password_hash($new_password, PASSWORD_BCRYPT);
+            $db->prepare("UPDATE users SET username=?, password=? WHERE username=?")->execute([$new_username, $hash, $old_username]);
+        } else {
+            $db->prepare("UPDATE users SET username=? WHERE username=?")->execute([$new_username, $old_username]);
+        }
+
+        if ($new_username !== $old_username) {
+            $db->prepare("UPDATE staff_profiles SET national_id=? WHERE national_id=?")->execute([$new_username, $old_username]);
+        }
+
+        $sql = "UPDATE staff_profiles SET first_name=?, last_name=?, " . implode("=?, ", $fields) . "=? WHERE national_id=? AND academic_year=?";
+        $params = array_merge([$first_name, $last_name], array_values($data), [$new_username, $active_year]);
+        $db->prepare($sql)->execute($params);
+
+        $db->commit();
+        $msgs[] = ['type'=>'success', 'text'=>'✅ پروفایل کارمند بروزرسانی شد.'];
+        $_GET['username'] = $new_username;
+    } catch (Exception $e) {
+        $db->rollBack();
+        $msgs[] = ['type'=>'error', 'text'=>'❌ خطا: ' . $e->getMessage()];
     }
 }
 // ─── افزودن دستی قسط ───
@@ -158,7 +426,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
 
     $national_id    = trim($_POST['national_id'] ?? '');
     $installment_no = (int)($_POST['installment_no'] ?? 0);
-    $description    = trim($_POST['description'] ?? '');
     $amount         = (int)str_replace(',', '', $_POST['amount'] ?? 0);
 
     // تاریخ سررسید
@@ -191,7 +458,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
             (
                 national_id,
                 installment_no,
-                description,
                 amount,
                 due_date,
                 paid_amount,
@@ -199,13 +465,13 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_tuiti
                 status,
                 academic_year
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->execute([
             $national_id,
             $installment_no,
-            $description,
+
             $amount,
             $due_date,
             $paid_amount,
@@ -233,7 +499,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
     $db = getDB();
     $old_username = $_POST['old_username'];
     $new_username = trim($_POST['new_username']);
-    $full_name    = trim($_POST['full_name']);
+    $first_name   = trim($_POST['first_name']);
+    $last_name    = trim($_POST['last_name']);
     $new_password = trim($_POST['new_password'] ?? '');
 
     // Metadata
@@ -254,11 +521,11 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
         // Update users table
         if ($new_password) {
             $hash = password_hash($new_password, PASSWORD_BCRYPT);
-            $stmt = $db->prepare("UPDATE users SET username=?, full_name=?, password=? WHERE username=?");
-            $stmt->execute([$new_username, $full_name, $hash, $old_username]);
+            $stmt = $db->prepare("UPDATE users SET username=?, password=? WHERE username=?");
+            $stmt->execute([$new_username, $hash, $old_username]);
         } else {
-            $stmt = $db->prepare("UPDATE users SET username=?, full_name=? WHERE username=?");
-            $stmt->execute([$new_username, $full_name, $old_username]);
+            $stmt = $db->prepare("UPDATE users SET username=? WHERE username=?");
+            $stmt->execute([$new_username, $old_username]);
         }
 
         if ($new_username !== $old_username) {
@@ -268,11 +535,11 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_st
 
         // Update student_profiles table for active year
         $stmt = $db->prepare("UPDATE student_profiles SET
-            grade=?, major=?, father_name=?, mother_name=?, mother_phone=?, father_phone=?,
+            first_name=?, last_name=?, grade=?, major=?, father_name=?, mother_name=?, mother_phone=?, father_phone=?,
             home_phone=?, student_phone=?, address=?, left_handed=?
             WHERE national_id=? AND academic_year=?");
         $stmt->execute([
-            $grade, $major, $father_name, $mother_name, $mother_phone, $father_phone,
+            $first_name, $last_name, $grade, $major, $father_name, $mother_name, $mother_phone, $father_phone,
             $home_phone, $student_phone, $address, $left_handed,
             $new_username, $active_year
         ]);
@@ -291,7 +558,6 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
     $db = getDB();
     $id = (int)$_POST['tuition_id'];
     $installment_no = (int)$_POST['installment_no'];
-    $description = ''; // Removed from UI
     $amount = (int)str_replace(',', '', $_POST['amount']);
 
     // تاریخ سررسید
@@ -310,8 +576,8 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_tuit
 
     $status = $_POST['status'];
 
-    $stmt = $db->prepare("UPDATE tuition SET installment_no=?, description=?, amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
-    $stmt->execute([$installment_no, $description, $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
+    $stmt = $db->prepare("UPDATE tuition SET installment_no=?,  amount=?, due_date=?, paid_amount=?, paid_date=?, status=? WHERE id=?");
+    $stmt->execute([$installment_no,  $amount, $due_date, $paid_amount, $paid_date ?: null, $status, $id]);
     $msgs[] = ['type'=>'success', 'text'=>'✅ قسط ویرایش شد.'];
 }
 
@@ -457,6 +723,150 @@ if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register_
     }
 }
 
+
+// ─── مدیریت امتحانات ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_exam'])) {
+    $db = getDB();
+    $id = $_POST['exam_id'] ?? null;
+    $title = trim($_POST['title']);
+    $date_y = $_POST['date_y'];
+    $date_m = $_POST['date_m'];
+    $date_d = $_POST['date_d'];
+    $date = sprintf("%04d/%02d/%02d", $date_y, $date_m, $date_d);
+    $lesson = trim($_POST['lesson']);
+    $grade = $_POST['grade'];
+    $major = $_POST['major'];
+    $max_score = (float)$_POST['max_score'];
+    $is_published = isset($_POST['is_published']) ? 1 : 0;
+    $teacher_id = $_POST['teacher_id'];
+
+    if ($id) {
+        $stmt = $db->prepare("UPDATE exams SET title=?, date=?, lesson=?, grade=?, major=?, teacher_id=?, max_score=?, is_published=? WHERE id=?");
+        $stmt->execute([$title, $date, $lesson, $grade, $major, $teacher_id, $max_score, $is_published, $id]);
+        $msgs[] = ['type' => 'success', 'text' => '✅ امتحان با موفقیت بروزرسانی شد.'];
+    } else {
+        $stmt = $db->prepare("INSERT INTO exams (title, date, lesson, grade, major, teacher_id, max_score, is_published, academic_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $date, $lesson, $grade, $major, $teacher_id, $max_score, $is_published, $active_year]);
+        $msgs[] = ['type' => 'success', 'text' => '✅ امتحان جدید با موفقیت ثبت شد.'];
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_exam'])) {
+    $db = getDB();
+    $id = $_POST['exam_id'];
+    $db->prepare("DELETE FROM exams WHERE id=?")->execute([$id]);
+    $db->prepare("DELETE FROM scores WHERE exam_id=?")->execute([$id]);
+    $msgs[] = ['type' => 'success', 'text' => '✅ امتحان و نمرات آن حذف شدند.'];
+}
+
+// ─── آپلود فیش حقوقی ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_paystubs'])) {
+    $db = getDB();
+    $title = trim($_POST['paystub_title'] ?? '');
+    if (!$title) {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ عنوان فیش حقوقی الزامی است.'];
+    } else {
+        if (!is_dir('uploads/paystubs')) {
+            mkdir('uploads/paystubs', 0777, true);
+        }
+        $count = 0;
+        foreach ($_FILES['paystub_files']['tmp_name'] as $nid => $tmp_name) {
+            if ($tmp_name && is_uploaded_file($tmp_name)) {
+                $ext = pathinfo($_FILES['paystub_files']['name'][$nid], PATHINFO_EXTENSION);
+                $filename = "paystub_{$nid}_" . time() . ".$ext";
+                $target = "uploads/paystubs/" . $filename;
+                if (move_uploaded_file($tmp_name, $target)) {
+                    $stmt = $db->prepare("INSERT INTO paystubs (national_id, academic_year, title, file_path) VALUES (?, ?, ?, ?)");
+                    $stmt->execute([$nid, $active_year, $title, $target]);
+                    $count++;
+                }
+            }
+        }
+        $msgs[] = ['type'=>'success', 'text'=>"✅ تعداد $count فیش حقوقی با عنوان '{$title}' آپلود شد."];
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_paystub_title'])) {
+    $db = getDB();
+    $id = (int)$_POST['paystub_id'];
+    $title = trim($_POST['new_title']);
+    if ($title) {
+        $stmt = $db->prepare("UPDATE paystubs SET title=? WHERE id=?");
+        $stmt->execute([$title, $id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ عنوان فیش حقوقی بروزرسانی شد.'];
+    }
+}
+
+if ($isAdmin && isset($_GET['delete_paystub'])) {
+    $db = getDB();
+    $id = (int)$_GET['delete_paystub'];
+    $stmt = $db->prepare("SELECT file_path FROM paystubs WHERE id=?");
+    $stmt->execute([$id]);
+    $ps = $stmt->fetch();
+    if ($ps) {
+        if (file_exists($ps['file_path'])) {
+            unlink($ps['file_path']);
+        }
+        $db->prepare("DELETE FROM paystubs WHERE id=?")->execute([$id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ فیش حقوقی حذف شد.'];
+    }
+}
+
+// ─── آپلود کارنامه ───
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['upload_report_cards'])) {
+    $db = getDB();
+    $title = trim($_POST['report_card_title'] ?? '');
+    if (!$title) {
+        $msgs[] = ['type'=>'error', 'text'=>'❌ عنوان کارنامه الزامی است.'];
+    } else {
+        if (!is_dir('uploads/report_cards')) {
+            mkdir('uploads/report_cards', 0777, true);
+        }
+        $count = 0;
+        foreach ($_FILES['report_card_files']['tmp_name'] as $nid => $tmp_name) {
+            if ($tmp_name && is_uploaded_file($tmp_name)) {
+                $ext = pathinfo($_FILES['report_card_files']['name'][$nid], PATHINFO_EXTENSION);
+                $filename = "report_{$nid}_" . time() . ".$ext";
+                $target = "uploads/report_cards/" . $filename;
+                $is_visible = isset($_POST['report_card_visible'][$nid]) ? 1 : 0;
+                if (move_uploaded_file($tmp_name, $target)) {
+                    $stmt = $db->prepare("INSERT INTO report_cards (national_id, academic_year, title, file_path, is_visible) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$nid, $active_year, $title, $target, $is_visible]);
+                    $count++;
+                }
+            }
+        }
+        $msgs[] = ['type'=>'success', 'text'=>"✅ تعداد $count کارنامه با عنوان '{$title}' آپلود شد."];
+    }
+}
+
+if ($isAdmin && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_report_card'])) {
+    $db = getDB();
+    $id = (int)$_POST['report_card_id'];
+    $title = trim($_POST['new_title']);
+    $is_visible = isset($_POST['is_visible']) ? 1 : 0;
+    if ($title) {
+        $stmt = $db->prepare("UPDATE report_cards SET title=?, is_visible=? WHERE id=?");
+        $stmt->execute([$title, $is_visible, $id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ کارنامه بروزرسانی شد.'];
+    }
+}
+
+if ($isAdmin && isset($_GET['delete_report_card'])) {
+    $db = getDB();
+    $id = (int)$_GET['delete_report_card'];
+    $stmt = $db->prepare("SELECT file_path FROM report_cards WHERE id=?");
+    $stmt->execute([$id]);
+    $rc = $stmt->fetch();
+    if ($rc) {
+        if (file_exists($rc['file_path'])) {
+            unlink($rc['file_path']);
+        }
+        $db->prepare("DELETE FROM report_cards WHERE id=?")->execute([$id]);
+        $msgs[] = ['type'=>'success', 'text'=>'✅ کارنامه حذف شد.'];
+    }
+}
+
 // ─── مدیریت دیتابیس (Backup/Restore/Excel) ───
 if ($isAdmin && isset($_GET['download_db'])) {
     if (file_exists(DB_PATH)) {
@@ -530,14 +940,26 @@ if ($isAdmin && isset($_GET['export_excel'])) {
 $students = [];
 if ($isAdmin) {
     $db = getDB();
-    // دانش‌آموزانی که در سال تحصیلی فعال رکورد دارند یا اگر سال پیش‌فرض است، همه
-    if ($active_year === '1404-1405') {
-        $students = $db->query("SELECT id, username, full_name, created_at FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
-    } else {
-        $stmt = $db->prepare("SELECT u.id, u.username, u.full_name, u.created_at FROM users u JOIN student_profiles sp ON u.username = sp.national_id WHERE sp.academic_year = ? ORDER BY u.full_name ASC");
-        $stmt->execute([$active_year]);
-        $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $stmt = $db->prepare("SELECT u.id, u.username, sp.first_name, sp.last_name, u.created_at
+                          FROM users u
+                          JOIN student_profiles sp ON u.username = sp.national_id
+                          WHERE sp.academic_year = ? AND u.role = 'student'
+                          ORDER BY sp.last_name, sp.first_name ASC");
+    $stmt->execute([$active_year]);
+    $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// ─── لیست کارکنان ───
+$staff = [];
+if ($isAdmin) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT u.id, u.username, st.first_name, st.last_name, st.position, u.created_at
+                          FROM users u
+                          JOIN staff_profiles st ON u.username = st.national_id
+                          WHERE st.academic_year = ? AND u.role = 'staff'
+                          ORDER BY st.last_name, st.first_name ASC");
+    $stmt->execute([$active_year]);
+    $staff = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 $tab = $_GET['tab'] ?? 'db_mgmt';
@@ -632,6 +1054,19 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 .guide { background:var(--turquoise-lighter); border:1px solid var(--turquoise-light); border-radius:14px; padding:18px 20px; font-size:.85rem; color:var(--text); line-height:1.8; margin-top:12px; }
 .guide strong { color:var(--turquoise-dark); }
 .guide code { background:#d0eff3; border-radius:6px; padding:2px 7px; font-family:monospace; font-size:.82rem; }
+
+.field-title { width: 80% !important; }
+.field-lesson { width: 70% !important; }
+.field-max-score { width: 33% !important; }
+
+@media (max-width: 600px) {
+    .exam-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .field-title, .field-lesson, .field-max-score {
+        width: 100% !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -701,7 +1136,11 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
   <div class="tabs">
     <a href="?tab=db_mgmt"   class="tab <?= $tab==='db_mgmt'   ?'active':'' ?>">🗄️ مدیریت دیتابیس</a>
+    <a href="?tab=upload_paystubs"  class="tab <?= $tab==='upload_paystubs'  ?'active':'' ?>">💵 مدیریت فیش‌های حقوقی</a>
+    <a href="?tab=report_cards"  class="tab <?= $tab==='report_cards'  ?'active':'' ?>">📜 مدیریت کارنامه‌ها</a>
     <a href="?tab=students"  class="tab <?= $tab==='students'  ?'active':'' ?>">👩‍🎓 لیست دانش‌آموزان (<?= to_persian_num(count($students)) ?>)</a>
+    <a href="?tab=staff"     class="tab <?= $tab==='staff'     ?'active':'' ?>">👥 مدیریت کارکنان (<?= to_persian_num(count($staff)) ?>)</a>
+    <a href="?tab=exams"     class="tab <?= $tab==='exams'     ?'active':'' ?>">📝 مدیریت نمرات و امتحانات</a>
     <a href="?tab=debtors"   class="tab <?= $tab==='debtors'   ?'active':'' ?>">📉 لیست بدهکاران</a>
     <a href="?tab=news"      class="tab <?= $tab==='news'      ?'active':'' ?>">📰 مدیریت اخبار</a>
   </div>
@@ -734,12 +1173,15 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   <h3>➕ افزودن دستی دانش‌آموز</h3>
 
   <form method="POST">
-
-    <div class="field">
-      <label>نام و نام خانوادگی</label>
-      <input type="text"
-             name="full_name"
-             placeholder="مثلاً فاطمه محمدی">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="field">
+          <label>نام</label>
+          <input type="text" name="first_name" placeholder="مثلاً فاطمه">
+        </div>
+        <div class="field">
+          <label>نام خانوادگی</label>
+          <input type="text" name="last_name" placeholder="مثلاً محمدی">
+        </div>
     </div>
 
     <div class="field">
@@ -773,12 +1215,59 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     </form>
     <div class="guide">
       <strong>فرمت فایل CSV دانش‌آموزان:</strong><br>
-      ستون اول: نام و نام خانوادگی — ستون دوم: کد ملی<br>
-      <code>فاطمه محمدی,1234567890</code><br>
-      <code>زهرا احمدی,0987654321</code><br><br>
+      ستون اول: نام — ستون دوم: نام خانوادگی — ستون سوم: کد ملی<br>
+      <code>فاطمه,محمدی,1234567890</code><br><br>
       ⚡ نام کاربری و رمز عبور اولیه هر دانش‌آموز = کد ملی او<br>
-      🔄 اگر کد ملی قبلاً وجود داشته باشد، فقط نام به‌روز می‌شود.<br><br>
-      <strong>برای ذخیره اکسل به CSV:</strong> در اکسل ← <em>File → Save As → CSV UTF-8 (Comma delimited)</em>
+      🔄 اگر کد ملی قبلاً وجود داشته باشد، اطلاعات به‌روز می‌شود.
+    </div>
+  </div>
+
+  <!-- ایمپورت دانش‌آموزان اکسل -->
+  <div class="card">
+    <h3>👩‍🎓 وارد کردن دانش‌آموزان از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel دانش‌آموزان (.xlsx)</label>
+        <input type="file" name="students_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_students_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel دانش‌آموزان:</strong><br>
+      <small>۱. نام | ۲. نام خانوادگی | ۳. کد ملی | ۴. پایه | ۵. رشته | ۶. نام پدر | ۷. نام مادر | ۸. تلفن مادر | ۹. تلفن پدر | ۱۰. تلفن منزل | ۱۱. چپ‌دست (۱ یا بله) | ۱۲. شماره صندلی | ۱۳. آدرس | ۱۴. تلفن دانش‌آموز</small>
+    </div>
+  </div>
+
+  <!-- ایمپورت کارکنان اکسل -->
+  <div class="card">
+    <h3>👥 وارد کردن کارکنان از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel کارکنان (.xlsx)</label>
+        <input type="file" name="staff_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_staff_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel کارکنان:</strong><br>
+      <small>۱. نام | ۲. نام خانوادگی | ۳. کد ملی | ۴. تاریخ تولد | ۵. محل صدور | ۶. مدرک تحصیلی | ۷. سمت | ۸. نام پدر | ۹. تلفن منزل | ۱۰. آدرس | ۱۱. برنامه حضور | ۱۲. تلفن همراه | ۱۳. تاریخ قرارداد | ۱۴. بانک | ۱۵. شبا | ۱۶. شماره نامه</small>
+    </div>
+  </div>
+
+  <!-- ایمپورت پرداخت‌های خودکار اکسل -->
+  <div class="card">
+    <h3>💰 ثبت خودکار پرداختی با فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel پرداخت‌ها (.xlsx)</label>
+        <input type="file" name="payments_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_payments_excel" class="btn-primary">آپلود و ثبت پرداخت‌ها</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel پرداخت‌ها:</strong><br>
+      <small>۱. کد ملی | ۲. مبلغ (تومان) | ۳. تاریخ پرداخت (مثلاً ۱۴۰۳/۰۷/۰۱)</small><br>
+      ⚡ مبالغ به ترتیب بین اقساط پرداخت نشده دانش‌آموز توزیع می‌شود.
     </div>
   </div>
 <!-- افزودن دستی قسط -->
@@ -793,7 +1282,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <input type="text" name="national_id" list="students_list" autocomplete="off">
       <datalist id="students_list">
         <?php foreach ($students as $s): ?>
-          <option value="<?= htmlspecialchars($s['username']) ?>"><?= htmlspecialchars($s['full_name']) ?> (<?= htmlspecialchars($s['username']) ?>)</option>
+          <option value="<?= htmlspecialchars($s['username']) ?>"><?= htmlspecialchars($s['first_name'].' '.$s['last_name']) ?> (<?= htmlspecialchars($s['username']) ?>)</option>
         <?php endforeach; ?>
       </datalist>
     </div>
@@ -821,7 +1310,6 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
-            <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
@@ -847,7 +1335,6 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         </select>
         <select name="paid_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
             <option value="">سال</option>
-            <option value="1403">1403</option>
             <option value="1404">1404</option>
             <option value="1405" selected>1405</option>
             <option value="1406">1406</option>
@@ -892,14 +1379,28 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       <strong>فرمت فایل CSV اقساط (۷ ستون):</strong><br>
       <code>کد_ملی , شماره_قسط , مبلغ , تاریخ_سررسید , پرداخت_شده , تاریخ_پرداخت , وضعیت</code><br><br>
       <strong>مثال:</strong><br>
-      <code>1234567890,1,5000000,1403/07/01,5000000,1403/06/28,paid</code><br>
-      <code>1234567890,2,قسط دوم,5000000,1403/09/01,2500000,,partial</code><br>
-      <code>1234567890,3,قسط سوم,5000000,1403/11/01,0,,unpaid</code><br><br>
+      <code>1234567890,1,5000000,1403/07/01,5000000,1403/06/28,paid</code><br><br>
       <strong>مقادیر وضعیت:</strong>
       <code>paid</code> پرداخت شده &nbsp;|&nbsp;
       <code>partial</code> ناقص &nbsp;|&nbsp;
       <code>unpaid</code> پرداخت نشده<br>
       🔄 اگر کد ملی + شماره قسط قبلاً موجود بود، به‌روز می‌شود.
+    </div>
+  </div>
+
+  <!-- ایمپورت اقساط اکسل -->
+  <div class="card">
+    <h3>💳 وارد کردن اقساط شهریه از فایل Excel</h3>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="field">
+        <label>فایل Excel اقساط (.xlsx)</label>
+        <input type="file" name="tuition_excel" accept=".xlsx">
+      </div>
+      <button type="submit" name="import_tuition_excel" class="btn-primary">آپلود و وارد کردن اکسل</button>
+    </form>
+    <div class="guide">
+      <strong>ترتیب ستون‌های فایل Excel اقساط (۷ ستون):</strong><br>
+      <small>۱. کد ملی | ۲. شماره قسط | ۳. مبلغ | ۴. تاریخ سررسید | ۵. مبلغ پرداخت شده | ۶. تاریخ پرداخت | ۷. وضعیت (paid, partial, unpaid)</small>
     </div>
   </div>
 
@@ -918,20 +1419,22 @@ tbody td { padding:11px 14px; font-size:.88rem; }
         <thead>
           <tr>
             <th onclick="sortTable(0)" style="cursor:pointer;"># ↕</th>
-            <th onclick="sortTable(1)" style="cursor:pointer;">نام و نام خانوادگی ↕</th>
-            <th onclick="sortTable(2)" style="cursor:pointer;">کد ملی (نام کاربری) ↕</th>
-            <th onclick="sortTable(3)" style="cursor:pointer;">تاریخ ثبت ↕</th>
+            <th onclick="sortTable(1)" style="cursor:pointer;">نام ↕</th>
+            <th onclick="sortTable(2)" style="cursor:pointer;">نام خانوادگی ↕</th>
+            <th onclick="sortTable(3)" style="cursor:pointer;">کد ملی (نام کاربری) ↕</th>
+            <th onclick="sortTable(4)" style="cursor:pointer;">تاریخ ثبت ↕</th>
             <th>عملیات</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($students)): ?>
-            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز دانش‌آموزی ثبت نشده</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--gray)">هنوز دانش‌آموزی ثبت نشده</td></tr>
           <?php endif; ?>
           <?php foreach ($students as $i => $s): ?>
           <tr>
             <td><?= to_persian_num($i + 1) ?></td>
-            <td><?= htmlspecialchars($s['full_name'] ?: '—') ?></td>
+            <td><?= htmlspecialchars($s['first_name'] ?: '—') ?></td>
+            <td><?= htmlspecialchars($s['last_name'] ?: '—') ?></td>
             <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
             <td><?= to_persian_num(convert_to_jalali($s['created_at'])) ?></td>
             <td>
@@ -960,20 +1463,25 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       $stmt = $db->prepare("SELECT * FROM student_profiles WHERE national_id = ? AND academic_year = ?");
       $stmt->execute([$target_user, $active_year]);
       $prof = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+      $fullName = trim(($prof['first_name']??'').' '.($prof['last_name']??'')) ?: $student_info['username'];
 
       $t_stmt = $db->prepare("SELECT * FROM tuition WHERE national_id = ? AND academic_year = ? ORDER BY installment_no ASC");
       $t_stmt->execute([$target_user, $active_year]);
       $student_tuition = $t_stmt->fetchAll(PDO::FETCH_ASSOC);
   ?>
   <div class="card">
-    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($student_info['full_name']) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
+    <h3>⚙️ مدیریت پروفایل: <?= htmlspecialchars($fullName) ?> (سال <?= to_persian_num($active_year) ?>)</h3>
     <form method="POST">
       <input type="hidden" name="old_username" value="<?= htmlspecialchars($student_info['username']) ?>">
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
           <div class="field">
-            <label>نام و نام خانوادگی</label>
-            <input type="text" name="full_name" value="<?= htmlspecialchars($student_info['full_name']) ?>">
+            <label>نام</label>
+            <input type="text" name="first_name" value="<?= htmlspecialchars($prof['first_name']??'') ?>">
+          </div>
+          <div class="field">
+            <label>نام خانوادگی</label>
+            <input type="text" name="last_name" value="<?= htmlspecialchars($prof['last_name']??'') ?>">
           </div>
           <div class="field">
             <label>کد ملی (نام کاربری)</label>
@@ -1059,7 +1567,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$tm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="pay_y" id="pay_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($ty==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -1125,7 +1633,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="due_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1147,7 +1655,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                     </select>
                     <select form="<?= $formId ?>" name="paid_y" style="font-size:0.9rem; padding:2px; font-family:Vazirmatn;">
                         <option value="">سال</option>
-                        <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
+                        <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($p_y==$y?'selected':'').">$y</option>"; ?>
                     </select>
                 </div>
             </td>
@@ -1189,14 +1697,340 @@ tbody td { padding:11px 14px; font-size:.88rem; }
             </select>
             <select name="due_y" style="flex:1; padding:10px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
                 <option value="">سال</option>
-                <option value="1403">1403</option>
-                <option value="1404">1404</option>
-                <option value="1405" selected>1405</option>
-                <option value="1406">1406</option>
+            <option value="1404">1404</option>
+            <option value="1405" selected>1405</option>
+            <option value="1406">1406</option>
             </select>
         </div>
       </div>
       <button type="submit" name="add_tuition_manual" class="btn-primary">افزودن قسط</button>
+    </form>
+  </div>
+  <?php endif; ?>
+
+
+  <?php elseif ($tab === 'report_cards'): ?>
+  <?php
+    $f_grade = $_GET['grade'] ?? '';
+    $f_major = $_GET['major'] ?? '';
+    $db = getDB();
+    $sql = "SELECT u.username, sp.first_name, sp.last_name, sp.grade, sp.major 
+            FROM users u 
+            JOIN student_profiles sp ON u.username = sp.national_id 
+            WHERE sp.academic_year = ? AND u.role = 'student'";
+    $params = [$active_year];
+    if ($f_grade) { $sql .= " AND sp.grade = ?"; $params[] = $f_grade; }
+    if ($f_major) { $sql .= " AND sp.major = ?"; $params[] = $f_major; }
+    $sql .= " ORDER BY sp.last_name, sp.first_name ASC";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $filtered_students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📜 مدیریت و آپلود کارنامه‌ها (سال <?= to_persian_num($active_year) ?>)</h3>
+    
+    <div style="background:var(--turquoise-lighter); padding:15px; border-radius:12px; margin-bottom:20px; display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+        <span>فیلتر لیست:</span>
+        <select onchange="location.href='?tab=report_cards&grade='+this.value+'&major=<?= urlencode($f_major) ?>'" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">همه پایه‌ها</option>
+            <?php foreach(['دهم','یازدهم','دوازدهم'] as $g) echo "<option value='$g' ".($f_grade==$g?'selected':'').">$g</option>"; ?>
+        </select>
+        <select onchange="location.href='?tab=report_cards&grade=<?= urlencode($f_grade) ?>&major='+this.value" style="padding:5px 10px; border-radius:8px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+            <option value="">همه رشته‌ها</option>
+            <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".($f_major==$m?'selected':'').">$m</option>"; ?>
+        </select>
+        <a href="?tab=report_cards" style="font-size:0.8rem; color:var(--red);">حذف فیلترها</a>
+    </div>
+
+    <form method="POST" action="?tab=report_cards" enctype="multipart/form-data">
+      <div class="field">
+        <label>عنوان کارنامه (مثلاً: کارنامه نوبت اول ۱۴۰۴)</label>
+        <input type="text" name="report_card_title" placeholder="عنوان کارنامه را وارد کنید..." required>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>نام و نام خانوادگی</th>
+              <th>کد ملی</th>
+              <th>پایه و رشته</th>
+              <th>انتخاب فایل</th>
+              <th>قابل مشاهده</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($filtered_students as $s): ?>
+            <tr>
+              <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+              <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+              <td><?= htmlspecialchars($s['grade'] . ' - ' . $s['major']) ?></td>
+              <td><input type="file" name="report_card_files[<?= htmlspecialchars($s['username']) ?>]" accept=".pdf,.jpg,.jpeg,.png"></td>
+              <td style="text-align:center;"><input type="checkbox" name="report_card_visible[<?= htmlspecialchars($s['username']) ?>]" checked></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" name="upload_report_cards" class="btn-primary" style="margin-top:20px;">📤 شروع آپلود کارنامه‌ها</button>
+    </form>
+  </div>
+
+  <?php
+    $stmt = $db->prepare("SELECT rc.*, sp.first_name, sp.last_name 
+                          FROM report_cards rc
+                          JOIN student_profiles sp ON rc.national_id = sp.national_id AND rc.academic_year = sp.academic_year
+                          WHERE rc.academic_year = ?
+                          ORDER BY rc.id DESC");
+    $stmt->execute([$active_year]);
+    $all_report_cards = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📋 مدیریت کارنامه‌های صادر شده (سال <?= to_persian_num($active_year) ?>)</h3>
+    <div class="table-wrap">
+      <table id="reportCardTable">
+        <thead>
+          <tr>
+            <th>عنوان کارنامه</th>
+            <th>نام دانش‌آموز</th>
+            <th>کد ملی</th>
+            <th>وضعیت نمایش</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($all_report_cards)): ?>
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز کارنامه‌ای در این سال تحصیلی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($all_report_cards as $rc): ?>
+          <tr>
+            <td>
+                <form method="POST" action="?tab=report_cards" style="display:flex; gap:5px; align-items:center;">
+                    <input type="hidden" name="report_card_id" value="<?= $rc['id'] ?>">
+                    <input type="text" name="new_title" value="<?= htmlspecialchars($rc['title']) ?>" style="padding:5px; font-size:0.85rem; flex:1;">
+                    <label style="font-size:0.7rem; margin-bottom:0;"><input type="checkbox" name="is_visible" <?= $rc['is_visible']?'checked':'' ?>> نمایش</label>
+                    <button type="submit" name="update_report_card" class="btn-sm" style="background:var(--green); padding:5px 10px;">💾</button>
+                </form>
+            </td>
+            <td><?= htmlspecialchars($rc['first_name'] . ' ' . $rc['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($rc['national_id'])) ?></td>
+            <td><?= $rc['is_visible'] ? '<span style="color:var(--green)">✅ قابل مشاهده</span>' : '<span style="color:var(--red)">❌ غیرفعال</span>' ?></td>
+            <td style="white-space: nowrap;">
+              <a href="<?= htmlspecialchars($rc['file_path']) ?>" target="_blank" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">👁️</a>
+              <a href="?tab=report_cards&delete_report_card=<?= $rc['id'] ?>" class="btn-del" onclick="return confirm('حذف کارنامه؟')">🗑️</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <?php elseif ($tab === 'upload_paystubs'): ?>
+  <div class="card">
+    <h3>💵 مدیریت و آپلود فیش‌های حقوقی (سال <?= to_persian_num($active_year) ?>)</h3>
+    <form method="POST" action="?tab=upload_paystubs" enctype="multipart/form-data">
+      <div class="field">
+        <label>عنوان (مثلاً: فیش حقوقی اردیبهشت ۱۴۰۴)</label>
+        <input type="text" name="paystub_title" placeholder="عنوان فیش را وارد کنید..." required>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>نام و نام خانوادگی</th>
+              <th>کد ملی</th>
+              <th>انتخاب فایل</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($staff as $s): ?>
+            <tr>
+              <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+              <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+              <td><input type="file" name="paystub_files[<?= htmlspecialchars($s['username']) ?>]" accept=".pdf,.jpg,.jpeg,.png"></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
+      <button type="submit" name="upload_paystubs" class="btn-primary" style="margin-top:20px;">📤 شروع آپلود فیش‌ها</button>
+    </form>
+  </div>
+
+  <?php
+    $db = getDB();
+    $stmt = $db->prepare("SELECT ps.*, st.first_name, st.last_name
+                          FROM paystubs ps
+                          JOIN staff_profiles st ON ps.national_id = st.national_id AND ps.academic_year = st.academic_year
+                          WHERE ps.academic_year = ?
+                          ORDER BY ps.id DESC");
+    $stmt->execute([$active_year]);
+    $all_paystubs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  ?>
+  <div class="card">
+    <h3>📋 مدیریت فیش‌های صادر شده (سال <?= to_persian_num($active_year) ?>)</h3>
+
+    <div class="field" style="margin-bottom: 20px;">
+        <input type="text" id="paystubSearch" placeholder="🔍 جستجوی نام پرسنل یا عنوان فیش..." onkeyup="filterPaystubs()" style="padding: 12px 15px; border-radius: 12px; border: 1.5px solid var(--turquoise-light); width: 100%; font-family: Vazirmatn;">
+    </div>
+
+    <div class="table-wrap">
+      <table id="paystubTable">
+        <thead>
+          <tr>
+            <th>عنوان فیش</th>
+            <th>نام پرسنل</th>
+            <th>کد ملی</th>
+            <th>تاریخ آپلود</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($all_paystubs)): ?>
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--gray)">هنوز فیش حقوقی در این سال تحصیلی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($all_paystubs as $ps): ?>
+          <tr>
+            <td>
+                <form method="POST" action="?tab=upload_paystubs" style="display:flex; gap:5px;">
+                    <input type="hidden" name="paystub_id" value="<?= $ps['id'] ?>">
+                    <input type="text" name="new_title" value="<?= htmlspecialchars($ps['title']) ?>" style="padding:5px; font-size:0.85rem; flex:1;">
+                    <button type="submit" name="update_paystub_title" class="btn-sm" style="background:var(--green); padding:5px 10px;">💾</button>
+                </form>
+            </td>
+            <td><?= htmlspecialchars($ps['first_name'] . ' ' . $ps['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($ps['national_id'])) ?></td>
+            <td><?= to_persian_num(convert_to_jalali($ps['upload_date'])) ?></td>
+            <td style="white-space: nowrap;">
+              <a href="<?= htmlspecialchars($ps['file_path']) ?>" target="_blank" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">👁️ مشاهده</a>
+              <a href="?tab=upload_paystubs&delete_paystub=<?= $ps['id'] ?>"
+                 class="btn-del"
+                 onclick="return confirm('آیا از حذف این فیش حقوقی اطمینان دارید؟ (فایل نیز از سرور حذف خواهد شد)')">حذف</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+  function filterPaystubs() {
+      var input, filter, table, tr, td, i, txtValue;
+      input = document.getElementById("paystubSearch");
+      filter = input.value.toUpperCase();
+      table = document.getElementById("paystubTable");
+      tr = table.getElementsByTagName("tr");
+      for (i = 1; i < tr.length; i++) {
+          tr[i].style.display = "none";
+          var tds = tr[i].getElementsByTagName("td");
+          // Check title column (index 0) and staff name column (index 1)
+          for (var j = 0; j <= 1; j++) {
+              if (tds[j]) {
+                  // For title column, we need to check the input value
+                  if (j === 0) {
+                      txtValue = tds[j].querySelector('input[name="new_title"]').value;
+                  } else {
+                      txtValue = tds[j].textContent || tds[j].innerText;
+                  }
+                  if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                      tr[i].style.display = "";
+                      break;
+                  }
+              }
+          }
+      }
+  }
+  </script>
+
+  <?php elseif ($tab === 'staff'): ?>
+
+  <div class="card">
+    <h3>👥 مدیریت کارکنان</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>نام و نام خانوادگی</th>
+            <th>کد ملی</th>
+            <th>سمت</th>
+            <th>تاریخ ثبت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($staff)): ?>
+            <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--gray)">هنوز کارمندی ثبت نشده</td></tr>
+          <?php endif; ?>
+          <?php foreach ($staff as $i => $s): ?>
+          <tr>
+            <td><?= to_persian_num($i + 1) ?></td>
+            <td><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></td>
+            <td><?= to_persian_num(htmlspecialchars($s['username'])) ?></td>
+            <td><?= htmlspecialchars($s['position'] ?: '—') ?></td>
+            <td><?= to_persian_num(convert_to_jalali($s['created_at'])) ?></td>
+            <td>
+              <a href="?tab=manage_staff&username=<?= urlencode($s['username']) ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">ویرایش</a>
+              <a href="?tab=staff&delete_user=<?= $s['id'] ?>" class="btn-del" onclick="return confirm('حذف این کارمند؟')">حذف</a>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>➕ افزودن دستی کارمند</h3>
+    <form method="POST">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+        <div class="field"><label>نام</label><input type="text" name="first_name"></div>
+        <div class="field"><label>نام خانوادگی</label><input type="text" name="last_name"></div>
+      </div>
+      <div class="field"><label>کد ملی</label><input type="text" name="national_id"></div>
+      <button type="submit" name="add_staff_manual" class="btn-primary">ثبت کارمند</button>
+    </form>
+  </div>
+
+  <?php elseif ($tab === 'manage_staff' && isset($_GET['username'])):
+    $db = getDB();
+    $target_user = $_GET['username'];
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->execute([$target_user]);
+    $u_info = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$u_info):
+      echo "<div class='alert error'>❌ کارمند یافت نشد.</div>";
+    else:
+      $stmt = $db->prepare("SELECT * FROM staff_profiles WHERE national_id = ? AND academic_year = ?");
+      $stmt->execute([$target_user, $active_year]);
+      $st_prof = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+  ?>
+  <div class="card">
+    <h3>⚙️ مدیریت پروفایل کارمند: <?= htmlspecialchars(($st_prof['first_name']??'') . ' ' . ($st_prof['last_name']??'')) ?></h3>
+    <form method="POST">
+      <input type="hidden" name="old_username" value="<?= htmlspecialchars($u_info['username']) ?>">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div class="field"><label>نام</label><input type="text" name="first_name" value="<?= htmlspecialchars($st_prof['first_name']??'') ?>"></div>
+          <div class="field"><label>نام خانوادگی</label><input type="text" name="last_name" value="<?= htmlspecialchars($st_prof['last_name']??'') ?>"></div>
+          <div class="field"><label>کد ملی (نام کاربری)</label><input type="text" name="new_username" value="<?= htmlspecialchars($u_info['username']) ?>"></div>
+          <div class="field"><label>رمز عبور جدید</label><input type="password" name="new_password" placeholder="********"></div>
+          <div class="field"><label>تاریخ تولد</label><input type="text" name="birth_date" value="<?= htmlspecialchars($st_prof['birth_date']??'') ?>"></div>
+          <div class="field"><label>محل صدور</label><input type="text" name="birth_place" value="<?= htmlspecialchars($st_prof['birth_place']??'') ?>"></div>
+          <div class="field"><label>مدرک تحصیلی</label><input type="text" name="education" value="<?= htmlspecialchars($st_prof['education']??'') ?>"></div>
+          <div class="field"><label>سمت (دبیر، مستخدم و ...)</label><input type="text" name="position" value="<?= htmlspecialchars($st_prof['position']??'') ?>"></div>
+          <div class="field"><label>نام پدر</label><input type="text" name="father_name" value="<?= htmlspecialchars($st_prof['father_name']??'') ?>"></div>
+          <div class="field"><label>تلفن منزل</label><input type="text" name="home_phone" value="<?= htmlspecialchars($st_prof['home_phone']??'') ?>"></div>
+          <div class="field"><label>تلفن همراه</label><input type="text" name="mobile_phone" value="<?= htmlspecialchars($st_prof['mobile_phone']??'') ?>"></div>
+          <div class="field"><label>تاریخ قرارداد</label><input type="text" name="contract_date" value="<?= htmlspecialchars($st_prof['contract_date']??'') ?>"></div>
+          <div class="field"><label>بانک</label><input type="text" name="bank" value="<?= htmlspecialchars($st_prof['bank']??'') ?>"></div>
+          <div class="field"><label>شماره شبا</label><input type="text" name="sheba" value="<?= htmlspecialchars($st_prof['sheba']??'') ?>"></div>
+          <div class="field"><label>شماره نامه</label><input type="text" name="letter_no" value="<?= htmlspecialchars($st_prof['letter_no']??'') ?>"></div>
+      </div>
+      <div class="field"><label>آدرس</label><textarea name="address" rows="2" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:10px; font-family:Vazirmatn;"><?= htmlspecialchars($st_prof['address']??'') ?></textarea></div>
+      <div class="field"><label>برنامه حضور</label><textarea name="schedule" rows="2" style="width:100%; border:1.5px solid #c0e5ea; border-radius:12px; padding:10px; font-family:Vazirmatn;"><?= htmlspecialchars($st_prof['schedule']??'') ?></textarea></div>
+      <button type="submit" name="update_staff_profile" class="btn-primary">بروزرسانی پروفایل کارمند</button>
     </form>
   </div>
   <?php endif; ?>
@@ -1209,8 +2043,9 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     }
     $db = getDB();
 
-    // واکشی همه کاربران و محاسبات بدهی
-    $all_users = $db->query("SELECT username, full_name FROM users ORDER BY full_name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $db->prepare("SELECT u.username, sp.first_name, sp.last_name FROM users u JOIN student_profiles sp ON u.username = sp.national_id WHERE sp.academic_year = ? AND u.role = 'student'");
+    $stmt->execute([$active_year]);
+    $all_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $debtors = [];
 
     foreach ($all_users as $u) {
@@ -1224,7 +2059,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
         if ($debt > 0) {
             $debtors[] = [
-                'full_name' => $u['full_name'],
+                'full_name' => trim($u['first_name'].' '.$u['last_name']),
                 'username'  => $u['username'],
                 'total_due' => $total_due,
                 'total_paid'=> $total_paid,
@@ -1249,7 +2084,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
                 <?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$rm==$i?'selected':'').">$i</option>"; ?>
             </select>
             <select name="ref_y" id="ref_y" style="flex:1; padding:10px; border-radius:12px; border:1.5px solid #c0e5ea; font-family:Vazirmatn; font-size:1rem;">
-                <?php foreach(['1403','1404','1405','1406'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
+                <?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($ry==$y?'selected':'').">$y</option>"; ?>
             </select>
         </div>
       </div>
@@ -1275,7 +2110,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
           <?php endif; ?>
           <?php foreach ($debtors as $d): ?>
           <tr>
-            <td><?= htmlspecialchars($d['full_name']) ?></td>
+            <td><?= htmlspecialchars($d['full_name'] ?: $d['username']) ?></td>
             <td><?= to_persian_num(htmlspecialchars($d['username'])) ?></td>
             <td><?= to_persian_num(number_format($d['total_due'])) ?> تومان</td>
             <td><?= to_persian_num(number_format($d['total_paid'])) ?> تومان</td>
@@ -1289,6 +2124,123 @@ tbody td { padding:11px 14px; font-size:.88rem; }
       </table>
     </div>
   </div>
+  <?php elseif ($tab === 'exams'):
+    $db = getDB();
+    // Fetch Exams
+    $stmt = $db->prepare("SELECT e.*, st.first_name, st.last_name FROM exams e LEFT JOIN staff_profiles st ON e.teacher_id = st.national_id AND e.academic_year = st.academic_year WHERE e.academic_year = ? ORDER BY e.date DESC");
+    $stmt->execute([$active_year]);
+    $exams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch Teachers
+    $stmt = $db->prepare("SELECT national_id, first_name, last_name FROM staff_profiles WHERE academic_year = ? AND position LIKE '%دبیر%'");
+    $stmt->execute([$active_year]);
+    $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $edit_exam = null;
+    if (isset($_GET['edit_exam_id'])) {
+        $stmt = $db->prepare("SELECT * FROM exams WHERE id=?");
+        $stmt->execute([$_GET['edit_exam_id']]);
+        $edit_exam = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+  ?>
+  <div class="card">
+    <h3><?= $edit_exam ? '✏️ ویرایش امتحان' : '➕ ایجاد امتحان جدید' ?></h3>
+    <form method="POST">
+        <?php if ($edit_exam): ?>
+            <input type="hidden" name="exam_id" value="<?= $edit_exam['id'] ?>">
+        <?php endif; ?>
+        <div class="exam-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+            <div class="field"><label>عنوان امتحان</label><input type="text" name="title" class="field-title" value="<?= htmlspecialchars($edit_exam['title'] ?? '') ?>" required placeholder="مثلاً: میان‌ترم ریاضی"></div>
+            <div class="field">
+                <label>تاریخ امتحان</label>
+                <?php
+                    $d_y = $d_m = $d_d = "";
+                    if (!empty($edit_exam['date'])) {
+                        list($d_y, $d_m, $d_d) = explode('/', $edit_exam['date']);
+                    } else {
+                        list($d_y, $d_m, $d_d) = explode('/', get_jalali_today());
+                    }
+                ?>
+                <div style="display:flex; gap:5px; direction:rtl;">
+                    <select name="date_d" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=31; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_d==$i?'selected':'').">$i</option>"; ?></select>
+                    <select name="date_m" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php for($i=1; $i<=12; $i++) echo "<option value='".sprintf("%02d",$i)."' ".((int)$d_m==$i?'selected':'').">$i</option>"; ?></select>
+                    <select name="date_y" style="flex:1; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;"><?php foreach(['1404','1405','1406'] as $y) echo "<option value='$y' ".($d_y==$y?'selected':'').">$y</option>"; ?></select>
+                </div>
+            </div>
+            <div class="field"><label>درس</label><input type="text" name="lesson" class="field-lesson" value="<?= htmlspecialchars($edit_exam['lesson'] ?? '') ?>" required></div>
+            <div class="field">
+                <label>پایه</label>
+                <select name="grade" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach(['دهم','یازدهم','دوازدهم'] as $g) echo "<option value='$g' ".((($edit_exam['grade']??'')==$g)?'selected':'').">$g</option>"; ?>
+                </select>
+            </div>
+            <div class="field">
+                <label>رشته</label>
+                <select name="major" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach(['ریاضی','تجربی','انسانی'] as $m) echo "<option value='$m' ".((($edit_exam['major']??'')==$m)?'selected':'').">$m</option>"; ?>
+                </select>
+            </div>
+            <div class="field"><label>نمره از چند</label><input type="number" step="0.25" name="max_score" class="field-max-score" value="<?= htmlspecialchars($edit_exam['max_score'] ?? '20') ?>" required></div>
+            <div class="field">
+                <label>دبیر</label>
+                <select name="teacher_id" required style="width:100%; padding:8px; border-radius:10px; border:1.5px solid #c0e5ea; font-family:Vazirmatn;">
+                    <?php foreach($teachers as $t) echo "<option value='{$t['national_id']}' ".((($edit_exam['teacher_id']??'')==$t['national_id'])?'selected':'').">{$t['first_name']} {$t['last_name']}</option>"; ?>
+                </select>
+            </div>
+            <div class="field" style="display:flex; align-items:center; gap:10px; margin-top:25px;">
+                <input type="checkbox" name="is_published" id="pub" <?= ($edit_exam ? ($edit_exam['is_published'] ? 'checked' : '') : 'checked') ?>>
+                <label for="pub" style="margin-bottom:0;">انتشار برای دانش‌آموزان</label>
+            </div>
+        </div>
+        <div style="margin-top:15px;">
+            <button type="submit" name="save_exam" class="btn-primary" style="width:auto; padding:10px 25px;"><?= $edit_exam ? 'بروزرسانی امتحان' : 'ثبت امتحان' ?></button>
+            <?php if ($edit_exam): ?><a href="?tab=exams" class="btn-sm" style="background:var(--gray); text-decoration:none; padding:10px 20px; border-radius:10px;">انصراف</a><?php endif; ?>
+        </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>📋 لیست امتحانات (سال <?= to_persian_num($active_year) ?>)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>عنوان</th>
+            <th>درس</th>
+            <th>پایه و رشته</th>
+            <th>دبیر</th>
+            <th>تاریخ</th>
+            <th>وضعیت</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if (empty($exams)): ?>
+            <tr><td colspan="7" style="text-align:center; padding:20px;">هیچ امتحانی ثبت نشده است.</td></tr>
+          <?php endif; ?>
+          <?php foreach ($exams as $e): ?>
+          <tr>
+            <td><?= htmlspecialchars($e['title']) ?></td>
+            <td><?= htmlspecialchars($e['lesson']) ?></td>
+            <td><?= htmlspecialchars($e['grade'] . ' - ' . $e['major']) ?></td>
+            <td><?= htmlspecialchars($e['first_name'] . ' ' . $e['last_name']) ?></td>
+            <td><?= to_persian_num($e['date']) ?></td>
+            <td><?= $e['is_published'] ? '<span style="color:var(--green)">منتشر شده</span>' : '<span style="color:var(--gray)">منتشر نشده</span>' ?></td>
+            <td>
+              <a href="manage_scores.php?exam_id=<?= $e['id'] ?>" class="btn-sm" style="background:var(--green); text-decoration:none;">📝 نمرات</a>
+              <a href="?tab=exams&edit_exam_id=<?= $e['id'] ?>" class="btn-sm" style="background:var(--turquoise-dark); text-decoration:none;">✏️</a>
+              <form method="POST" style="display:inline;" onsubmit="return confirm('حذف امتحان و نمرات؟')">
+                <input type="hidden" name="exam_id" value="<?= $e['id'] ?>">
+                <button type="submit" name="delete_exam" class="btn-del" style="padding: 5px 10px;">🗑️</button>
+              </form>
+            </td>
+          </tr>
+          <?php endforeach; ?>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <?php elseif ($tab === 'news'):
     $db = getDB();
     $all_news = $db->query("SELECT * FROM news ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
