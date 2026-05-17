@@ -114,8 +114,8 @@ if (isset($_GET['edit'])) {
 <title>مدیریت امتحانات — دبیرستان توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
+
+
 body { font-family:'Vazirmatn', sans-serif; background:#f5fbfd; color:#0f3d42; padding:20px; line-height:1.6; }
 .container { max-width:1000px; margin:0 auto; }
 .card { background:#fff; border-radius:18px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,.05); border:1.5px solid #e6f8fa; margin-bottom:20px; }
@@ -151,8 +151,24 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
 .badge-success { background:#e6f9f0; color:#1a9960; }
 .badge-warning { background:#fff9e6; color:#997a1a; }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
         <h1>📝 مدیریت امتحانات</h1>
@@ -288,6 +304,12 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
             </table>
         </div>
     </div>
+</div>
+
+
+
+
+</main>
 </div>
 </body>
 </html>

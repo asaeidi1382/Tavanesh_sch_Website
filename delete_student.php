@@ -1,3 +1,6 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
 <?php
 
 require_once 'auth_new.php';

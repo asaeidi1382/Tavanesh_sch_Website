@@ -37,11 +37,11 @@ $profile_image = $stmt->fetchColumn();
 </style>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -111,34 +111,26 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
 .back-link { display:inline-flex; align-items:center; gap:6px; margin-top:36px; color:var(--turquoise-dark); text-decoration:none; font-size:.9rem; font-weight:700; transition:color .2s; }
 .back-link:hover { color:var(--turquoise); }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو توانش"></div>
-      <div>
-        <div class="brand-title">دبیرستان دخترانه توانش</div>
-        <div class="brand-sub">پرتال <?= $_SESSION['role'] === 'staff' ? 'کارکنان' : 'دانش‌آموزی' ?></div>
-      </div>
-    </div>
-    <div class="topbar-left">
-      <div class="user-badge" style="display:flex; align-items:center; gap:10px; padding: 5px 12px 5px 16px;">
-        <div style="width:40px; height:40px; border-radius:50%; overflow:hidden; background:rgba(255,255,255,0.2); border:2px solid rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; font-size:20px;">
-            <?php if ($profile_image): ?>
-                <img src="<?= htmlspecialchars($profile_image) ?>" style="width:100%; height:100%; object-fit:cover;">
-            <?php else: ?>
-                👤
-            <?php endif; ?>
-        </div>
-        <?= to_persian_num(htmlspecialchars($fullName)) ?>
-      </div>
-      <a href="logout.php" class="btn-logout">خروج ←</a>
-    </div>
-  </div>
-</header>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<main>
+
+
+
+
+
+
+
+
+
+
+
+
   <?php if (isset($_GET['page']) && $_GET['page'] === 'paystub'):
       require_once 'auth.php';
       $db = getDB();
@@ -451,6 +443,11 @@ main { max-width:1000px; margin:0 auto; padding:40px 20px 60px; animation:fadeIn
   <?php endif; ?>
 
   <a href="/" class="back-link">→ بازگشت به صفحه اصلی سایت</a>
+
+
+
+
 </main>
+</div>
 </body>
 </html>

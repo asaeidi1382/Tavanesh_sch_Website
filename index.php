@@ -1,8 +1,3 @@
-
-
-
-
-
 <?php
 require_once 'auth.php';
 $isLoggedIn = isLoggedIn();
@@ -24,272 +19,8 @@ if ($isLoggedIn) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>دبیرستان دخترانه توانش — خانه دختران توانمند فردا</title>
 
-      <!-- Preload Vazirmatn Fonts -->
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-ExtraLight.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-Light.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-Regular.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-Medium.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-Bold.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-ExtraBold.woff2" as="font" type="font/woff2" crossorigin="">
-    <link rel="preload" href="https://tavanesh-sch.ir/fonts/Vazirmatn-Black.woff2" as="font" type="font/woff2" crossorigin="">
-    <style>
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-ExtraLight.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 200;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-Light.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 300;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-Regular.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 400;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-Medium.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 500;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-Bold.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 700;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-ExtraBold.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 800;
-            font-style: normal;
-            font-display: swap;
-        }
-
-        @font-face {
-            font-family: 'Vazirmatn';
-            src: url('/fonts/Vazirmatn-Black.woff2'
-
-                ) format('woff2'
-
-                );
-            font-weight: 900;
-            font-style: normal;
-            font-display: swap;
-        }
-    </style>
-
-  <!-- Favicon برای نمایش در نتایج گوگل و تب مرورگر -->
-  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="48x48">
-  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="96x96">
-  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="192x192">
-  <link rel="apple-touch-icon" href="images/logo-T.png">
-
-  <!-- Structured Data برای لوگو در Knowledge Panel گوگل -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "دبیرستان دخترانه توانش",
-    "alternateName": "مدرسه توانش",
-    "url": "https://tavanesh-sch.ir",
-    "logo": "https://tavanesh-sch.ir/images/logo-T.png",
-    "description": "خانه دختران توانمند فردا - دبیرستان دخترانه توانش زرند",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": "زرند، شهرک زیتون، لاله ۳",
-      "addressLocality": "زرند",
-      "addressRegion": "کرمان",
-      "addressCountry": "IR"
-    },
-    "telephone": "+983433401520",
-    "email": "tavaneshhs@gmail.com",
-    "contactPoint": [
-      {
-        "@type": "ContactPoint",
-        "telephone": "+989138441075",
-        "contactType": "موسس - سرکار خانم میرزایی"
-      },
-      {
-        "@type": "ContactPoint",
-        "telephone": "+989132412696",
-        "contactType": "مدیر - سرکار خانم سعیدی"
-      }
-    ],
-    "sameAs": [
-      "https://instagram.com/tavanesh_highschool"
-    ]
-  }
-  </script>
-
+  <?php include 'header_styles.php'; ?>
   <style>
-    :root{
-      --turquoise: #19b8c2;
-      --turquoise-dark: #0c8790;
-      --turquoise-light: #e6f8fa;
-      --turquoise-lighter: #f0fbfd;
-      --text: #0f3d42;
-      --shadow-sm: 0 4px 15px rgba(0,0,0,0.08);
-      --shadow-md: 0 12px 30px rgba(0,0,0,0.12);
-      --shadow-lg: 0 20px 50px rgba(0,0,0,0.18);
-      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      --white: #ffffff;
-    }
-
-    *{ box-sizing: border-box; margin:0; padding:0; }
-    html, body { overflow-x: hidden; width: 100%; position: relative; }
-    body{
-      background: linear-gradient(to bottom, #f5fbfd, #ffffff);
-      color: var(--text); font-family: "Vazirmatn", sans-serif; line-height: 1.7;
-    }
-
-    /* هدر */
-    .topbar{
-      background: var(--turquoise); color:#fff; position:sticky; top:0; z-index:1000;
-      box-shadow: var(--shadow-md);
-    }
-    .topbar-inner{
-      max-width: 1400px; margin:0 auto; padding:14px 20px;
-      display:flex; align-items:center; justify-content:space-between;
-    }
-    .brand{ display:flex; align-items:center; gap:16px; }
-    .logo{
-      width:72px; height:72px; border-radius:18px; overflow:hidden;
-      background: rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      transition: var(--transition);
-    }
-    .logo:hover{ transform: translateY(-4px); }
-    .logo img{ width:100%; height:100%; object-fit:contain; }
-    .site-title{ font-size:2rem; font-weight:800; }
-    .page-subtitle{ font-size:1.1rem; opacity:0.95; }
-
-    .topbar-left { display:flex; align-items:center; gap:12px; }
-    .user-badge {
-        background: rgba(255,255,255,.18);
-        border: 1px solid rgba(255,255,255,.3);
-        border-radius: 12px;
-        padding: 5px 12px 5px 16px;
-        font-size: .85rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: #fff;
-        transition: var(--transition);
-    }
-    .user-badge:hover { background: rgba(255,255,255,.28); transform: translateY(-2px); }
-    .user-img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        overflow: hidden;
-        background: rgba(255,255,255,0.2);
-        border: 2px solid rgba(255,255,255,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-    }
-    .user-img img { width: 100%; height: 100%; object-fit: cover; }
-
-    .hamburger{
-      display:none; cursor:pointer; width:50px; height:50px; border-radius:16px;
-      background: rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4);
-      align-items:center; justify-content:center;
-      box-shadow: var(--shadow-sm); transition: var(--transition);
-    }
-    .hamburger:hover{ background: rgba(255,255,255,0.3); transform: translateY(-3px); }
-    .hamburger .bar{ width:24px; height:3px; background:#fff; border-radius:3px; position:relative; }
-    .hamburger .bar::before,.hamburger .bar::after{
-      content:""; position:absolute; width:24px; height:3px; background:#fff; border-radius:3px;
-    }
-    .hamburger .bar::before{ top:-8px; }
-    .hamburger .bar::after{ top:8px; }
-
-    .layout{
-      max-width: 1400px; margin:24px auto; padding:0 16px;
-      display:grid; grid-template-columns:1fr; gap:28px;
-    }
-
-    /* سایدبار */
-    aside.sidebar{
-      background: var(--turquoise); color:#fff; border-radius:20px; padding:20px;
-      box-shadow: var(--shadow-lg); position:relative; overflow:hidden;
-    }
-    aside.sidebar::before{
-      content:""; position:absolute; inset:0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 70%);
-      pointer-events:none;
-    }
-    .menu-title{ font-size:1.4rem; font-weight:800; text-align:center; margin-bottom:16px; }
-    .menu > li { margin-bottom: 8px; }
-    .menu a{
-      display:flex; justify-content:space-between; align-items:center;
-      padding:14px 18px; margin:4px 0; border-radius:16px;
-      background: rgba(255,255,255,0.15); font-weight:600; text-decoration:none; color:#fff;
-      transition: var(--transition); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      cursor: pointer;
-    }
-    .menu a:hover{
-      background: rgba(255,255,255,0.25);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 25px rgba(0,0,0,0.25);
-    }
-    .submenu{ display: none; background: rgba(255,255,255,0.1); border-radius: 12px; margin-top: 8px; overflow: hidden; }
-    .submenu.open{ display: block; }
-    .submenu a{ padding-right: 40px; font-weight: 500; background: transparent; box-shadow: none; }
-    .submenu a:hover{ background: rgba(255,255,255,0.2); }
-    .caret{
-      width:0; height:0; border-right:6px solid transparent; border-left:6px solid transparent;
-      border-top:8px solid #fff; transition: transform 0.3s ease;
-    }
-    .caret.open{ transform: rotate(180deg); }
-
-    main.content{
-      background: var(--turquoise-lighter); border-radius:20px; padding:24px;
-      box-shadow: var(--shadow-lg);
-    }
-
     /* اسلایدر */
     .slider {
       direction: ltr !important;
@@ -299,10 +30,9 @@ if ($isLoggedIn) {
       box-shadow: var(--shadow-lg);
       aspect-ratio: 16 / 9;
       background: var(--white);
-      max-width: 900px;
+      max-width: 720px;
       margin: 0 auto;
     }
-
     .slides {
       display: flex;
       width: 100%;
@@ -310,25 +40,22 @@ if ($isLoggedIn) {
       transition: transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
       direction: ltr;
     }
-
     .slide {
       flex: 0 0 100%;
       max-width: 100%;
       height: 100%;
       direction: ltr;
     }
-
     .slide img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-
     .arrow{
       position:absolute; top:50%; transform:translateY(-50%);
-      width:30px; height:30px; background: linear-gradient(135deg, #ffffff, #f0fbfd);
+      width:64px; height:64px; background: linear-gradient(135deg, #ffffff, #f0fbfd);
       border-radius:50%; display:flex; align-items:center; justify-content:center;
-      font-size:20px; font-weight:bold; color:var(--turquoise);
+      font-size:34px; font-weight:bold; color:var(--turquoise);
       cursor:pointer; z-index:10;
       box-shadow: 0 12px 35px rgba(0,0,0,0.25), inset 0 4px 10px rgba(255,255,255,0.8);
       backdrop-filter: blur(12px);
@@ -336,42 +63,33 @@ if ($isLoggedIn) {
       transition: var(--transition);
     }
     .arrow:hover{
-      transform: translateY(-50%) scale(1.09);
-      background: linear-gradient(90deg, #01ced1, #e6f8fa);
+      transform: translateY(-50%) scale(1.18);
+      background: linear-gradient(135deg, #ffffff, #e6f8fa);
       box-shadow: 0 25px 55px rgba(0,0,0,0.35);
     }
-    .arrow.prev{ left:5px; }
-    .arrow.next{ right:5px; }
-
+    .arrow.prev{ left:24px; }
+    .arrow.next{ right:24px; }
     .dots{
-      position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
-      display:flex; gap:6px; background:rgba(255,255,255,0.9); padding:5px 10px; border-radius:10px;
+      position:absolute; bottom:18px; left:50%; transform:translateX(-50%);
+      display:flex; gap:12px; background:rgba(255,255,255,0.9); padding:10px 18px; border-radius:40px;
       box-shadow: var(--shadow-md);
     }
     .dot{
-      width:8px; height:8px; border-radius:50%; background:#ccc; cursor:pointer; transition: var(--transition);
+      width:12px; height:12px; border-radius:50%; background:#ccc; cursor:pointer; transition: var(--transition);
     }
     .dot.active{ background:var(--turquoise-dark); transform:scale(1.4); }
 
     .quick-links{
-      display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:28px;
+      display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-top:28px;
     }
-    .quick-link{
+    .quick-link, .quick-linkb{
       background: var(--turquoise); color:#fff; text-align:center; padding:24px 16px;
       border-radius:20px; text-decoration:none; font-weight:700; font-size:1.15rem;
       box-shadow: var(--shadow-md); transition: var(--transition);
     }
-    .quick-linkb{
-      background: var(--turquoise-dark); color:#fff; text-align:center; padding:24px 16px;
-      border-radius:20px; text-decoration:none; font-weight:700; font-size:1.15rem;
-      box-shadow: var(--shadow-md); transition: var(--transition);
-    }
-    .quick-link:hover{
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px rgba(25,184,194,0.4);
-    }
-    .quick-linkb:hover{
-      transform: translateY(-8px);
+    .quick-linkb { background: #f06292; }
+    .quick-link:hover, .quick-linkb:hover{
+      transform: translateY(-12px);
       box-shadow: 0 25px 50px rgba(25,184,194,0.4);
     }
 
@@ -392,12 +110,13 @@ if ($isLoggedIn) {
       border: 1px solid #c0e8ec;
       transition: var(--transition);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text);
-      min-height: 70px;
+      min-height: 84px;
       font-size: 1.05rem;
     }
     .contact-item:hover{
@@ -407,7 +126,7 @@ if ($isLoggedIn) {
     }
     .contact-item strong{
       color: var(--turquoise-dark);
-      margin-left: 8px;
+      margin-bottom: 4px;
     }
 
     .stats-center{
@@ -423,113 +142,25 @@ if ($isLoggedIn) {
       box-shadow: var(--shadow-md);
       transition: var(--transition);
     }
-    .stat:hover{ transform: translateY(-3px) scale(1.05); }
+    .stat:hover{ transform: translateY(-8px) scale(1.05); }
 
     @media(max-width:991px){
-      .topbar-inner { padding: 10px 15px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; }
-      .hamburger{ display:flex; }
-      .topbar-left { gap: 8px; }
-      .brand { display: flex; flex-direction: row; align-items: center; text-align: right; gap: 8px; }
-      .titles { text-align: right; }
-      .site-title { font-size: 1.1rem; }
-      .page-subtitle { font-size: 0.7rem; }
-      .logo { width: 45px; height: 45px; }
-      .user-badge { padding: 4px 8px 4px 12px; font-size: 0.7rem; gap: 5px; }
-      .user-img { width: 28px; height: 28px; font-size: 14px; }
-      .quick-links{ grid-template-columns:repeat(2,1fr); gap: 8px; }
-      .quick-link, .quick-linkb { padding: 18px 10px; font-size: 1rem; }
-      .stat { min-width: 140px; font-size: 1.1rem; padding: 12px 20px; }
-      .stats-center { gap: 15px; padding: 15px; }
-      footer { padding: 20px; }
-      aside.sidebar{
-        position:fixed; top:0; left:0; bottom:0; width:80vw; max-width:340px;
-        transform:translateX(-101%); transition:var(--transition); z-index:1100; border-radius:0;
-        height: 100vh;
-      }
-      aside.sidebar.open{ transform:translateX(0); }
-    }
-
-    @media(max-width:480px){
-        .site-title { font-size: 1rem; }
-        .page-subtitle { font-size: 0.65rem; }
-        .logo { width: 40px; height: 40px; border-radius: 10px; }
-        .topbar-left { gap: 8px; }
-        .user-badge { padding: 3px 6px 3px 10px; font-size: 0.65rem; }
-        .user-img { width: 24px; height: 24px; font-size: 12px; }
-        .hamburger { width: 40px; height: 40px; border-radius: 12px; }
-        .hamburger .bar, .hamburger .bar::before, .hamburger .bar::after { width: 18px; height: 2px; }
-        .hamburger .bar::before { top: -6px; }
-        .hamburger .bar::after { top: 6px; }
-    }
-    @media(min-width:992px){
-      .layout{ grid-template-columns: 310px 1fr; gap:26px; }
+      .quick-links{ grid-template-columns:repeat(2,1fr); }
     }
   </style>
+
+  <!-- Favicon -->
+  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="48x48">
+  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="96x96">
+  <link rel="icon" href="images/logo-T.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="images/logo-T.png">
 </head>
 <body>
 
-<!-- بقیه کد همان قبلی است، بدون تغییر -->
-
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="logo"><img src="images/logo-Tw.png" alt="لوگو توانش"></div>
-      <div class="titles">
-        <div class="site-title">دبیرستان دخترانه توانش</div>
-        <div class="page-subtitle">خانه دختران توانمند فردا</div>
-      </div>
-    </div>
-    <div class="topbar-left">
-        <a href="<?= $isLoggedIn ? 'dashboard.php' : 'login.php' ?>" class="user-badge">
-            <div class="user-img">
-                <?php if ($isLoggedIn && $profile_image): ?>
-                    <img src="<?= htmlspecialchars($profile_image) ?>" alt="تصویر پروفایل">
-                <?php elseif ($isLoggedIn): ?>
-                    👤
-                <?php else: ?>
-                    🔑
-                <?php endif; ?>
-            </div>
-            <?= $isLoggedIn ? to_persian_num(htmlspecialchars($fullName)) : 'ورود کاربران' ?>
-        </a>
-        <div class="hamburger" id="hamburgerBtn"><span class="bar"></span></div>
-    </div>
-  </div>
-</header>
+<?php include 'topbar.php'; ?>
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="menu-title">منوی اصلی</div>
-    <ul class="menu">
-      <li>
-        <a href="#" data-toggle="submenu-1"><span>صفحه اصلی</span><span class="caret" id="caret-1"></span></a>
-        <ul class="submenu" id="submenu-1">
-          <li><a href="weekly.html">برنامه هفتگی</a></li>
-          <li><a href="extra.html">کلاس‌های فوق‌برنامه</a></li>
-          <li><a href="monthly.html">تقویم آزمون‌ها</a></li>
-          <li><a href="tops.html">معرفی نفرات برتر</a></li>
-        </ul>
-      </li>
-      <li>
-        <a href="#" data-toggle="submenu-2"><span>معرفی مدرسه</span><span class="caret" id="caret-2"></span></a>
-        <ul class="submenu" id="submenu-2">
-          <li><a href="history.html">تاریخچه</a></li>
-          <li><a href="staff.html">کادر اجرایی</a></li>
-          <li><a href="teachers.html">کادر آموزشی</a></li>
-          <li><a href="Consulters.html">گروه مشاوران</a></li>
-          <li><a href="honors.html">تالار افتخارات</a></li>
-        </ul>
-      </li>
-      <li><a href="gallery.html">گالری تصاویر</a></li>
-      <li><a href="learning.html">محتواهای آموزشی</a></li>
-      <li><a href="vlearning.html">مدرسه مجازی</a></li>
-      <li><a href="services.html">خدمات به مدارس</a></li>
-      <li><a href="login.php">ورود کاربران</a></li>
-            <li><a href="news.php">اخبار توانش</a></li>
-      <li><a href="contactus.html">تماس با ما</a></li>
-    </ul>
-  </aside>
-
+  <?php include 'sidebar.php'; ?>
   <main class="content">
     <section class="slider" id="slider">
       <div class="slides" id="slides">
@@ -546,10 +177,10 @@ if ($isLoggedIn) {
     </section>
 
     <section class="quick-links">
-      <a class="quick-linkb" href="vlearning.html">مدرسه مجازی</a>
+      <a class="quick-linkb" href="vlearning.php">مدرسه مجازی</a>
       <a class="quick-link" href="news.php">اخبار توانش</a>
-      <a class="quick-link" href="learning.html">محتواهای آموزشی</a>
-      <a class="quick-link" href="teachers.html">کادر آموزشی</a>
+      <a class="quick-link" href="learning.php">محتواهای آموزشی</a>
+      <a class="quick-link" href="teachers.php">کادر آموزشی</a>
     </section>
 
     <footer>
@@ -558,12 +189,12 @@ if ($isLoggedIn) {
         <div class="contact-item"><strong>تلفن:</strong> ۰۳۴۳۳۴۰۱۵۲۰</div>
         <div class="contact-item"><strong>ایمیل:</strong> modir@tavanesh-sch.ir</div>
         <div class="contact-item">
-          <p><strong>تماس با موسس:</strong> ۰۹۱۳۸۴۴۱۰۷۵</p>
-          <p>&nbsp;(سرکار خانم میرزایی)</p>
+          <strong>تماس با موسس:</strong>
+          <span>۰۹۱۳۸۴۴۱۰۷۵ (سرکار خانم میرزایی)</span>
         </div>
         <div class="contact-item">
-          <p><strong>تماس با مدیر:</strong> ۰۹۱۳۲۴۱۲۶۹۶</p>
-          <p>&nbsp;(سرکار خانم سعیدی)</p>
+          <strong>تماس با مدیر:</strong>
+          <span>۰۹۱۳۲۴۱۲۶۹۶ (سرکار خانم سعیدی)</span>
         </div>
       </div>
     </footer>
@@ -576,27 +207,6 @@ if ($isLoggedIn) {
 </div>
 
 <script>
-  // اسکریپت قبلی بدون تغییر
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const sidebar = document.getElementById('sidebar');
-  hamburgerBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
-  document.addEventListener('click', (e) => {
-    if(window.innerWidth <= 991 && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)){
-      sidebar.classList.remove('open');
-    }
-  });
-
-  document.querySelectorAll('[data-toggle]').forEach(item => {
-    item.addEventListener('click', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      const submenuId = this.getAttribute('data-toggle');
-      const submenu = document.getElementById(submenuId);
-      const caret = document.getElementById('caret-' + submenuId.split('-')[1]);
-      submenu.classList.toggle('open');
-      caret.classList.toggle('open');
-    });
-  });
-
   const slidesEl = document.getElementById('slides');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
@@ -616,22 +226,24 @@ if ($isLoggedIn) {
   }
 
   function update(){
-    const isRTL = document.dir === 'rtl';
     const offset = current * 100;
-    slidesEl.style.transform = isRTL ? `translateX(${offset}%)` : `translateX(-${offset}%)`;
+    slidesEl.style.transform = `translateX(-${offset}%)`;
     dotsEl.querySelectorAll('.dot').forEach((dot,idx)=>dot.classList.toggle('active', idx===current));
   }
   function goTo(idx){ current = (idx + totalSlides) % totalSlides; update(); restartAuto(); }
   function next(){ goTo(current + 1); }
   function prev(){ goTo(current - 1); }
-  nextBtn.addEventListener('click', next);
-  prevBtn.addEventListener('click', prev);
+  if (nextBtn) nextBtn.addEventListener('click', next);
+  if (prevBtn) prevBtn.addEventListener('click', prev);
 
   function startAuto(){ stopAuto(); autoTimer = setInterval(next, AUTO_MS); }
   function stopAuto(){ if(autoTimer) clearInterval(autoTimer); }
   function restartAuto(){ startAuto(); }
-  document.getElementById('slider').addEventListener('mouseenter', stopAuto);
-  document.getElementById('slider').addEventListener('mouseleave', startAuto);
+  const sliderEl = document.getElementById('slider');
+  if (sliderEl) {
+    sliderEl.addEventListener('mouseenter', stopAuto);
+    sliderEl.addEventListener('mouseleave', startAuto);
+  }
 
   update(); startAuto();
 

@@ -43,11 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <title>ثبت‌نام — دبیرستان دخترانه توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -151,8 +151,24 @@ input::placeholder { color:#a8d5da; }
 .card-footer a { color:var(--turquoise-dark); text-decoration:none; font-weight:700; }
 .card-footer a:hover { color:var(--turquoise); }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
 
 <div class="topbar">
   <div class="topbar-logo">
@@ -219,5 +235,11 @@ input::placeholder { color:#a8d5da; }
   </div>
 </div>
 
+
+
+
+
+</main>
+</div>
 </body>
 </html>

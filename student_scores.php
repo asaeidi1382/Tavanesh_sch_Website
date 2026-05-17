@@ -53,8 +53,8 @@ function getStatusLabel($status) {
 <title>نمرات من — دبیرستان توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
+
+
 body { font-family:'Vazirmatn', sans-serif; background:#f5fbfd; color:#0f3d42; padding:20px; line-height:1.6; }
 .container { max-width:900px; margin:0 auto; }
 .card { background:#fff; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,.05); border:1.5px solid #e6f8fa; }
@@ -75,8 +75,29 @@ th { background:#f0fbfd; color:#0c8790; font-size:.85rem; }
 th { cursor:pointer; user-select:none; }
 th:hover { background:#e0f2f4 !important; }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:15px;">
@@ -198,5 +219,13 @@ function sortTable(n) {
     }
 }
 </script>
+
+
+
+
+
+
+</main>
+</div>
 </body>
 </html>

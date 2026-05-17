@@ -54,18 +54,9 @@ $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <style>
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Regular.woff2')
-  format('woff2');
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Bold.woff2')
-  format('woff2');
-  font-weight:700;
-}
+
+
 
 *{
   margin:0;
@@ -369,41 +360,27 @@ tr:hover {
 
 </style>
 
+  <?php include 'header_styles.php'; ?>
 </head>
 
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<header class="topbar">
 
-  <div class="topbar-inner">
 
-    <div class="brand">
 
-      👩‍🎓 مدیریت دانش‌آموزان
 
-    </div>
 
-    <div class="top-actions">
 
-      <a href="admin_dashboard.php"
-         class="top-btn">
 
-         داشبورد
 
-      </a>
 
-      <a href="logout.php"
-         class="top-btn">
 
-         خروج
 
-      </a>
 
-    </div>
-
-  </div>
-
-</header>
 
 <div class="container">
 
@@ -559,6 +536,11 @@ tr:hover {
 
 </div>
 
-</body>
 
+
+
+
+</main>
+</div>
+</body>
 </html>
