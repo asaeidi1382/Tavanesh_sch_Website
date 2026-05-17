@@ -1,0 +1,789 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>دبیرستان دخترانه توانش — معرفی کادر آموزشی</title>
+
+  <!-- Preload Vazirmatn Fonts -->
+
+
+
+
+
+
+
+  <style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </style>
+
+
+  <style>
+    :root {
+      --turquoise: #19b8c2;
+      --turquoise-dark: #0c8790;
+      --turquoise-light: #e6f8fa;
+      --turquoise-lighter: #f0fbfd;
+      --text: #0f3d42;
+      --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.18);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --white: #ffffff;
+
+      /* رنگ‌های دکمه ثابت (هماهنگ با صفحات قبلی) */
+      --turquoise-600: #00acc1;
+      --turquoise-700: #0097a7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: linear-gradient(to bottom, #f5fbfd, #ffffff);
+      color: var(--text);
+      font-family: "Vazirmatn", sans-serif;
+      line-height: 1.7;
+      padding-bottom: 100px;
+      position: relative;
+    }
+
+    /* هدر و سایدبار همانند قبل */
+    .topbar {
+      background: var(--turquoise);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-md);
+    }
+
+    .topbar-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      transition: var(--transition);
+    }
+
+    .logo:hover {
+      transform: translateY(-4px);
+    }
+
+    .logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .site-title {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+
+    .page-subtitle {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .hamburger {
+      display: none;
+      cursor: pointer;
+      width: 50px;
+      height: 50px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .hamburger:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .hamburger .bar {
+      width: 24px;
+      height: 3px;
+      background: #fff;
+      border-radius: 3px;
+      position: relative;
+    }
+
+    .hamburger .bar::before,
+    .hamburger .bar::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 3px;
+      background: #fff;
+      border-radius: 3px;
+    }
+
+    .hamburger .bar::before {
+      top: -8px;
+    }
+
+    .hamburger .bar::after {
+      top: 8px;
+    }
+
+    .layout {
+      max-width: 1400px;
+      margin: 32px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    aside.sidebar {
+      background: var(--turquoise);
+      color: #fff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    aside.sidebar::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 70%);
+      pointer-events: none;
+    }
+
+    .menu-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .menu>li {
+      margin-bottom: 8px;
+    }
+
+    .menu a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      margin: 4px 0;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 600;
+      text-decoration: none;
+      color: #fff;
+      transition: var(--transition);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+    }
+
+    .menu a:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .submenu {
+      display: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .submenu.open {
+      display: block;
+    }
+
+    .submenu a {
+      padding-right: 40px;
+      font-weight: 500;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .submenu a:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .caret {
+      width: 0;
+      height: 0;
+      border-right: 6px solid transparent;
+      border-left: 6px solid transparent;
+      border-top: 8px solid #fff;
+      transition: transform 0.3s ease;
+    }
+
+    .caret.open {
+      transform: rotate(180deg);
+    }
+
+    main.content {
+      background: var(--turquoise-lighter);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: var(--shadow-lg);
+      min-height: 70vh;
+    }
+
+    /* بخش معلمان */
+    .teachers-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 50px;
+      margin: 40px 0;
+    }
+
+    .teacher-item {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      background: #fff;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .teacher-item img {
+      width: 100%;
+      height: auto;
+      max-width: 400px;
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      object-fit: contain;
+      background: #fff;
+    }
+
+    .teacher-item img:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .teacher-item .name {
+      margin: 20px 0 12px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--turquoise-dark);
+    }
+
+    .teacher-item .bio {
+      font-size: 1.05rem;
+      color: #444;
+      line-height: 1.8;
+      text-align: justify;
+    }
+
+    /* دکمه ثابت بازگشت به صفحه اصلی */
+    .fixed-back-home {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--turquoise-600);
+      color: white;
+      padding: 10px 10px;
+      border-radius: 50px;
+      font-size: 0.6rem;
+      font-weight: 800;
+      text-decoration: none;
+      box-shadow: 0 8px 25px rgba(0, 172, 193, .4);
+      z-index: 999;
+      transition: all .4s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fixed-back-home:hover {
+      background: var(--turquoise-700);
+      transform: translateX(-50%) translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 172, 193, .5);
+    }
+
+    @media(max-width:991px) {
+      .hamburger {
+        display: flex;
+      }
+
+      aside.sidebar {
+        position: fixed;
+        top: 74px;
+        left: 0;
+        bottom: 0;
+        width: 80vw;
+        max-width: 340px;
+        transform: translateX(-100%);
+        transition: var(--transition);
+        z-index: 1100;
+        border-radius: 0;
+      }
+
+      aside.sidebar.open {
+        transform: translateX(0);
+      }
+
+      .fixed-back-home {
+        bottom: 20px;
+        padding: 12px 30px;
+        font-size: 1rem;
+      }
+    }
+
+    @media(min-width:992px) {
+      .layout {
+        grid-template-columns: 310px 1fr;
+        gap: 36px;
+      }
+    }
+
+    @media(max-width:576px) {
+      .fixed-back-home {
+        bottom: 20px;
+        padding: 12px 30px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+  <?php include 'header_styles.php'; ?>
+</head>
+
+<body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <aside class="sidebar" id="sidebar">
+      <div class="menu-title">منوی اصلی</div>
+      <ul class="menu">
+        <li>
+          <a href="#" data-toggle="submenu-1"><span>صفحه اصلی</span><span class="caret" id="caret-1"></span></a>
+          <ul class="submenu" id="submenu-1">
+            <li><a href="weekly.php">برنامه هفتگی</a></li>
+            <li><a href="extra.php">کلاس‌های فوق‌برنامه</a></li>
+            <li><a href="monthly.php">تقویم آزمون‌ها</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#" data-toggle="submenu-2"><span>معرفی مدرسه</span><span class="caret" id="caret-2"></span></a>
+          <ul class="submenu" id="submenu-2">
+            <li><a href="history.php">تاریخچه</a></li>
+            <li><a href="staff.php">کادر اجرایی</a></li>
+            <li><a href="teachers.php">کادر آموزشی</a></li>
+            <li><a href="honors.php">تالار افتخارات</a></li>
+          </ul>
+        </li>
+        <li><a href="gallery.php">گالری تصاویر</a></li>
+        <li><a href="learning.php">محتواهای آموزشی</a></li>
+        <li><a href="services.php">خدمات به مدارس</a></li>
+        <li><a href="news.php">اخبار توانش </a></li>
+        <li><a href="contactus.php">تماس با ما</a></li>
+      </ul>
+    </aside>
+
+
+      <h1 style="font-size:2.2rem; margin-bottom:24px; color:var(--turquoise-dark);">معرفی کادر آموزشی</h1>
+
+      <div class="teachers-container">
+        <div class="teacher-item">
+          <img src="images/staff/mirzayi.jpg" alt="سرکار خانم فاطمه میرزایی">
+          <div class="name">سرکار خانم فاطمه میرزایی — دبیر ریاضی</div>
+          <div class="bio">
+            کارشناس ریاضی محض از دانشگاه شهید باهنر کرمان.
+            <br>
+            دارای ۱۸ سال سابقه آموزش مفهومی ریاضی در متوسطه اول و دوم.
+            <br>
+            ده سال سابقه انجام امور اداری (امور بیمه و حسابداری مدرسه).
+            <br>
+            گذراندن دوره اصول و فنون تدریس در دانشگاه باهنر.
+            <br>
+            شرکت در دوره های توانمندسازی مدرسان کنکور زیر نظر اساتید کشوری .
+            <br>
+            برگزار کننده دوره های آمادگی برای آزمونهای ورودی مدارس نمونه و تیزهوشان،آمادگی برای امتحانات نهایی،دوره های
+            ضمن سال و جمع بندی برای کنکور
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/saeidi2.jpg" alt="سرکار خانم فاطمه سعیدی">
+          <div class="name">سرکار خانم فاطمه سعیدی — دبیر زبان انگلیسی</div>
+          <div class="bio">
+            کارشناس شیمی محض و کارشناسی ارشد شیمی فیزیک دانشگاه دولتی
+            <br>
+            دارای گواهینامه بین المللی مدرسی زبان انگلیسی (TESOL) از کشور کانادا
+            <br>
+            دارای مقالات متعدد علمی در ژورنالهای خارجی و سمینارهای داخلی
+            <br>
+            دارای گواهینامه مدرسی آیلتس از دانشگاه تهران
+            <br>
+            مترجم زبان انگلیسی
+            <br>
+            بیست سال سابقه تدریس سطوح مختلف زبان انگلیسی از مقدماتی تا پیشرفته
+            <br>
+            دارای گواهینامه های ویژه مدیریت و نظارت آموزشی
+            <br>
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/hashemi2.jpg" alt="سرکار خانم زهره هاشمی">
+          <div class="name">سرکار خانم زهره هاشمی — دبیر فیزیک</div>
+          <div class="bio">
+            لیسانس فیزیک مهندسی و کارشناسی ارشد فوتونیک
+            با معدل ۱۷.۳۰ از دانشگاه شهید باهنر کرمان در مقطع روزانه
+            <br>
+            شرکت در سمینار بین المللی دانشگاهGazi ترکیه در سال 2021 جهت سخنرانی در دروه کارشناسی ارشد و دریافت گواهی
+            <br>
+            سابقه تدریس در مدارس نمونه و تیزهوشان و کوثر
+            <br>
+            تربیت دانش آموزان با نمرات امتحان نهایی فیزیک بالا ۱۸
+            <br>
+            مدرس حرفه ای کلاسهای تقویتی ، آمادگی امتحانات نهایی و کنکور
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/eslami.jpg" alt="سرکار خانم سکینه اسلامی ">
+          <div class="name">سرکار خانم سکینه اسلامی — دبیر زیست شناسی</div>
+          <div class="bio">
+            خانم سکینه اسلامی دارای مدرک کارشناسی ارشد زیست شناسی هستند و دبیر درس زیست شناسی می‌باشند. ایشان با ۲۴ سال
+            سابقه تدریس ، رویکردی نوین در آموزش مفاهیم زیست شناسی با تکیه بر فن آوری های نوین تدریس و تعامل با دانش
+            آموزان دارند. ایشان در تقویت درس زیست شناسی و درک مفاهیم و کاربرد آن توسط دانش‌آموزان بسیار موفق عمل
+            کرده‌اند.
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/karvar.jpg" alt="سرکار خانم ساره کارور ">
+          <div class="name">سرکار خانم ساره کارور — دبیر زیست شناسی و توسعه فردی</div>
+          <div class="bio">
+            خانم ساره کارور کارشناس میکروبیولوژی دکترای DBAاز دانشگاه نورث وست آمریکا عضو جامعه مدرسین بین المللی فارغ
+            تحصیل دوره استادی از آکادمی محیا پور دارای مدرک پداگوژی از فنی حرفه ای استان کرمان دانشجوی رشته روانشناسی .
+            دبیر زیست شناسی با تکیه بر روش های نوین آموزشی و شناخت موجودات میکرو ارگانیسم و ...برای دانش آموزان رشته
+            تجربی و مدرس مباحث توسعه فردی و (تند خوانی،برنامه ریزی ) با طراحی آموزش نوین با استفاده از هوش مصنوعی.
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/alimardani.jpg" alt="سرکار خانم مهلا علیمردانی ">
+          <div class="name">سرکار خانم مهلا علیمردانی — دبیر منطق و فلسفه</div>
+          <div class="bio">
+            عملکرد ایشان زبانزد عام و خاص بوده و با سابقه ای که دارند توانسته اند توجه و علاقه مندی دانش آموزان را به
+            روش تدریس خود جلب نمایند.
+            جزوه های تهیه شده توسط ایشان مرجع ارزشمندی برای مطالع دانش آموزان و آمادگی برای امتحانات نهایی می باشد
+          </div>
+        </div>
+
+
+        <div class="teacher-item">
+          <img src="images/staff/mostafavi.jpg" alt="سرکار خانم محدثه سادات مصطفوی ">
+          <div class="name">سرکار خانم محدثه سادات مصطفوی — دبیر جغرافیا</div>
+          <div class="bio">
+            محدثه سادات مصطفوی دارای مدرک کارشناسی ارشد جغرافیا و برنامه ریزی شهری با 12 سال سابقه تدریس در دانشگاه
+            ودوره متوسطه . در حال حاضر دروس جامعه شناسی ، جغرافیا ، زمین شناسی و انسان و محیط را با بهترین متدها تدریس
+            می کنند.
+
+          </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/alizadeh.jpg" alt="سرکار خانم محدثه علیزاده">
+          <div class="name">سرکار خانم محدثه علیزاده — دبیر دین و زندگی / عربی</div>
+          <div class="bio">
+            خانم محدثه علیزاده دارای مدرک کارشناسی ارشد الهیات و معارف اسلامی هستند و به طور همزمان دبیر درس دین و زندگی
+            و زبان عربی می‌باشند. با ۸ سال سابقه تدریس، رویکردی نوین در آموزش مفاهیم دینی با تکیه بر بحث و گفتگو دارند.
+            ایشان در تقویت مهارت ترجمه و درک متون عربی دانش‌آموزان بسیار موفق عمل کرده‌اند.
+          </div>
+        </div>
+
+
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/azimi.jpg" alt="سرکار خانم زهرا عظیمی">
+          <div class="name">سرکار خانم عظیمی — دبیر زیست شناسی</div>
+          <div class="bio">
+
+            زهرا عظیمی مدرس و سرگروه آموزشی زیست‌شناسی
+            سوابق آموزشی:
+            - ۱۸ سال تجربه در تدریس زیست‌شناسی در مدارس و کارگاه‌های تخصصی
+            - بیش از ۱۲ سال تدریس در مدارس خاص فرزانگان و نمونه دولتی
+            سوابق پژوهشی و مدیریتی:
+            - ۵ سال استاد راهنما در پژوهشسرا، حوزه سلول‌های بنیادی و زیست‌فناوری
+            - ۵ سال سرگروه آموزشی زیست‌شناسی منطقه، مسئول هدایت و ارتقای سطح علمی دبیران
+          </div>
+        </div>
+
+
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/abbasian.jpg" alt="جناب آقای دکتر رضا عباسیان">
+          <div class="name">جناب آقای دکتر رضا عباسیان — مدرس فوق برنامه فارسی </div>
+          <div class="bio">
+            کارشناسی زبان و ادبیات فارسی از دانشگاه باهنر کرمان
+            <br>
+            رتبه ۵ آزمون کارشناسی ارشد
+            <br>
+            کارشناسی ارشد زبان تطبیقی(فرانسه و انگلیسی) از دانشگاه باهنر کرمان
+            <br>
+            رتبه ۸ آزمون دکتری تخصصی
+            <br>
+            دکتری تخصصی زبان و ادبیات از دانشگاه باهنر کرمان
+            <br>
+            مدرس دانشگاه باهنر کرمان از سال ۱۴۰۲تا کنون
+            <br>
+            ۳سال سابقه تدریس در دانشگاه پیام نور و فرهنگیان
+            <br>
+            ۷ سال سابقه تدریس در مدارس تیزهوشان و نمونه کرمان و زرند
+            <br>
+            ۱۰ مقاله علمی - پژوهشی در حوزه زبان و ادبیات
+            <br>
+            آقای رضا عباسیان سرگروه زبان و ادبیات فارسی شهرستان زرند هستند و مدرس فوق برنامه در حوزه فارسی امتحان نهایی
+            در دبیرستان توانش می باشند.
+
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/qasemzadeh.jpg" alt="سرکار خانم مهدیه قاسم زاده">
+          <div class="name">سرکار خانم مهدیه قاسم زاده — مربی ورزش</div>
+          <div class="bio">
+            خانم مهدیه قاسم زاده دارای مدرک کارشناسی تربیت بدنی و مربیگری ورزش ،سه سال سابقه تدریس، دارای مدرک مربیگری و
+            داوری تنیس روی میز، مدرک مربیگری بدنسازی و همچنین مدرک مربیگری فیتنس می باشند. </div>
+        </div>
+
+        <div class="teacher-item">
+          <img src="images/staff/ziaadini.jpg" alt="سرکار خانم فاطمه ضیاالدینی">
+          <div class="name">سرکار خانم فاطمه ضیاالدینی - دبیر شیمی</div>
+          <div class="bio">
+کارشناسی شیمی کاربردی و  کارشناسی ارشد نانو تکنولوژی از دانشگاه شهید باهنر کرمان
+آموزشگر شیمی با بیش از ۱۴ سال سابقه اثبات شده، متخصص در ارائه مفاهیم پیچیده و به کارگیری رویکردهای تحلیلی نوین برای ارتقای چشمگیر سطح علمی دانش آموزان در مقاطع متوسطه اول و دوم
+مدرس برگزیده کنکور ، کلاس های تقویتی و آمادگی امتحانات نهایی
+تالیف و تدوین جزوات جامع و کاربردی برای امتحانات نهایی و کنکور مطابق با آخرین سرفصل ها و نیازهای داوطلبان
+دارای سوابق پژوهشی ارزشمند در سمینارهای ملی، جشنواره خوارزمی و انتشار مقالات علمی در ژورنالهای معتبر بین المللی
+مشارکت فعال در دوره های تخصصی کنکور و نهایی با تدریس اساتید ممتاز ملی
+بهره گیری از گواهینامه های تخصصی و عمومی جهت ارتقا مهارت های آموزشی، تربیتی و کیفیت آموزش
+            <br>
+            جزوات تهیه شده توسط ایشان منبع بسیار غنی و کامل برای مطالعه دانش آموزان و آمادگی برای امتحانات نهایی و کنکور
+            می باشد.
+          </div>
+        </div>
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/tahami.jpg" alt="سرکار خانم معظمه تهامی">
+          <div class="name">سرکار خانم معظمه تهامی - دبیر روانشناسی و مشاور</div>
+          <div class="bio">
+            خانم تهامی با تجربه موفق خود در تدریس در حوزه مشاوره با دبیرستان توانش همکاری دارند.
+
+          </div>
+        </div>
+        <div class="teacher-item">
+          <img src="images/staff/qasemi.jpg" alt="سرکار خانم فاطمه قاسمی زاده">
+          <div class="name">سرکار خانم فاطمه قاسمی زاده — دبیر فارسی</div>
+          <div class="bio">
+            خانم فاطمه قاسمی زاده، فارغ‌التحصیل ادبیات فارسی از دانشگاه ولی عصر(عج) رفسنجان، با بیش از ۸ سال تجربه تدریس
+            ادبیات و زبان فارسی هستند. ایشان با تمرکز بر تحلیل متون کهن و نثر معاصر، عشق به ادبیات پارسی را در دل
+            دانش‌آموزان زنده نگه می‌دارند و در ارتقای مهارت نگارش و انشا نقش برجسته‌ای دارند.
+          </div>
+        </div>
+
+
+        <div class="teacher-item">
+          <img src="images/staff/soltani-m.jpg" alt="سرکار خانم مینا سلطانی">
+          <div class="name">سرکار خانم مینا سلطانی - دبیر کارآفرینی</div>
+          <div class="bio">
+            کارشناسی ارشد طراحی دوخت دانشگاه یزد
+            <br>
+            مدرس دانشگاه الزهرا کرمان
+            <br>
+            مدرک کارشناسی طراحی ودوخت
+            <br>
+            مدرک مربیگری فنی و حرفه‌ای
+            <br>
+            مدرکهای هنری فنی و حرفه ای از جمله شمع سازی و پارچه سازی و دوختهای سنتی و تزئینی و مجسمه‌سازی و ...
+          </div>
+        </div>
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/mohammadi.jpg" alt="سرکار خانم فاطمه محمدی">
+          <div class="name">سرکار خانم فاطمه محمدی - دبیر تاریخ</div>
+          <div class="bio">
+
+            رزومه مختصر خانم فاطمه محمدی جرجافکی دبیر تاریخ :
+            <br>
+            - کارشناسی: تاریخ، دانشگاه سیستان و بلوچستان، 1385- 1382، با معدل 15.25 -
+            <br>
+            رشته و محل و سال اخذ کارشناسی ارشد: تاریخ، گرایش ایران بعد از اسلام، دانشگاه سیستان و بلوچستان، 1400-1402،
+            <br>
+            استعداد درخشان با معدل 17.75 - رشته و محل دکتری: تاریخ، گرایش ایران بعد از اسلام، دانشگاه خلیج فارس ، با
+            معدل 17.53
+            <br>
+            سابقه تدریس در دروس تخصصی رشته علوم انسانی مخصوصا تاریخ در مقطع دبیرستان‌های شهرستان زرند از سال 1386 تاکنون
+            <br>
+            دارای سوابق پژوهشی متعدد در حوزه تخصصی اصلی تاریخ سیاسی، اقتصادی، اجتماعی و فرهنگی ایران در دوران معاصر.
+            <br>
+            علاقه‌مند به تاریخ ایران بعد از اسلام -
+            دارای مقالات علمی پژوهشی متعدد <br>
+            همکاری‌های علمی با دانشگاههای معتبر کشور دارای گواهی و مدرک ICDL بین الملل / مدرک راهنمای علمی روش تدریس /
+            مدرک مهارت‌های تدریس /
+            مدرک ارزشیابی کیفی و توصیفی /
+            گواهی روش‌های فنون تدریس /
+            دارای کارت فعال بسیجی فرهنگیان / مدرک روانخوانی قرآن
+
+          </div>
+        </div>
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/m-alizadeh.jpg" alt="سرکار خانم فاطمه محمدعلیزاده">
+          <div class="name">سرکار خانم فاطمه محمدعلیزاده - دبیر آموزش دفاعی و مربی پرورشی</div>
+          <div class="bio">
+            کاردانی امور اداری
+            <br>
+            کارشناسی آموزش ابتدایی
+            <br>
+            دارنده گواهینامه تخصصی آموزش قرآن کریم ،کمکهای اولیه ،آموزش آمادگی دفاعی
+            <br>
+            ۷ سال سابقه کار پرورشی
+          </div>
+        </div>
+
+
+
+
+        <div class="teacher-item">
+          <img src="images/staff/soltani-f.jpg" alt="سرکار خانم فاطمه سلطانی">
+          <div class="name">سرکار خانم فاطمه سلطانی - دبیر فارسی</div>
+          <div class="bio">
+            کارشناسی زبان و ادبیات فارسی
+            <br>
+            چهار سال سابقه تدریس فارسی و نگارش
+            <br>
+            تدوین جزوات آموزشی تخصصی
+            <br>
+            دارای کارنامه درخشان در روش تدریس
+          </div>
+        </div>
+
+
+
+      </div>
+
+
+
+
+  </div>
+  </section>
+  <a href="index.php" class="fixed-back-home">
+    <i class="fas fa-home"></i>بازگشت به خانه 🏠</a>
+
+
+
+
+
+</main>
+</div>
+</body>
+
+<script>
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebar = document.getElementById('sidebar');
+  hamburgerBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 991 && !sidebar.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  document.querySelectorAll('[data-toggle]').forEach(item => {
+    item.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      const submenuId = this.getAttribute('data-toggle');
+      const submenu = document.getElementById(submenuId);
+      const caret = document.getElementById('caret-' + submenuId.split('-')[1]);
+      submenu.classList.toggle('open');
+      caret.classList.toggle('open');
+    });
+  });
+</script>
+
+<!-- Font Awesome برای آیکون خانه -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+
+</body>
+
+</html>

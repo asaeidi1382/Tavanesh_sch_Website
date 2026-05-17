@@ -1,0 +1,374 @@
+[Sun May 17 07:24:48 2026] PHP 8.3.6 Development Server (http://localhost:8000) started
+[Sun May 17 07:24:52 2026] [::1]:47538 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47538 [200]: GET /index.php
+[Sun May 17 07:24:52 2026] [::1]:47538 Closing
+[Sun May 17 07:24:52 2026] [::1]:47552 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47560 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47552 [404]: GET /images/logo-Tw.png - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47552 Closing
+[Sun May 17 07:24:52 2026] [::1]:47560 [404]: GET /Images/slider/slide01.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47560 Closing
+[Sun May 17 07:24:52 2026] [::1]:47566 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47580 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47596 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47612 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47566 [404]: GET /Images/slider/slide02.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47566 Closing
+[Sun May 17 07:24:52 2026] [::1]:47628 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47580 [404]: GET /Images/slider/slide03.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47596 [404]: GET /Images/slider/slide04.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47580 Closing
+[Sun May 17 07:24:52 2026] [::1]:47596 Closing
+[Sun May 17 07:24:52 2026] [::1]:47612 [404]: GET /Images/slider/slide05.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47628 [404]: GET /Images/slider/slide06.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47612 Closing
+[Sun May 17 07:24:52 2026] [::1]:47628 Closing
+[Sun May 17 07:24:52 2026] [::1]:47644 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47644 [200]: GET /counter.php
+[Sun May 17 07:24:52 2026] [::1]:47644 Closing
+[Sun May 17 07:24:52 2026] [::1]:47646 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47656 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47662 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47674 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47646 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47646 Closing
+[Sun May 17 07:24:52 2026] [::1]:47656 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47656 Closing
+[Sun May 17 07:24:52 2026] [::1]:47662 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47674 [404]: GET /fonts/Vazirmatn-Black.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47662 Closing
+[Sun May 17 07:24:52 2026] [::1]:47674 Closing
+[Sun May 17 07:24:52 2026] [::1]:47686 Accepted
+[Sun May 17 07:24:52 2026] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /app/auth.php on line 3
+[Sun May 17 07:24:52 2026] [::1]:47686 [200]: GET /about.php
+[Sun May 17 07:24:52 2026] [::1]:47686 Closing
+[Sun May 17 07:24:52 2026] [::1]:47696 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47710 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47696 [404]: GET /images/photos/Tavanesh-photo-001.jpg - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47710 [404]: GET /images/logo-Tw.png - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47696 Closing
+[Sun May 17 07:24:52 2026] [::1]:47710 Closing
+[Sun May 17 07:24:52 2026] [::1]:47718 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47720 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47718 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47718 Closing
+[Sun May 17 07:24:52 2026] [::1]:47732 Accepted
+[Sun May 17 07:24:52 2026] [::1]:47720 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47732 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Sun May 17 07:24:52 2026] [::1]:47720 Closing
+[Sun May 17 07:24:52 2026] [::1]:47732 Closing
+[Sun May 17 08:01:07 2026] [::1]:50046 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50046 [200]: GET /index.php
+[Sun May 17 08:01:07 2026] [::1]:50046 Closing
+[Sun May 17 08:01:07 2026] [::1]:50050 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50062 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50050 [404]: GET /images/logo-Tw.png - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50070 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50050 Closing
+[Sun May 17 08:01:07 2026] [::1]:50062 [404]: GET /Images/slider/slide01.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50074 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50062 Closing
+[Sun May 17 08:01:07 2026] [::1]:50070 [404]: GET /Images/slider/slide02.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50082 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50074 [404]: GET /Images/slider/slide03.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50070 Closing
+[Sun May 17 08:01:07 2026] [::1]:50096 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50074 Closing
+[Sun May 17 08:01:07 2026] [::1]:50082 [404]: GET /Images/slider/slide04.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50082 Closing
+[Sun May 17 08:01:07 2026] [::1]:50096 [404]: GET /Images/slider/slide05.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50096 Closing
+[Sun May 17 08:01:07 2026] [::1]:50112 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50120 Accepted
+[Sun May 17 08:01:07 2026] [::1]:50112 [200]: GET /counter.php
+[Sun May 17 08:01:07 2026] [::1]:50112 Closing
+[Sun May 17 08:01:07 2026] [::1]:50120 [404]: GET /Images/slider/slide06.jpg - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:50120 Closing
+[Sun May 17 08:01:07 2026] [::1]:55444 Accepted
+[Sun May 17 08:01:07 2026] [::1]:55456 Accepted
+[Sun May 17 08:01:07 2026] [::1]:55460 Accepted
+[Sun May 17 08:01:07 2026] [::1]:55476 Accepted
+[Sun May 17 08:01:07 2026] [::1]:55444 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:55456 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:55444 Closing
+[Sun May 17 08:01:07 2026] [::1]:55456 Closing
+[Sun May 17 08:01:07 2026] [::1]:55460 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:55460 Closing
+[Sun May 17 08:01:07 2026] [::1]:55476 [404]: GET /fonts/Vazirmatn-Black.woff2 - No such file or directory
+[Sun May 17 08:01:07 2026] [::1]:55476 Closing
+[Sun May 17 08:01:09 2026] [::1]:55484 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55484 [200]: GET /about.php
+[Sun May 17 08:01:09 2026] [::1]:55484 Closing
+[Sun May 17 08:01:09 2026] [::1]:55488 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55492 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55488 [404]: GET /images/photos/Tavanesh-photo-001.jpg - No such file or directory
+[Sun May 17 08:01:09 2026] [::1]:55492 [404]: GET /images/logo-Tw.png - No such file or directory
+[Sun May 17 08:01:09 2026] [::1]:55488 Closing
+[Sun May 17 08:01:09 2026] [::1]:55492 Closing
+[Sun May 17 08:01:09 2026] [::1]:55506 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55522 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55506 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Sun May 17 08:01:09 2026] [::1]:55536 Accepted
+[Sun May 17 08:01:09 2026] [::1]:55506 Closing
+[Sun May 17 08:01:09 2026] [::1]:55522 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Sun May 17 08:01:09 2026] [::1]:55522 Closing
+[Sun May 17 08:01:09 2026] [::1]:55536 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Sun May 17 08:01:09 2026] [::1]:55536 Closing
+[Sun May 17 08:01:11 2026] [::1]:55548 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55548 [200]: GET /news.php
+[Sun May 17 08:01:11 2026] [::1]:55548 Closing
+[Sun May 17 08:01:11 2026] [::1]:55552 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55556 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55552 [404]: GET /images/news/news24-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55552 Closing
+[Sun May 17 08:01:11 2026] [::1]:55556 [404]: GET /images/logo-Tw.png - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55556 Closing
+[Sun May 17 08:01:11 2026] [::1]:55568 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55576 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55568 [404]: GET /images/news/news24-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55568 Closing
+[Sun May 17 08:01:11 2026] [::1]:55576 [404]: GET /images/news/news24-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55576 Closing
+[Sun May 17 08:01:11 2026] [::1]:55586 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55588 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55594 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55608 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55618 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55622 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55586 [404]: GET /images/news/news23-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55586 Closing
+[Sun May 17 08:01:11 2026] [::1]:55588 [404]: GET /images/news/news23-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55588 Closing
+[Sun May 17 08:01:11 2026] [::1]:55594 [404]: GET /images/news/news23-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55594 Closing
+[Sun May 17 08:01:11 2026] [::1]:55608 [404]: GET /images/news/news22-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55608 Closing
+[Sun May 17 08:01:11 2026] [::1]:55630 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55636 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55652 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55618 [404]: GET /images/news/news21-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55618 Closing
+[Sun May 17 08:01:11 2026] [::1]:55622 [404]: GET /images/news/news21-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55622 Closing
+[Sun May 17 08:01:11 2026] [::1]:55664 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55672 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55686 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55630 [404]: GET /images/news/news21-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55630 Closing
+[Sun May 17 08:01:11 2026] [::1]:55636 [404]: GET /images/news/news21-D.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55636 Closing
+[Sun May 17 08:01:11 2026] [::1]:55652 [404]: GET /images/news/news20-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55652 Closing
+[Sun May 17 08:01:11 2026] [::1]:55664 [404]: GET /images/news/news20-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55664 Closing
+[Sun May 17 08:01:11 2026] [::1]:55672 [404]: GET /images/news/news20-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55672 Closing
+[Sun May 17 08:01:11 2026] [::1]:55686 [404]: GET /images/news/news20-D.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55686 Closing
+[Sun May 17 08:01:11 2026] [::1]:55692 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55698 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55710 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55720 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55732 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55692 [404]: GET /images/news/news19-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55698 [404]: GET /images/news/news18-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55710 [404]: GET /images/news/news18-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55720 [404]: GET /images/news/news18-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55748 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55692 Closing
+[Sun May 17 08:01:11 2026] [::1]:55698 Closing
+[Sun May 17 08:01:11 2026] [::1]:55710 Closing
+[Sun May 17 08:01:11 2026] [::1]:55720 Closing
+[Sun May 17 08:01:11 2026] [::1]:55732 [404]: GET /images/news/news18-D.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55732 Closing
+[Sun May 17 08:01:11 2026] [::1]:55748 [404]: GET /images/news/news18-E.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55748 Closing
+[Sun May 17 08:01:11 2026] [::1]:55762 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55778 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55762 [404]: GET /images/news/news18-F.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55788 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55762 Closing
+[Sun May 17 08:01:11 2026] [::1]:55778 [404]: GET /images/news/news18-G.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55800 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55778 Closing
+[Sun May 17 08:01:11 2026] [::1]:55788 [404]: GET /images/news/news18-H.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55804 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55800 [404]: GET /images/news/news18-I.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55788 Closing
+[Sun May 17 08:01:11 2026] [::1]:55808 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55800 Closing
+[Sun May 17 08:01:11 2026] [::1]:55804 [404]: GET /images/news/news17-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55804 Closing
+[Sun May 17 08:01:11 2026] [::1]:55808 [404]: GET /images/news/news17-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55808 Closing
+[Sun May 17 08:01:11 2026] [::1]:55814 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55818 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55824 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55834 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55850 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55862 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55814 [404]: GET /images/news/news16-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55814 Closing
+[Sun May 17 08:01:11 2026] [::1]:55818 [404]: GET /images/news/news16-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55818 Closing
+[Sun May 17 08:01:11 2026] [::1]:55868 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55824 [404]: GET /images/news/news16-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55834 [404]: GET /images/news/news15-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55850 [404]: GET /images/news/news15-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55862 [404]: GET /images/news/news15-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55876 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55868 [404]: GET /images/news/news15-D.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55824 Closing
+[Sun May 17 08:01:11 2026] [::1]:55834 Closing
+[Sun May 17 08:01:11 2026] [::1]:55850 Closing
+[Sun May 17 08:01:11 2026] [::1]:55862 Closing
+[Sun May 17 08:01:11 2026] [::1]:55868 Closing
+[Sun May 17 08:01:11 2026] [::1]:55876 [404]: GET /images/news/news14-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55876 Closing
+[Sun May 17 08:01:11 2026] [::1]:55878 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55890 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55898 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55914 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55918 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55922 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55878 [404]: GET /images/news/news14-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55878 Closing
+[Sun May 17 08:01:11 2026] [::1]:55926 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55890 [404]: GET /images/news/news14-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55898 [404]: GET /images/news/news14-D.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55914 [404]: GET /images/news/news13-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55918 [404]: GET /images/news/news13-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55922 [404]: GET /images/news/news13-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55926 [404]: GET /images/news/news12-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55890 Closing
+[Sun May 17 08:01:11 2026] [::1]:55898 Closing
+[Sun May 17 08:01:11 2026] [::1]:55914 Closing
+[Sun May 17 08:01:11 2026] [::1]:55918 Closing
+[Sun May 17 08:01:11 2026] [::1]:55922 Closing
+[Sun May 17 08:01:11 2026] [::1]:55926 Closing
+[Sun May 17 08:01:11 2026] [::1]:55942 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55952 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55956 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55968 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55978 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55984 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55942 [404]: GET /images/news/news12-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55942 Closing
+[Sun May 17 08:01:11 2026] [::1]:55998 Accepted
+[Sun May 17 08:01:11 2026] [::1]:55952 [404]: GET /images/news/news12-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55956 [404]: GET /images/news/news11-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55968 [404]: GET /images/news/news11-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55978 [404]: GET /images/news/news11-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55984 [404]: GET /images/news/news10-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55998 [404]: GET /images/news/news10-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:55952 Closing
+[Sun May 17 08:01:11 2026] [::1]:55956 Closing
+[Sun May 17 08:01:11 2026] [::1]:55968 Closing
+[Sun May 17 08:01:11 2026] [::1]:55978 Closing
+[Sun May 17 08:01:11 2026] [::1]:55984 Closing
+[Sun May 17 08:01:11 2026] [::1]:55998 Closing
+[Sun May 17 08:01:11 2026] [::1]:56014 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56022 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56030 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56034 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56044 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56050 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56014 [404]: GET /images/news/news10-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56014 Closing
+[Sun May 17 08:01:11 2026] [::1]:56022 [404]: GET /images/news/news08-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56022 Closing
+[Sun May 17 08:01:11 2026] [::1]:56030 [404]: GET /images/news/news08-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56030 Closing
+[Sun May 17 08:01:11 2026] [::1]:56034 [404]: GET /images/news/news08-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56044 [404]: GET /images/news/news05-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56034 Closing
+[Sun May 17 08:01:11 2026] [::1]:56044 Closing
+[Sun May 17 08:01:11 2026] [::1]:56050 [404]: GET /images/news/news05-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56050 Closing
+[Sun May 17 08:01:11 2026] [::1]:56064 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56076 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56080 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56096 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56106 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56108 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56064 [404]: GET /images/news/news05-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56064 Closing
+[Sun May 17 08:01:11 2026] [::1]:56076 [404]: GET /images/news/news06-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56076 Closing
+[Sun May 17 08:01:11 2026] [::1]:56080 [404]: GET /images/news/news06-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56080 Closing
+[Sun May 17 08:01:11 2026] [::1]:56096 [404]: GET /images/news/news06-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56096 Closing
+[Sun May 17 08:01:11 2026] [::1]:56106 [404]: GET /images/news/news01-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56106 Closing
+[Sun May 17 08:01:11 2026] [::1]:56108 [404]: GET /images/news/news01-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56108 Closing
+[Sun May 17 08:01:11 2026] [::1]:56122 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56134 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56136 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56142 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56150 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56154 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56122 [404]: GET /images/news/news01-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56122 Closing
+[Sun May 17 08:01:11 2026] [::1]:56134 [404]: GET /images/news/news04-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56134 Closing
+[Sun May 17 08:01:11 2026] [::1]:56136 [404]: GET /images/news/news04-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56136 Closing
+[Sun May 17 08:01:11 2026] [::1]:56142 [404]: GET /images/news/news04-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56142 Closing
+[Sun May 17 08:01:11 2026] [::1]:56150 [404]: GET /images/news/news03-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56150 Closing
+[Sun May 17 08:01:11 2026] [::1]:56154 [404]: GET /images/news/news03-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56154 Closing
+[Sun May 17 08:01:11 2026] [::1]:56156 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56158 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56160 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56172 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56186 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56156 [404]: GET /images/news/news03-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56188 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56156 Closing
+[Sun May 17 08:01:11 2026] [::1]:56158 [404]: GET /images/news/news02-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56158 Closing
+[Sun May 17 08:01:11 2026] [::1]:56160 [404]: GET /images/news/news02-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56160 Closing
+[Sun May 17 08:01:11 2026] [::1]:56172 [404]: GET /images/news/news02-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56172 Closing
+[Sun May 17 08:01:11 2026] [::1]:56186 [404]: GET /images/news/news09-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56186 Closing
+[Sun May 17 08:01:11 2026] [::1]:56188 [404]: GET /images/news/news09-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56188 Closing
+[Sun May 17 08:01:11 2026] [::1]:56190 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56206 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56222 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56226 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56238 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56246 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56190 [404]: GET /images/news/news09-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56190 Closing
+[Sun May 17 08:01:11 2026] [::1]:56206 [404]: GET /images/news/news07-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56206 Closing
+[Sun May 17 08:01:11 2026] [::1]:56222 [404]: GET /images/news/news00-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56222 Closing
+[Sun May 17 08:01:11 2026] [::1]:56226 [404]: GET /images/news/news00-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56226 Closing
+[Sun May 17 08:01:11 2026] [::1]:56238 [404]: GET /images/news/news00-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56238 Closing
+[Sun May 17 08:01:11 2026] [::1]:56246 [404]: GET /images/news/news000-A.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56246 Closing
+[Sun May 17 08:01:11 2026] [::1]:56262 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56276 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56262 [404]: GET /images/news/news000-B.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56262 Closing
+[Sun May 17 08:01:11 2026] [::1]:56276 [404]: GET /images/news/news000-C.jpg - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56276 Closing
+[Sun May 17 08:01:11 2026] [::1]:56288 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56298 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56288 [404]: GET /fonts/Vazirmatn-Regular.woff2 - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56300 Accepted
+[Sun May 17 08:01:11 2026] [::1]:56288 Closing
+[Sun May 17 08:01:11 2026] [::1]:56298 [404]: GET /fonts/Vazirmatn-ExtraBold.woff2 - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56298 Closing
+[Sun May 17 08:01:11 2026] [::1]:56300 [404]: GET /fonts/Vazirmatn-Bold.woff2 - No such file or directory
+[Sun May 17 08:01:11 2026] [::1]:56300 Closing

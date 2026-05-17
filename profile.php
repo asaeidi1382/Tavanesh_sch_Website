@@ -19,11 +19,11 @@ $fullName = $_SESSION['full_name'] ?? $_SESSION['username'];
 <title>پروفایل من — دبیرستان توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -61,19 +61,26 @@ main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
   .profile-grid { grid-template-columns: 1fr; }
 }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو"></div>
-      <div class="brand-title">پروفایل دانش‌آموز</div>
-    </div>
-    <a href="dashboard.php" class="btn-back">→ بازگشت</a>
-  </div>
-</header>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<main>
+
+
+
+
+
+
+
+
+
+
+
+
   <div class="card">
     <h2>👤 اطلاعات شناسایی و تحصیلی</h2>
     <div class="profile-grid">
@@ -98,6 +105,11 @@ main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
       <div class="info-item" style="grid-column: span 2;"><span class="info-label">آدرس منزل</span><span class="info-value"><?= htmlspecialchars($profile['address'] ?: '—') ?></span></div>
     </div>
   </div>
+
+
+
+
 </main>
+</div>
 </body>
 </html>

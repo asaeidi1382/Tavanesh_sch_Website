@@ -223,9 +223,30 @@ button{
 
 </style>
 
+  <?php include 'header_styles.php'; ?>
 </head>
 
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <div class="container">
 
@@ -335,6 +356,13 @@ button{
 
 </div>
 
-</body>
 
+
+
+
+
+
+</main>
+</div>
+</body>
 </html>

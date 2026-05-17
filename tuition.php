@@ -53,11 +53,11 @@ $statusClass = ['paid'=>'paid','partial'=>'partial','unpaid'=>'unpaid'];
 <title>اقساط شهریه — توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -152,25 +152,32 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
   .progress-wrap { flex-direction:column; align-items:flex-end; gap:4px; }
 }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو توانش"></div>
-      <div>
-        <div class="brand-title">دبیرستان دخترانه توانش</div>
-        <div class="brand-sub">اقساط شهریه</div>
-      </div>
-    </div>
-    <div class="topbar-left">
-      <a href="dashboard.php" class="btn-back">→ بازگشت</a>
-    </div>
-  </div>
-</header>
 
-<main>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   <div class="page-header">
     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div>
@@ -266,6 +273,13 @@ tbody td { padding:14px 16px; font-size:.9rem; vertical-align:middle; }
   </div>
 
   <?php endif; ?>
+
+
+
+
+
+
 </main>
+</div>
 </body>
 </html>

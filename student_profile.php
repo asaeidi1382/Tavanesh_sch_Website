@@ -41,11 +41,11 @@ $display_name = trim(($student['first_name'] ?? '') . ' ' . ($student['last_name
 <title>پروفایل دانش‌آموز — <?= htmlspecialchars($display_name) ?></title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -83,19 +83,26 @@ main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
   .profile-grid { grid-template-columns: 1fr; }
 }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو"></div>
-      <div class="brand-title">پروفایل دانش‌آموز</div>
-    </div>
-    <a href="<?= isset($_SESSION['is_admin']) ? 'admin.php?tab=students' : 'dashboard.php' ?>" class="btn-back">→ بازگشت</a>
-  </div>
-</header>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<main>
+
+
+
+
+
+
+
+
+
+
+
+
   <div class="card">
     <div style="margin-bottom:30px; text-align:center;">
         <div style="width:120px; height:120px; border-radius:50%; overflow:hidden; margin:0 auto 20px; border:4px solid var(--turquoise-light); box-shadow:var(--shadow-md); background:#fff; display:flex; align-items:center; justify-content:center; font-size:60px;">
@@ -130,6 +137,11 @@ main { max-width:900px; margin:32px auto; padding:0 20px 60px; }
       <div class="info-item" style="grid-column: span 2;"><span class="info-label">آدرس منزل</span><span class="info-value"><?= nl2br(htmlspecialchars($student['address'] ?: '—')) ?></span></div>
     </div>
   </div>
+
+
+
+
 </main>
+</div>
 </body>
 </html>

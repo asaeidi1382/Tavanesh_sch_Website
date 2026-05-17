@@ -45,29 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <style>
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Light.woff2') format('woff2');
-  font-weight:300;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
-  font-weight:400;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
-  font-weight:700;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');
-  font-weight:800;
-}
+
+
+
+
 
 *{
   margin:0;
@@ -328,9 +312,25 @@ body {
 
 </style>
 
+  <?php include 'header_styles.php'; ?>
 </head>
 
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
 
 <div class="login-card">
 
@@ -401,6 +401,11 @@ body {
 
 </div>
 
-</body>
 
+
+
+
+</main>
+</div>
+</body>
 </html>

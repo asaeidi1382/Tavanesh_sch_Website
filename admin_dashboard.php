@@ -27,29 +27,13 @@ $adminName = $_SESSION['admin_name'] ?? 'مدیریت';
 
 <style>
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Light.woff2') format('woff2');
-  font-weight:300;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
-  font-weight:400;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
-  font-weight:700;
-}
 
-@font-face {
-  font-family:'Vazirmatn';
-  src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2');
-  font-weight:800;
-}
+
+
+
+
 
 *{
   margin:0;
@@ -336,70 +320,28 @@ main {
 
 </style>
 
+  <?php include 'header_styles.php'; ?>
 </head>
 
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<header class="topbar">
 
-  <div class="topbar-inner">
 
-    <div class="brand">
 
-      <div class="brand-logo">
 
-        <img src="/images/logo-Tw.png">
 
-      </div>
 
-      <div>
 
-        <div class="brand-title">
-          دبیرستان دخترانه توانش
-        </div>
 
-        <div class="brand-sub">
-          پنل مدیریت مدرسه
-        </div>
 
-      </div>
 
-    </div>
 
-<div style="display:flex;align-items:center;gap:12px;">
 
-  <div class="user-box">
 
-    👤 <?= htmlspecialchars($adminName) ?>
-
-  </div>
-
-  <a href="logout_admin.php"
-     style="
-        background:rgba(255,255,255,.16);
-        border:1px solid rgba(255,255,255,.24);
-        color:#fff;
-        text-decoration:none;
-        padding:10px 16px;
-        border-radius:12px;
-        font-size:.88rem;
-        font-weight:700;
-        transition:.25s;
-     "
-     onmouseover="this.style.background='rgba(255,255,255,.24)'"
-     onmouseout="this.style.background='rgba(255,255,255,.16)'">
-
-     خروج
-
-  </a>
-
-</div>
-
-  </div>
-
-</header>
-
-<main>
 
   <div class="welcome">
 
@@ -479,8 +421,12 @@ main {
 
   </div>
 
+
+
+
+
+
 </main>
-
+</div>
 </body>
-
 </html>

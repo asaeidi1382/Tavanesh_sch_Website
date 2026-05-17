@@ -80,8 +80,8 @@ foreach ($existing_scores_raw as $s) {
 <title>ثبت نمرات — <?= htmlspecialchars($exam['title']) ?></title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
+
+
 body { font-family:'Vazirmatn', sans-serif; background:#f5fbfd; color:#0f3d42; padding:20px; line-height:1.6; }
 .container { max-width:1000px; margin:0 auto; }
 .card { background:#fff; border-radius:18px; padding:25px; box-shadow:0 4px 15px rgba(0,0,0,.05); border:1.5px solid #e6f8fa; margin-bottom:20px; }
@@ -100,8 +100,24 @@ input[type=number], input[type=text], select { padding:8px; border-radius:8px; b
 .alert-success { background:#e6f9f0; color:#1a9960; border:1px solid #d1f2e1; }
 .alert-error { background:#fceaea; color:#c94040; border:1px solid #f9d6d6; }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
+
+
+
+
+
+
+
+
+
+
+
 <div class="container">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <h1>📝 ثبت نمرات</h1>
@@ -170,6 +186,12 @@ input[type=number], input[type=text], select { padding:8px; border-radius:8px; b
             </div>
         </div>
     </form>
+</div>
+
+
+
+
+</main>
 </div>
 </body>
 </html>

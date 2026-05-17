@@ -1010,10 +1010,10 @@ $tab = $_GET['tab'] ?? 'db_mgmt';
 <title>پنل مدیریت — توانش</title>
 <link rel="icon" href="/images/logo-T.png" type="image/png">
 <style>
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Light.woff2') format('woff2'); font-weight:300; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-Bold.woff2') format('woff2'); font-weight:700; font-display:swap; }
-@font-face { font-family:'Vazirmatn'; src:url('/fonts/Vazirmatn-ExtraBold.woff2') format('woff2'); font-weight:800; font-display:swap; }
+
+
+
+
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -1106,45 +1106,24 @@ tbody td { padding:11px 14px; font-size:.88rem; }
     }
 }
 </style>
+  <?php include 'header_styles.php'; ?>
 </head>
 <body>
+<?php include 'topbar.php'; ?>
+<div class="layout">
+<?php include 'sidebar.php'; ?>
+<main class="content">
 
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-logo"><img src="/images/logo-Tw.png" alt="لوگو"></div>
-      <div>
-        <div class="brand-title">پنل مدیریت توانش</div>
-        <div class="brand-sub">مدیریت دانش‌آموزان و اقساط</div>
-      </div>
-    </div>
-    <?php if ($isAdmin): ?>
-    <div style="display:flex; align-items:center; gap:20px;">
-        <div id="live-clock" style="display:flex; align-items:center; gap:20px; color: #fff; font-size: 1.05rem; background: rgba(0,0,0,0.15); padding: 8px 18px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.25); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity: 0.8; font-size: 0.85rem;">📅</span>
-                <span>امروز: <strong><?= to_persian_num(get_jalali_today()) ?></strong></span>
-            </div>
-            <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2);"></div>
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="opacity: 0.8; font-size: 0.85rem;">🕒</span>
-                <span id="clock-time" style="font-weight: 800; letter-spacing: 1.5px; font-variant-numeric: tabular-nums;">۰۰:۰۰:۰۰</span>
-            </div>
-        </div>
-        <form method="POST" style="display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.1); padding:5px 10px; border-radius:10px;">
-            <label style="color:#fff; margin-bottom:0; font-size:0.75rem;">سال تحصیلی:</label>
-            <select name="active_year" onchange="this.form.submit()" style="background:transparent; border:none; color:#fff; font-family:Vazirmatn; font-size:0.85rem; outline:none; cursor:pointer;">
-                <?php foreach ($academic_years as $y): ?>
-                    <option value="<?= $y ?>" <?= $y===$active_year?'selected':'' ?> style="color:#000;"><?= to_persian_num($y) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <input type="hidden" name="set_active_year" value="1">
-        </form>
-        <a href="admin.php?logout_admin=1" class="btn-sm">خروج از پنل</a>
-    </div>
-    <?php endif; ?>
-  </div>
-</header>
+
+
+
+
+
+
+
+
+
+
 
 <?php if (!$isAdmin): ?>
 <!-- ─── فرم ورود ─── -->
@@ -1166,7 +1145,8 @@ tbody td { padding:11px 14px; font-size:.88rem; }
 
 <?php else: ?>
 <!-- ─── پنل اصلی ─── -->
-<main>
+
+
 
   <?php foreach ($msgs as $m): ?>
     <div class="alert <?= $m['type'] ?>"><?= htmlspecialchars($m['text']) ?></div>
@@ -2439,7 +2419,7 @@ tbody td { padding:11px 14px; font-size:.88rem; }
   </div>
   <?php endif; ?>
 
-</main>
+
 <?php endif; ?>
 
 <script>
@@ -2528,5 +2508,10 @@ function sortTable(n) {
 }
 </script>
 
+
+
+
+</main>
+</div>
 </body>
 </html>
